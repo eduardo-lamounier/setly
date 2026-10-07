@@ -60,6 +60,10 @@ func GetOptions() (Options, error) {
 		sourceFileSpecified = true
 	}
 
+	if sourceFileSpecified && !strings.HasSuffix(opts.SourceFilePath, ".setly") {
+		errs = append(errs, fmt.Errorf("the source file should have the \".setly\" file extension"))
+	}
+
 	if len(errs) > 0 {
 		return Options{}, errors.Join(errs...)
 	}
