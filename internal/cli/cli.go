@@ -20,14 +20,14 @@ type Options struct {
 	ShowHelp    bool
 	ShowVersion bool
 
-	SourceFilePath string
+	SourceFilePath *string
 }
 
 func GetOptions() (Options, error) {
 	args := os.Args[1:]
 
 	if len(args) == 0 {
-		return Options{}, fmt.Errorf("no arguments, flags, or options were passed to the program")
+		return Options{}, nil // Should run interactively
 	}
 
 	opts := Options{
@@ -40,7 +40,6 @@ func GetOptions() (Options, error) {
 	}
 
 	errs := []error{}
-	sourceFileSpecified := false
 
 	for _, arg := range args {
 		if len(arg) >= 2 && strings.HasPrefix(arg, "-") {
@@ -48,7 +47,7 @@ func GetOptions() (Options, error) {
 			continue
 		}
 
-		if sourceFileSpecified {
+		if opts.SourceFilePath != nil {
 			errs = append(
 				errs,
 				fmt.Errorf("too many arguments passed to the program: expected only one main source file"),
@@ -56,11 +55,10 @@ func GetOptions() (Options, error) {
 			continue
 		}
 
-		opts.SourceFilePath = arg
-		sourceFileSpecified = true
+		opts.SourceFilePath = &arg
 	}
 
-	if sourceFileSpecified && !strings.HasSuffix(opts.SourceFilePath, ".setly") {
+	if opts.SourceFilePath != nil && !strings.HasSuffix(*opts.SourceFilePath, ".setly") {
 		errs = append(errs, fmt.Errorf("the source file should have the \".setly\" file extension"))
 	}
 
