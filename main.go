@@ -25,7 +25,27 @@ func main() {
 		return
 	} else if opts.ShowVersion {
 		fmt.Println(appName, appVersion)
+		return
 	}
+
+	if opts.SourceFilePath == nil {
+		err = RunPrompt()
+	} else {
+		err = RunFile(*opts.SourceFilePath)
+	}
+
+	if err != nil {
+		printError(err)
+		os.Exit(1)
+	}
+}
+
+func RunPrompt() error {
+	return fmt.Errorf("REPL mode not yet implemented")
+}
+
+func RunFile(sourceFilePath string) error {
+	return fmt.Errorf("file running mode not yet implemented")
 }
 
 func printError(err error) {
