@@ -20,7 +20,7 @@ type Options struct {
 	ShowHelp    bool
 	ShowVersion bool
 
-	SourceFile string
+	SourceFilePath string
 }
 
 func GetOptions() (Options, error) {
@@ -49,11 +49,14 @@ func GetOptions() (Options, error) {
 		}
 
 		if sourceFileSpecified {
-			return Options{},
-				fmt.Errorf("too many arguments passed to the program: expected only one main source file")
+			errs = append(
+				errs,
+				fmt.Errorf("too many arguments passed to the program: expected only one main source file"),
+			)
+			continue
 		}
 
-		opts.SourceFile = arg
+		opts.SourceFilePath = arg
 		sourceFileSpecified = true
 	}
 
