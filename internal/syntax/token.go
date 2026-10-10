@@ -32,8 +32,8 @@ const (
 	TokenLessEqual
 
 	TokenID
-	TokenStr
-	TokenNum
+	TokenString
+	TokenNumber
 
 	TokenFalse
 	TokenTrue
