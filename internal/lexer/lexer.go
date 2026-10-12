@@ -155,6 +155,7 @@ func (l *lexer) scanToken() {
 			for ; !l.atEnd(); l.advance() {
 				if l.peek() == '\n' {
 					l.lexemeBegins()
+					l.advance()
 					l.addToken(syntax.TokenNewline)
 					break
 				}
