@@ -110,6 +110,12 @@ func (l *lexer) reportAt(line int, col int, loc int, message string) {
 }
 
 func (l *lexer) addToken(kind syntax.TokenKind) {
+	l.addLiteralToken(kind, nil)
+}
+
+func (l *lexer) addLiteralToken(
+	kind syntax.TokenKind, literal any,
+) {
 	line := l.Line
 	col := l.Col
 
@@ -123,24 +129,13 @@ func (l *lexer) addToken(kind syntax.TokenKind) {
 	}
 
 	l.Tokens = append(l.Tokens, syntax.Token{
-		Kind:   kind,
-		Lexeme: l.Source[l.Start:l.Pos],
-		Line:   line,
-		Col:    col,
-		Loc:    l.Start,
-	})
-}
-
-func (l *lexer) addLiteralToken(
-	kind syntax.TokenKind, literal any,
-) {
-	l.Tokens = append(l.Tokens, syntax.Token{
 		Kind:    kind,
 		Lexeme:  l.Source[l.Start:l.Pos],
 		Literal: literal,
-		Line:    l.Line,
-		Col:     l.Col,
-		Loc:     l.Pos,
+
+		Line: line,
+		Col:  col,
+		Loc:  l.Start,
 	})
 }
 
