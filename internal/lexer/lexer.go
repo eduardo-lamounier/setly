@@ -276,10 +276,9 @@ func (l *lexer) scanToken() {
 			if tk, isKeyword := syntax.KeywordForLexeme[s]; isKeyword {
 				l.addToken(tk)
 			} else {
-				l.addToken(syntax.TokenID)
+				l.addLiteralToken(syntax.TokenID, s)
 			}
 
-			l.advanceBy(len(s))
 			break
 		}
 
