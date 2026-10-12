@@ -56,7 +56,7 @@ func (l lexer) peekAfter(n int) byte {
 }
 
 func (l lexer) peekSub(n int) string {
-	return l.Source[l.Pos : l.Pos+n-1]
+	return l.Source[l.Pos:min(len(l.Source), l.Pos+n)]
 }
 
 func (l *lexer) matchSub(expected string, n int) bool {
