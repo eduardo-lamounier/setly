@@ -59,7 +59,7 @@ func (l lexer) peekSub(n int) string {
 	return l.Source[l.Pos:min(len(l.Source), l.Pos+n)]
 }
 
-func (l *lexer) matchSub(expected string, n int) bool {
+func (l *lexer) matchSub(n int, expected ...string) bool {
 	if n < 0 {
 		n = len(expected)
 	}
@@ -68,7 +68,7 @@ func (l *lexer) matchSub(expected string, n int) bool {
 		return false
 	}
 
-	if l.Source[l.Pos:l.Pos+n] != expected {
+	if !slices.Contains(expected, l.Source[l.Pos:l.Pos+n]) {
 		return false
 	}
 
