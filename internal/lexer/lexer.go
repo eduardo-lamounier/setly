@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strconv"
 	"unicode"
+	"unicode/utf8"
 
 	"github.com/eduardo-lamounier/setly/internal/diagnostics"
 	"github.com/eduardo-lamounier/setly/internal/syntax"
@@ -30,13 +31,20 @@ func (l lexer) atEnd() bool {
 
 func (l *lexer) advanceBy(n int) {
 	for range n {
-		if l.peek() == '\n' {
+		if l.atEnd() {
+			return
+		}
+
+		r, size := utf8.DecodeRuneInString(l.Source[l.Pos:])
+
+		if r == '\n' {
 			l.Line++
 			l.Col = 0
 		} else {
 			l.Col++
 		}
-		l.Pos++
+
+		l.Pos += size
 	}
 }
 
@@ -46,18 +54,22 @@ func (l *lexer) finish() {
 	l.Pos = len(l.Source)
 }
 
-func (l lexer) peek() byte {
-	if l.atEnd() {
-		return '\x00'
+func (l lexer) peekNext() rune {
+	if l.Pos+1 >= len(l.Source) {
+		return 0
 	}
-	return l.Source[l.Pos]
+
+	r, _ := utf8.DecodeRuneInString(l.Source[l.Pos+1:])
+	return r
 }
 
-func (l lexer) peekAfter(n int) byte {
-	if l.Pos+n >= len(l.Source) {
-		return '\x00'
+func (l lexer) peek() rune {
+	if l.atEnd() {
+		return 0
 	}
-	return l.Source[l.Pos+n]
+
+	r, _ := utf8.DecodeRuneInString(l.Source[l.Pos:])
+	return r
 }
 
 func (l lexer) peekSub(n int) string {
@@ -259,14 +271,14 @@ func (l *lexer) scanToken() {
 
 	default:
 		// Number literal:
-		if unicode.IsDigit(rune(chr)) {
-			for ; unicode.IsDigit(rune(l.peek())); l.advance() {
+		if unicode.IsDigit(chr) {
+			for ; unicode.IsDigit(l.peek()); l.advance() {
 			}
 
-			if l.peek() == '.' && unicode.IsDigit(rune(l.peekAfter(1))) {
+			if l.peek() == '.' && unicode.IsDigit(l.peekNext()) {
 				l.advance() // Consumes the .
 
-				for ; unicode.IsDigit(rune(l.peek())); l.advance() {
+				for ; unicode.IsDigit(l.peek()); l.advance() {
 				}
 			}
 
@@ -280,8 +292,8 @@ func (l *lexer) scanToken() {
 		}
 
 		// Identifier:
-		if unicode.IsLetter(rune(chr)) {
-			for ; unicode.IsLetter(rune(l.peek())) || unicode.IsNumber(rune(l.peek())); l.advance() {
+		if unicode.IsLetter(chr) {
+			for ; unicode.IsLetter(l.peek()) || unicode.IsNumber(l.peek()); l.advance() {
 			}
 
 			s := l.Source[l.Start:l.Pos]
