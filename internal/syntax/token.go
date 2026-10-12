@@ -64,3 +64,22 @@ type Token struct {
 	Col  int
 	Loc  int
 }
+
+var KeywordForLexeme = map[string]TokenKind{
+	"false":   TokenFalse,
+	"true":    TokenTrue,
+	"nil":     TokenNil,
+	"and":     TokenAnd,
+	"or":      TokenOr,
+	"not":     TokenNot,
+	"if":      TokenIf,
+	"else":    TokenElse,
+	"elif":    TokenElif,
+	"while":   TokenWhile,
+	"for":     TokenFor,
+	"print":   TokenPrint,
+	"println": TokenPrintln,
+	"fn":      TokenFn,
+	"return":  TokenReturn,
+	"let":     TokenLet,
+}
