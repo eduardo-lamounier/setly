@@ -300,6 +300,7 @@ func (l *lexer) insertSemicolons() {
 				syntax.TokenFalse,
 				syntax.TokenTrue,
 				syntax.TokenNil,
+				syntax.TokenID,
 				syntax.TokenReturn:
 
 				l.Tokens[i].Kind = syntax.TokenSemicolon
