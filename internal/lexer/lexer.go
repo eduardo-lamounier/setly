@@ -218,6 +218,12 @@ func (l *lexer) scanToken() {
 		}
 	case '=':
 		l.addToken(syntax.TokenEqual)
+	case '~':
+		if l.match('=') {
+			l.addToken(syntax.TokenTildeEqual)
+		} else {
+			l.reportAt(l.Line, l.Col-1, l.Pos-1, "Unexpected chracter \"~\"")
+		}
 	case '<':
 		if l.match('=') {
 			l.addToken(syntax.TokenLessEqual)
