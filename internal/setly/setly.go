@@ -1,4 +1,4 @@
-// Package setly TODO: Add package description
+// Package setly Is responsible for handling source processing and execution
 package setly
 
 import (
