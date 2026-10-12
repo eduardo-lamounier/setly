@@ -295,6 +295,7 @@ func (l *lexer) insertSemicolons() {
 		if tok.Kind == syntax.TokenNewline && i > 0 {
 			switch l.Tokens[i-1].Kind {
 			case syntax.TokenParenR,
+				syntax.TokenBraceR,
 				syntax.TokenString,
 				syntax.TokenNumber,
 				syntax.TokenFalse,
