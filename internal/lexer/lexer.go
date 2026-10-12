@@ -1,4 +1,5 @@
-// Package lexer TODO: Add package description
+// Package lexer TODO: Defines and implements functions for converting the
+// source to a sequence of tokens
 package lexer
 
 import (
