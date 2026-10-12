@@ -288,6 +288,21 @@ func (l *lexer) scanToken() {
 }
 
 func (l *lexer) insertSemicolons() {
+	for i, tok := range l.Tokens {
+		if tok.Kind == syntax.TokenNewline && i > 0 {
+			switch l.Tokens[i-1].Kind {
+			case syntax.TokenParenR,
+				syntax.TokenString,
+				syntax.TokenNumber,
+				syntax.TokenFalse,
+				syntax.TokenTrue,
+				syntax.TokenNil,
+				syntax.TokenReturn:
+
+				l.Tokens[i].Kind = syntax.TokenSemicolon
+			}
+		}
+	}
 }
 
 func Scan(source string) ([]syntax.Token, bool, []diagnostics.Diagnostic) {
