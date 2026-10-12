@@ -112,7 +112,7 @@ func (l *lexer) addToken(kind syntax.TokenKind) {
 	line := l.Line
 	col := l.Col
 
-	for i := l.Pos; i > l.Start; i-- {
+	for i := l.Pos - 1; i > l.Start; i-- {
 		if l.Source[i] == '\n' {
 			line--
 			col = 0
