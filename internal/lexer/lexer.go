@@ -42,6 +42,10 @@ func (l *lexer) advanceBy(n int) {
 
 func (l *lexer) advance() { l.advanceBy(1) }
 
+func (l *lexer) finish() {
+	l.Pos = len(l.Source)
+}
+
 func (l lexer) peek() byte {
 	if l.atEnd() {
 		return '\x00'
@@ -243,6 +247,10 @@ func (l *lexer) scanToken() {
 
 		if l.peek() == '\n' || l.atEnd() {
 			l.reportAt(line, col, l.Start, "Unterminated string.")
+			// Skips the following lines as too many
+			// unreadable errors may occur:
+			l.finish()
+			break
 		}
 
 		l.advance() // Consumes the last "
