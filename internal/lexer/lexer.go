@@ -167,10 +167,12 @@ func (l *lexer) scanToken() {
 
 		// Block comment:
 		newline := false
-		for ; !l.atEnd() || !l.matchSub("@@", -1); l.advance() {
-			if l.peek() == '\n' {
-				l.lexemeBegins()
+		for ; !l.atEnd() && l.peekSub(2) != "@@"; l.advance() {
+			if l.peek() == '\n' && !newline {
 				newline = true
+				l.lexemeBegins()
+				l.advance()
+				l.addToken(syntax.TokenNewline)
 			}
 		}
 
@@ -178,9 +180,8 @@ func (l *lexer) scanToken() {
 			l.reportAt(line, col, l.Start, "Comment block wasn't closed.")
 			break
 		}
-		if newline {
-			l.addToken(syntax.TokenNewline)
-		}
+
+		l.advanceBy(2) // Consumes the "@@"
 
 	case '(':
 		l.addToken(syntax.TokenParenL)
