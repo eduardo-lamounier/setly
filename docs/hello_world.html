@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Learn Setly through short explanations and annotated code examples.">
+  <title>Hello World — The Setly Book</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <header>
+      <p class="eyebrow">The Setly Book</p>
+      <h1><a href="index.html">Setly</a><span> / Hello world</span></h1>
+      <p class="intro"></p>
+    </header>
+    <!-- Preserve whitespace inside pre: it controls the displayed code indentation. -->
+    <section class="example">
+      <div class="explanation">
+        <p>You can use <code>println</code> to print text into the console.</p>
+      </div>
+      <pre><code><span class="keyword">println</span>(<span class="string">&quot;Hello, world!&quot;</span>)</code></pre>
+    </section>
+    <section class="example">
+      <div class="explanation">
+        <p>You can also use <code>print</code> to print without the newline. The following code is equivalent to the first.</p>
+      </div>
+      <pre><code><span class="keyword">print</span>(<span class="string">&quot;Hello, &quot;</span>)
+<span class="keyword">println</span>(<span class="string">&quot;world!&quot;</span>)</code></pre>
+    </section>
+    <section class="example">
+      <div class="explanation">
+        <h2>Running the code</h2>
+        <p>Put one of the previous example in a file <code>hello.setly</code>. You can run the program with Setly's interpreter: <code>setly hello.setly</code>.</p>
+        <p>The program's output should be "Hello, world!".
+      </div>
+    </section>
+    <section class="example">
+      <div class="explanation">
+        <h2>Comments</h2>
+        <p>An useful think to also know is how to write comments. Comments are basically things you write for yourself or another programmer, rather than for the interpreter.</p>
+        <p>That means the things you see in dark-gray are valid when though they would usually result in an error without the ats.</p>
+      </div>
+      <pre><code><span class="comment">@ This text is ignored when running</span>
+<span class="comment">@ The at begins a line comment</span>
+
+<span class="comment">@@ This right here is a command BLOCK
+It spans though multiple lines
+It opens and closes with two ats @@</span></code></pre>
+    </section>
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a></a>
+      <a href="values.html">Values →</a>
+    </nav>
+    <footer>
+      <p>By Eduardo Lamounier.</p>
+    </footer>
+  </main>
+</body>
+</html>

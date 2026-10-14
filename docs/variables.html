@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Learn Setly through short explanations and annotated code examples.">
+  <title>Variables — The Setly Book</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <header>
+      <p class="eyebrow">The Setly Book</p>
+      <h1><a href="index.html">Setly</a><span> / Variables</span></h1>
+      <p class="intro">Variables give names to mutable values.</p>
+    </header>
+    <!-- Preserve whitespace inside pre: it controls the displayed code indentation. -->
+    <section class="example">
+      <div class="explanation">
+        <h2>Declare a value</h2>
+        <p>Use the <code>let</code> keyword to declare a variable. You can also use <code>:=</code> after the variable's name to assign an initial value.</p>
+      </div>
+      <pre><code><span class="keyword">let</span> x := <span class="literal">10</span>
+<span class="keyword">let</span> y := <span class="literal">20</span></code></pre>
+    </section>
+    <section class="example">
+      <div class="explanation">
+        <p>Because no value was assigned to <code>z</code> after declaration, it defaults to <code>nil</code>.</p>
+      </div>
+      <pre><code><span class="keyword">let</span> z <span class="comment">@ Equivalent to `let z := nil`</span></code></pre>
+    </section>
+    <section class="example">
+      <div class="explanation">
+        <h2>Assign another value</h2>
+        <p>Assign a new value with <code>:=</code>. Here, <code>x</code> changes from a number to a string. This is valid, because Setly is a dynamically typed language; it lets a variable hold any type of data.</p>
+      </div>
+      <pre><code>x := <span class="string">&quot;now x is a string&quot;</span></code></pre>
+    </section>
+    <section class="example">
+      <div class="explanation">
+        <h2>Swap two variables</h2>
+        <p>Assign both values together to exchange the contents of <code>x</code> and <code>y</code>.</p>
+      </div>
+      <pre><code>x, y := y, x</code></pre>
+    </section>
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="values.html">← Values</a>
+      <a href="conditionals.html">Conditionals →</a>
+    </nav>
+    <footer>
+      <p>By Eduardo Lamounier.</p>
+    </footer>
+  </main>
+</body>
+</html>

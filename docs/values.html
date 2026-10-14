@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Learn Setly through short explanations and annotated code examples.">
+  <title>Values — The Setly Book</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <header>
+      <p class="eyebrow">The Setly Book</p>
+      <h1><a href="index.html">Setly</a><span> / Values</span></h1>
+      <p class="intro">Values are the data a program works with. Setly's basic data types are numbers, strings, booleans, and nil.</p>
+    </header>
+    <!-- Preserve whitespace inside pre: it controls the displayed code indentation. -->
+    <section class="example">
+      <div class="explanation">
+        <h2>Numbers</h2>
+        <p>Use numbers to represent quantities, like an age or a price. You can write whole numbers or use a dot for a decimal part. Put a minus sign before a number to make it negative.</p>
+        <p>You can calculate with numbers using <code>+</code> to add, <code>-</code> to subtract, <code>*</code> to multiply, and <code>/</code> to divide.</p>
+      </div>
+      <pre><code><span class="keyword">println</span>(<span class="literal">3.5</span>+<span class="literal">2</span>) <span class="comment">@ 5.5</span>
+<span class="keyword">println</span>(-<span class="literal">10</span>-<span class="literal">2</span>) <span class="comment">@ -12</span>
+<span class="keyword">println</span>(<span class="literal">10</span>*<span class="literal">2</span>) <span class="comment">@ 20</span>
+<span class="keyword">println</span>(<span class="literal">10</span>/<span class="literal">2</span>) <span class="comment">@ 5</span></code></pre>
+    </section>
+    <section class="example">
+      <div class="explanation">
+        <h2>Strings</h2>
+        <p>A string represents text. Write it between double quotes, as we did with <code>&quot;Hello, world!&quot;</code> in the previous chapter. The quotes mark where the text starts and ends; they aren't part of the printed text.</p>
+        <p>Digits inside quotes are text too: <code>&quot;42&quot;</code> is a string, while <code>42</code> is a number. You can also write an empty string with <code>&quot;&quot;</code>.</p>
+      </div>
+      <pre><code><span class="keyword">println</span>(<span class="string">&quot;Hello, world!&quot;</span>)
+<span class="keyword">println</span>(<span class="string">&quot;42&quot;</span>)
+<span class="keyword">println</span>(<span class="string">&quot;&quot;</span>) <span class="comment">@ Prints an empty line</span></code></pre>
+    </section>
+    <section class="example">
+      <div class="explanation">
+        <h2>Booleans</h2>
+        <p>A boolean has one of two values: <code>true</code> or <code>false</code>. Use booleans to represent whether something is true, like whether a player has won a game.</p>
+        <p>Comparing values also produces a boolean. Here, <code>=</code> checks for equality. We'll look into these operators in more detail in next chapters.</p>
+      </div>
+      <pre><code><span class="keyword">println</span>(<span class="literal">true</span>)
+<span class="keyword">println</span>(<span class="literal">false</span>)
+<span class="keyword">println</span>(<span class="literal">10</span> = <span class="literal">10</span>) <span class="comment">@ true</span>
+<span class="keyword">println</span>(<span class="literal">10</span> = <span class="literal">20</span>) <span class="comment">@ false</span></code></pre>
+    </section>
+    <section class="example">
+      <div class="explanation">
+        <h2>Nil</h2>
+        <p>Use <code>nil</code> to represent the absence of a value. It is different from the number <code>0</code>, an empty string, or <code>false</code>: those still represent a quantity, text, or a boolean.</p>
+      </div>
+      <pre><code><span class="keyword">println</span>(<span class="literal">nil</span>)</code></pre>
+    </section>
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="hello_world.html">← Hello world</a>
+      <a href="variables.html">Variables →</a>
+    </nav>
+    <footer>
+      <p>By Eduardo Lamounier.</p>
+    </footer>
+  </main>
+</body>
+</html>
