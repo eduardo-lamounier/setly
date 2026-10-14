@@ -23,9 +23,9 @@
       <pre><code><span class="keyword">let</span> x := <span class="literal">10</span>
 
 <span class="keyword">if</span> x ~= <span class="literal">10</span> {
-  println(<span class="string">&quot;x is not 10.&quot;</span>)
+  <span class="keyword">println</span>(<span class="string">&quot;x is not 10.&quot;</span>)
 } <span class="keyword">else</span> {
-  println(<span class="string">&quot;x is 10.&quot;</span>)
+  <span class="keyword">println</span>(<span class="string">&quot;x is 10.&quot;</span>)
 }</code></pre>
     </section>
     <section class="example">
@@ -36,9 +36,9 @@
       <pre><code><span class="keyword">let</span> y := <span class="literal">20</span>
 
 <span class="keyword">if</span> y = <span class="literal">20</span> {
-  println(<span class="string">&quot;y is 20.&quot;</span>)
+  <span class="keyword">println</span>(<span class="string">&quot;y is 20.&quot;</span>)
 } <span class="keyword">else</span> {
-  println(<span class="string">&quot;y is not 20.&quot;</span>)
+  <span class="keyword">println</span>(<span class="string">&quot;y is not 20.&quot;</span>)
 }</code></pre>
     </section>
     <section class="example">
@@ -48,7 +48,7 @@
         <p>Note we are using some new operators, Setly supports <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, and <code>&lt;=</code> as you'd probably expect.</p>
       </div>
       <pre><code><span class="keyword">if</span> x &gt;= <span class="literal">1</span> <span class="keyword">and</span> x &lt;= <span class="literal">10</span> {
-  println(<span class="string">&quot;x is between 1 and 10.&quot;</span>)
+  <span class="keyword">println</span>(<span class="string">&quot;x is between 1 and 10.&quot;</span>)
 }</code></pre>
     </section>
     <section class="example">
@@ -57,7 +57,7 @@
         <p>Use <code>or</code> when at least one condition must be true. Here, <code>x</code> must be less than 1 or greater than 10.</p>
       </div>
       <pre><code><span class="keyword">if</span> x &lt; <span class="literal">1</span> <span class="keyword">or</span> x &gt; <span class="literal">10</span> {
-  println(<span class="string">&quot;x is outside the range from 1 to 10.&quot;</span>)
+  <span class="keyword">println</span>(<span class="string">&quot;x is outside the range from 1 to 10.&quot;</span>)
 }</code></pre>
     </section>
     <section class="example">
@@ -67,7 +67,7 @@
       </div>
       <pre><code><span class="keyword">let</span> isTen := x = <span class="literal">10</span>
 <span class="keyword">if</span> <span class="keyword">not</span> isTen {
-  println(<span class="string">&quot;x is different than 10.&quot;</span>)
+  <span class="keyword">println</span>(<span class="string">&quot;x is different than 10.&quot;</span>)
 }</code></pre>
     </section>
     <nav class="chapter-nav" aria-label="Chapter navigation">
