@@ -18,14 +18,11 @@
       <div class="explanation">
         <h2>Defining a function</h2>
         <p>In this code, we define a function that prints a message into the console. This function receives a value <code>name</code>, which we call a parameter.</p>
-        <p>A parameter has a value assigned in the function call, and a function can receive multiple parameters (including 0).</p>
+        <p>A parameter has a value assigned to it in the function call, and a function can receive multiple parameters (including 0).</p>
       </div>
       <pre><code><span class="keyword">fn</span> greet(name) {
-  <span class="keyword">println</span>(<span class="string">$&quot;Hello, </span>{name}<span class="string">!&quot;</span>)
+  <span class="keyword">println</span>(<span class="string">&quot;Hello, &quot;</span>, name, <span class="string">&quot;!&quot;</span>)
 }</code></pre>
-      <div class="explanation">
-        <p>Also, the <code>$</code> operator here let's we put the value of <code>name</code> inside the string, which sometimes can come in handy.</p>
-      </div>
     </section>
     <section class="example">
       <div class="explanation">
@@ -43,7 +40,7 @@
     <section class="example">
       <div class="explanation">
         <h2>Calling a function</h2>
-        <p>We can call a function by writing its name and passing the required arguments inside parentheses. If the function returns something, we can use this value - in this case, we assign it to a variable.</p>
+        <p>We can call a function by writing its name and passing the required arguments in parentheses. If the function returns something, we can use this value - in this case, we assign it to a variable.</p>
       </div>
       <pre><code>greet(<span class="string">&quot;Eduardo&quot;</span>) <span class="comment">@ Will print &quot;Hello, Eduardo!&quot;</span>
 <span class="keyword">let</span> n := add(<span class="literal">1</span>, <span class="literal">2</span>) <span class="comment">@ Here, n will hold 3</span></code></pre>
