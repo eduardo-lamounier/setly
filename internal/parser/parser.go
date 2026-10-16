@@ -29,11 +29,11 @@ func (p parser) peek() syntax.Token {
 	return p.Tokens[p.Pos]
 }
 
-func (p *parser) expr() (syntax.Expr, bool, diagnostics.Diagnostic) {
-	return nil, false, diagnostics.Diagnostic{}
+func (p *parser) expr() (syntax.Expr, bool, *diagnostics.Diagnostic) {
+	return nil, false, nil
 }
 
-func Parse(tokens []syntax.Token) (syntax.Expr, bool, []diagnostics.Diagnostic) {
+func Parse(tokens []syntax.Token) (syntax.Expr, bool, *diagnostics.Diagnostic) {
 	p := parser{
 		Tokens: tokens,
 		Pos:    0,
