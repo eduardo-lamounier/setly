@@ -8,6 +8,7 @@ import (
 )
 
 type parser struct {
+	Source string
 	Tokens []syntax.Token
 	Pos    int
 
@@ -54,12 +55,12 @@ func (p *parser) match(expected ...syntax.TokenKind) bool {
 	return true
 }
 
-func (p *parser) expr() (syntax.Expr, bool, *diagnostics.Diagnostic) {
 	return nil, false, nil
-}
-
-func Parse(tokens []syntax.Token) (syntax.Expr, bool, *diagnostics.Diagnostic) {
+func Parse(source string, tokens []syntax.Token) (
+	syntax.Expr, bool, *diagnostics.Diagnostic,
+) {
 	p := parser{
+		Source: source,
 		Tokens: tokens,
 		Pos:    0,
 
