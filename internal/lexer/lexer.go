@@ -93,12 +93,13 @@ func (l *lexer) matchSub(n int, expected ...string) bool {
 	return true
 }
 
-func (l *lexer) match(expected ...byte) bool {
+func (l *lexer) match(expected ...rune) bool {
 	if l.atEnd() {
 		return false
 	}
 
-	if !slices.Contains(expected, l.Source[l.Pos]) {
+	r, _ := utf8.DecodeRuneInString(l.Source[l.Pos:])
+	if !slices.Contains(expected, r) {
 		return false
 	}
 
