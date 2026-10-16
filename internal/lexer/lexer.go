@@ -125,7 +125,7 @@ func (l *lexer) reportAt(line int, col int, loc int, message string) {
 	})
 }
 
-func (l *lexer) addToken(kind syntax.TokenKind) {
+func (l *lexer) emitToken(kind syntax.TokenKind) {
 	l.addLiteralToken(kind, nil)
 }
 
@@ -168,7 +168,7 @@ func (l *lexer) scanToken() {
 				if l.peek() == '\n' {
 					l.lexemeBegins()
 					l.advance()
-					l.addToken(syntax.TokenNewline)
+					l.emitToken(syntax.TokenNewline)
 					break
 				}
 			}
@@ -184,7 +184,7 @@ func (l *lexer) scanToken() {
 				newline = true
 				l.lexemeBegins()
 				l.advance()
-				l.addToken(syntax.TokenNewline)
+				l.emitToken(syntax.TokenNewline)
 			}
 		}
 
@@ -196,60 +196,60 @@ func (l *lexer) scanToken() {
 		l.advanceBy(2) // Consumes the "@@"
 
 	case '(':
-		l.addToken(syntax.TokenParenL)
+		l.emitToken(syntax.TokenParenL)
 	case ')':
-		l.addToken(syntax.TokenParenR)
+		l.emitToken(syntax.TokenParenR)
 	case '{':
-		l.addToken(syntax.TokenBraceL)
+		l.emitToken(syntax.TokenBraceL)
 	case '}':
-		l.addToken(syntax.TokenBraceR)
+		l.emitToken(syntax.TokenBraceR)
 	case ',':
-		l.addToken(syntax.TokenComma)
+		l.emitToken(syntax.TokenComma)
 	case '.':
-		l.addToken(syntax.TokenDot)
+		l.emitToken(syntax.TokenDot)
 	case ':':
 		if l.match('=') {
-			l.addToken(syntax.TokenColonEqual)
+			l.emitToken(syntax.TokenColonEqual)
 		} else {
-			l.addToken(syntax.TokenColon)
+			l.emitToken(syntax.TokenColon)
 		}
 	case ';':
-		l.addToken(syntax.TokenSemicolon)
+		l.emitToken(syntax.TokenSemicolon)
 	case '+':
-		l.addToken(syntax.TokenPlus)
+		l.emitToken(syntax.TokenPlus)
 	case '-':
-		l.addToken(syntax.TokenMinus)
+		l.emitToken(syntax.TokenMinus)
 	case '*':
-		l.addToken(syntax.TokenStar)
+		l.emitToken(syntax.TokenStar)
 	case '/':
 		if l.match('/') {
-			l.addToken(syntax.TokenSlashSlash)
+			l.emitToken(syntax.TokenSlashSlash)
 		} else {
-			l.addToken(syntax.TokenSlash)
+			l.emitToken(syntax.TokenSlash)
 		}
 	case '=':
-		l.addToken(syntax.TokenEqual)
+		l.emitToken(syntax.TokenEqual)
 	case '~':
 		if l.match('=') {
-			l.addToken(syntax.TokenTildeEqual)
+			l.emitToken(syntax.TokenTildeEqual)
 		} else {
 			l.reportAt(l.Line, l.Col-1, l.Pos-1, "Unexpected chracter \"~\"")
 		}
 	case '<':
 		if l.match('=') {
-			l.addToken(syntax.TokenLessEqual)
+			l.emitToken(syntax.TokenLessEqual)
 		} else {
-			l.addToken(syntax.TokenLess)
+			l.emitToken(syntax.TokenLess)
 		}
 	case '>':
 		if l.match('=') {
-			l.addToken(syntax.TokenGreaterEqual)
+			l.emitToken(syntax.TokenGreaterEqual)
 		} else {
-			l.addToken(syntax.TokenGreater)
+			l.emitToken(syntax.TokenGreater)
 		}
 	case ' ', '\r', '\t':
 	case '\n':
-		l.addToken(syntax.TokenNewline)
+		l.emitToken(syntax.TokenNewline)
 
 	case '"': // String literal
 		line, col := l.Line, l.Col
@@ -298,7 +298,7 @@ func (l *lexer) scanToken() {
 
 			s := l.Source[l.Start:l.Pos]
 			if tk, isKeyword := syntax.KeywordForLexeme[s]; isKeyword {
-				l.addToken(tk)
+				l.emitToken(tk)
 			} else {
 				l.addLiteralToken(syntax.TokenID, s)
 			}
@@ -347,7 +347,7 @@ func Scan(source string) ([]syntax.Token, bool, []diagnostics.Diagnostic) {
 	}
 
 	l.lexemeBegins()
-	l.addToken(syntax.TokenEOF)
+	l.emitToken(syntax.TokenEOF)
 
 	l.insertSemicolons() // Replaces some newlines with semicolons
 
