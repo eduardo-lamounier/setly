@@ -1,4 +1,4 @@
-// Package lexer TODO: Defines and implements functions for converting the
+// Package lexer Defines and implements functions for converting the
 // source to a sequence of tokens
 package lexer
 
