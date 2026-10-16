@@ -58,3 +58,34 @@ func ShowExpr(e Expr) {
 func (e LiteralExpr) Literal() any {
 	return e.LiteralToken.Literal
 }
+
+func NewUnaryExpr(operator Token, operand Expr) UnaryExpr {
+	return UnaryExpr{
+		Operator: operator,
+		Operand:  operand,
+	}
+}
+
+func NewBinaryExpr(operator Token, left Expr, right Expr) BinaryExpr {
+	return BinaryExpr{
+		Operator: operator,
+		Operands: [...]Expr{left, right},
+	}
+}
+
+func NewGroupingExpr(inner Expr) GroupingExpr {
+	return GroupingExpr{
+		Inner: inner,
+	}
+}
+
+func NewLiteralExpr(literal Token) LiteralExpr {
+	switch literal.Kind {
+	case TokenNil, TokenFalse, TokenTrue, TokenString, TokenNumber:
+		return LiteralExpr{
+			LiteralToken: literal,
+		}
+	default:
+		panic(fmt.Sprint("Non-literal token ", literal, " passed to the constructor of LiteralExpr."))
+	}
+}
