@@ -29,6 +29,31 @@ func (p parser) peek() syntax.Token {
 	return p.Tokens[p.Pos]
 }
 
+func (p parser) prev() syntax.Token {
+	return p.Tokens[p.Pos-1]
+}
+
+func (p parser) check(expected syntax.TokenKind) bool {
+	if p.atEnd() {
+		return false
+	}
+
+	return p.peek().Kind == expected
+}
+
+func (p *parser) match(expected ...syntax.TokenKind) bool {
+	if p.atEnd() {
+		return false
+	}
+
+	if !slices.Contains(expected, p.peek().Kind) {
+		return false
+	}
+
+	p.advance()
+	return true
+}
+
 func (p *parser) expr() (syntax.Expr, bool, *diagnostics.Diagnostic) {
 	return nil, false, nil
 }
