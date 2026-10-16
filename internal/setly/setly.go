@@ -7,7 +7,6 @@ import (
 	"github.com/eduardo-lamounier/setly/internal/diagnostics"
 	"github.com/eduardo-lamounier/setly/internal/lexer"
 	"github.com/eduardo-lamounier/setly/internal/parser"
-	"github.com/eduardo-lamounier/setly/internal/syntax"
 )
 
 func Run(source string) error {
@@ -22,7 +21,7 @@ func Run(source string) error {
 
 	fmt.Println("Expression:")
 	if expr != nil {
-		syntax.ShowExpr(expr)
+		fmt.Println(expr)
 	}
 
 	if hadError {

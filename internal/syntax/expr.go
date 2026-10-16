@@ -3,7 +3,7 @@ package syntax
 import "fmt"
 
 type Expr interface {
-	print()
+	fmt.Stringer
 }
 
 type UnaryExpr struct {
@@ -24,33 +24,21 @@ type LiteralExpr struct {
 	LiteralToken Token
 }
 
-func (e UnaryExpr) print() {
-	fmt.Printf("%s[ ", e.Operator.Lexeme)
-	e.Operand.print()
-	fmt.Print(" ]")
+func (e UnaryExpr) String() string {
+	return fmt.Sprintf("%s[ %s ]", e.Operator.Lexeme, e.Operand)
 }
 
-func (e BinaryExpr) print() {
-	fmt.Printf("%s[ ", e.Operator.Lexeme)
-	e.Operands[0].print()
-	fmt.Print(", ")
-	e.Operands[1].print()
-	fmt.Print(" ]")
+func (e BinaryExpr) String() string {
+	return fmt.Sprintf("%s[ %s, %s ]", e.Operator.Lexeme,
+		e.Operands[0], e.Operands[1])
 }
 
-func (e GroupingExpr) print() {
-	fmt.Print("( ")
-	e.Inner.print()
-	fmt.Print(" )")
+func (e GroupingExpr) String() string {
+	return fmt.Sprint("( ", e.Inner, " )")
 }
 
-func (e LiteralExpr) print() {
-	fmt.Print(e.LiteralToken.Literal)
-}
-
-func ShowExpr(e Expr) {
-	e.print()
-	fmt.Println()
+func (e LiteralExpr) String() string {
+	return fmt.Sprint(e.LiteralToken.Literal)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
