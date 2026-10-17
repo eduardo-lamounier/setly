@@ -84,19 +84,8 @@ func (p *parser) primary() (syntax.Expr, bool, *diagnostics.Diagnostic) {
 			return nil, true, d
 		}
 
-		if !p.check(syntax.TokenParenR) {
-			t := p.peek()
-			return nil, true, &diagnostics.Diagnostic{
-				Line:    t.Line,
-				Col:     t.Col,
-				Loc:     t.Loc,
-				Message: "Expected ')' after expression.",
-				Source:  p.Source,
-			}
-		}
-
-		if !p.check(syntax.TokenParenR) {
-			return nil, true, p.error(p.peek(),
+		if !p.match(syntax.TokenParenR) {
+			return nil, true, p.error(p.prev(),
 				fmt.Sprintf("Expected ')', got '%s'.", p.peek().Lexeme))
 		}
 
