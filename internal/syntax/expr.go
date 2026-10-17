@@ -69,7 +69,22 @@ func NewGroupingExpr(inner Expr) GroupingExpr {
 
 func NewLiteralExpr(literal Token) LiteralExpr {
 	switch literal.Kind {
-	case TokenNil, TokenFalse, TokenTrue, TokenString, TokenNumber:
+	case TokenString, TokenNumber:
+		return LiteralExpr{
+			LiteralToken: literal,
+		}
+	case TokenNil:
+		literal.Literal = nil
+		return LiteralExpr{
+			LiteralToken: literal,
+		}
+	case TokenFalse:
+		literal.Literal = false
+		return LiteralExpr{
+			LiteralToken: literal,
+		}
+	case TokenTrue:
+		literal.Literal = true
 		return LiteralExpr{
 			LiteralToken: literal,
 		}
