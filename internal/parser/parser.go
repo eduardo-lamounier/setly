@@ -85,7 +85,7 @@ func (p *parser) primary() (syntax.Expr, bool, *diagnostics.Diagnostic) {
 		}
 
 		if !p.match(syntax.TokenParenR) {
-			return nil, true, p.error(p.prev(),
+			return nil, true, p.error(p.peek(),
 				fmt.Sprintf("Expected ')', got '%s'.", p.peek().Lexeme))
 		}
 
