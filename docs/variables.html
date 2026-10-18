@@ -12,36 +12,43 @@
     <header>
       <p class="eyebrow">The Setly Book</p>
       <h1><a href="index.html">Setly</a><span> / Variables</span></h1>
-      <p class="intro">Variables give names to mutable values.</p>
+      <p class="intro">Variables give names to fixed-type mutable values.</p>
     </header>
     <!-- Preserve whitespace inside pre: it controls the displayed code indentation. -->
     <section class="example">
       <div class="explanation">
         <h2>Declare a value</h2>
-        <p>Use the <code>let</code> keyword to declare a variable. You can also use <code>:=</code> after the variable's name to assign an initial value.</p>
+        <p>Use the <code>let</code> keyword to declare a variable, followed by the variable name and its type. You use <code>:=</code> to assign the variable an initial value of that type.</p>
       </div>
-      <pre><code><span class="keyword">let</span> x := <span class="literal">10</span>
-<span class="keyword">let</span> y := <span class="literal">20</span></code></pre>
-    </section>
-    <section class="example">
-      <div class="explanation">
-        <p>Since no value was assigned to <code>z</code> after the declaration, it defaults to <code>nil</code>.</p>
-      </div>
-      <pre><code><span class="keyword">let</span> z <span class="comment">@ Equivalent to `let z := nil`</span></code></pre>
+      <pre><code><span class="keyword">let</span> x <span class="type">number</span> := <span class="literal">10</span></code></pre>
     </section>
     <section class="example">
       <div class="explanation">
         <h2>Assign another value</h2>
-        <p>Assign a new value with <code>:=</code>. Here, <code>x</code> changes from a number to a string. This is valid, because Setly is a dynamically typed language; it lets a variable hold any type of data.</p>
+        <p>A declared variable can have its value changed by using <code>:=</code>, but the value must also be of the variable's type.</p>
       </div>
-      <pre><code>x := <span class="string">&quot;now x is a string&quot;</span></code></pre>
+      <pre><code>x := <span class="string">&quot;Hello, world&quot;</span> <span class="comment">@ Is invalid</span>
+x := <span class="literal">20</span> <span class="comment">@ Is valid</span></code></pre>
     </section>
     <section class="example">
       <div class="explanation">
-        <h2>Swap two variables</h2>
-        <p>Assign both values together to exchange the contents of <code>x</code> and <code>y</code>.</p>
+        <h2>Using a variable's value</h2>
+        <p>By writing the variable's name were something is expected, you use that variable's value in that moment of the program.</p>
       </div>
-      <pre><code>x, y := y, x</code></pre>
+      <pre><code><span class="keyword">println</span>(x) <span class="comment">@ Prints the value of 'x'</span>
+x := x + <span class="literal">1</span> <span class="comment">@ Increments 'x' by one</span></code></pre>
+    </section>
+    <section class="example">
+      <div class="explanation">
+        <h2>Union types</h2>
+        <p>Unions let you define multiple possible types of values for a variable. <code>y</code> can hold a value of type <code>number</code>, but it can also be <code>nil</code>.</p>
+      </div>
+      <pre><code><span class="keyword">let</span> y <span class="type">number</span> | <span class="type">nil</span>
+
+y := <span class="literal">1</span> <span class="comment">@ Is valid</span>
+y := <span class="literal">nil</span> <span class="comment">@ Is valid</span>
+y := <span class="string">"Hello"</span> <span class="comment">@ Is invalid</span>
+</code></pre>
     </section>
     <nav class="chapter-nav" aria-label="Chapter navigation">
       <a href="values.html">← Values</a>
