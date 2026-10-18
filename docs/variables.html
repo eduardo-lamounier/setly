@@ -33,7 +33,7 @@ x := <span class="literal">20</span> <span class="comment">@ Is valid</span></co
     <section class="example">
       <div class="explanation">
         <h2>Using a variable's value</h2>
-        <p>By writing the variable's name were something is expected, you use that variable's value in that moment of the program.</p>
+        <p>By writing the variable's name where an expression is expected, you use that variable's value in that moment of the program.</p>
       </div>
       <pre><code><span class="keyword">println</span>(x) <span class="comment">@ Prints the value of 'x'</span>
 x := x + <span class="literal">1</span> <span class="comment">@ Increments 'x' by one</span></code></pre>
@@ -42,11 +42,11 @@ x := x + <span class="literal">1</span> <span class="comment">@ Increments 'x' b
       <div class="explanation">
         <h2>Union types</h2>
         <p>Unions let you define multiple possible types of values for a variable. <code>y</code> can hold a value of type <code>number</code>, but it can also be <code>nil</code>.</p>
+        <p>When a variable does not receive an initial value, it defaults to <code>nil</code>. Because of this, if the variable can't be <code>nil</code>, you are required to give it a value.</p>
       </div>
-      <pre><code><span class="keyword">let</span> y <span class="type">number</span> | <span class="type">nil</span>
+      <pre><code><span class="keyword">let</span> y <span class="type">number</span> | <span class="type">nil</span> <span class="comment">@ Is valid (assigned to nil)</span>
 
 y := <span class="literal">1</span> <span class="comment">@ Is valid</span>
-y := <span class="literal">nil</span> <span class="comment">@ Is valid</span>
 y := <span class="string">"Hello"</span> <span class="comment">@ Is invalid</span>
 </code></pre>
     </section>
