@@ -1,4 +1,5 @@
-// Package interpreter TODO: Add package description
+// Package interpreter Defines and implements functions for evaluating
+// a simple expression
 package interpreter
 
 import (
