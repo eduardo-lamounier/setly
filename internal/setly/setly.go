@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/eduardo-lamounier/setly/internal/diagnostics"
+	"github.com/eduardo-lamounier/setly/internal/interpreter"
 	"github.com/eduardo-lamounier/setly/internal/lexer"
 	"github.com/eduardo-lamounier/setly/internal/parser"
 )
@@ -19,16 +20,20 @@ func Run(source string) error {
 
 	expr, hadError, d := parser.Parse(source, tokens)
 
-	fmt.Println("Expression:")
-	if expr != nil {
-		fmt.Println(expr)
+	if hadError {
+		d.Report()
+		return fmt.Errorf("errors were found in the source code")
 	}
+
+	result, hadError, d := interpreter.Evaluate(expr)
 
 	if hadError {
 		d.Report()
+		return fmt.Errorf("some runtime error occurred")
 	}
 
-	return fmt.Errorf("running not yet implemented")
+	fmt.Println(result)
+	return nil
 }
 
 func reportAll(ds []diagnostics.Diagnostic) {
