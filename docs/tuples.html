@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Learn Setly through short explanations and annotated code examples.">
+  <title>Tuples — The Setly Book</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <header>
+      <p class="eyebrow">The Setly Book</p>
+      <h1><a href="index.html">Setly</a><span> / Tuples</span></h1>
+      <p class="intro">Tuples are used to represent a fixed number of values.</p>
+    </header>
+    <section class="example">
+      <div class="explanation">
+        <h2>Declaring and defining a tuple</h2>
+        <p>You write a tuple literal by putting the values in parentheses and separated by commas.</p>
+        <p>You write a tuple type by putting the types of each position also in parentheses and separated by commas.</p>
+      </div>
+      <pre><code><span class="keyword">let</span> values (<span class="type">number</span>, <span class="type">string</span>) := (<span class="literal">10</span>, <span class="string">&quot;abc&quot;</span>)</code></pre>
+    </section>
+    <section class="example">
+      <div class="explanation">
+        <h2>Positional values of a tuple</h2>
+        <p>You can use brackets after the variable to specify the position of the value you want to change or access from a tuple.</p>
+        <p>The positions are 0-indexed (start from 0).</p>
+      </div>
+      <pre><code><span class="keyword">println</span>(values[<span class="literal">0</span>]) <span class="comment">@ prints 10</span>
+values[<span class="literal">1</span>] := <span class="string">&quot;def&quot;</span> <span class="comment">@ now holds (10, &quot;def&quot;)</span></code></pre>
+    </section>
+    <section class="example">
+      <div class="explanation">
+        <h2>Using tuples as return values</h2>
+        <p>You function can return a tuple containing multiple values.</p>
+        <p>Notice there's no need to use parentheses when returning them.</p>
+      </div>
+      <pre><code><span class="keyword">fn</span> div(a <span class="type">number</span>, b <span class="type">number</span>) (<span class="type">number</span>, <span class="type">number</span>) {
+  <span class="keyword">return</span> a / b, a % b
+}</code></pre>
+    </section>
+    <section class="example">
+      <div class="explanation">
+        <h2>Unpacking values</h2>
+        <p>When calling <code>div</code>, you can receive both returned values in a single line. This unpacks the returned tuple and assigns each value to a variable.</p>
+        <p>In the above code, <code>x</code> will hold 3 and <code>y</code> will hold 1.</p>
+      </div>
+      <pre><code><span class="keyword">let</span> x, y := div(<span class="literal">10</span>, <span class="literal">3</span>)
+
+<span class="comment">@ You could also do:</span>
+<span class="keyword">let</span> values (<span class="type">number</span>, <span class="type">number</span>) := div(<span class="literal">10</span>, <span class="literal">3</span>)
+<span class="keyword">let</span> a <span class="type">number</span>, b <span class="type">number</span> := values...</code></pre>
+    </section>
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="functions.html">← Functions</a>
+      <a></a>
+    </nav>
+    <footer>
+      <p>By Eduardo Lamounier.</p>
+    </footer>
+  </main>
+</body>
+</html>

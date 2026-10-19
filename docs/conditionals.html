@@ -20,7 +20,7 @@
         <h2>Check for inequality</h2>
         <p>The <code>~=</code> operator compares two values for inequality. Here, <code>x</code> equals 10, so the <code>else</code> block is selected.</p>
       </div>
-      <pre><code><span class="keyword">let</span> x := <span class="literal">10</span>
+      <pre><code><span class="keyword">let</span> x <span class="type">number</span> := <span class="literal">10</span>
 
 <span class="keyword">if</span> x ~= <span class="literal">10</span> {
   <span class="keyword">println</span>(<span class="string">&quot;x is not 10.&quot;</span>)
@@ -33,7 +33,7 @@
         <h2>Check for equality</h2>
         <p>Use <code>=</code> to compare values for equality. The condition below is true because <code>y</code> is 20.</p>
       </div>
-      <pre><code><span class="keyword">let</span> y := <span class="literal">20</span>
+      <pre><code><span class="keyword">let</span> y <span class="type">number</span> := <span class="literal">20</span>
 
 <span class="keyword">if</span> y = <span class="literal">20</span> {
   <span class="keyword">println</span>(<span class="string">&quot;y is 20.&quot;</span>)
@@ -65,9 +65,24 @@
         <h2>Reverse a condition</h2>
         <p>Use <code>not</code> to turn true into false and false into true. Here, the block is selected when <code>x</code> is not 10.</p>
       </div>
-      <pre><code><span class="keyword">let</span> isTen := x = <span class="literal">10</span>
+      <pre><code><span class="keyword">let</span> isTen <span class="type">boolean</span> := x = <span class="literal">10</span>
 <span class="keyword">if</span> <span class="keyword">not</span> isTen {
   <span class="keyword">println</span>(<span class="string">&quot;x is different than 10.&quot;</span>)
+}</code></pre>
+    </section>
+    <section class="example">
+      <div class="explanation">
+        <h2>Type checking</h2>
+        <p>If a variable's value can be one of multiple types, you can use the <code>is</code> keyword to check the type of that value.</p>              
+        <p>In this case, <code>'z' is nil.</code> will be printed.</p>
+      </div>
+      <pre><code><span class="keyword">let</span> z <span class="type">number</span> | <span class="type">string</span> | <span class="type">nil</span> = <span class="literal">nil</span>
+<span class="keyword">if</span> z <span class="keyword">is</span> <span class="type">number</span> {
+  <span class="keyword">println</span>(<span class="string">&quot;'z' is a number.&quot;</span>)
+} <span class="keyword">elif</span> z <span class="keyword">is</span> <span class="type">string</span> {
+  <span class="keyword">println</span>(<span class="string">&quot;'z' is a string.&quot;</span>)
+} <span class="keyword">else</span> {
+  <span class="keyword">println</span>(<span class="string">&quot;'z' is nil.&quot;</span>)
 }</code></pre>
     </section>
     <nav class="chapter-nav" aria-label="Chapter navigation">
