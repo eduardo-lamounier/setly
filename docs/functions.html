@@ -12,13 +12,13 @@
     <header>
       <p class="eyebrow">The Setly Book</p>
       <h1><a href="index.html">Setly</a><span> / Functions</span></h1>
-      <p class="intro">Functions define code that can be executed without re-writing it. In this chapter we'll see how functions work in Setly.</p>
+      <p class="intro">Functions define code that can be executed without rewriting it. In this chapter we'll see how functions work in Setly.</p>
     </header>
     <section class="example">
       <div class="explanation">
         <h2>Defining a function</h2>
-        <p>In this code, we define a function that prints a message into the console. This function receives a value <code>name</code>, which we call a parameter.</p>
-        <p>A parameter is a variable which value is assigned to it in the function call. A function can receive multiple parameters (including 0).</p>
+        <p>In this code, we define a function that prints a message to the console. This function receives a value <code>name</code>, which we call a parameter.</p>
+        <p>A parameter is a variable whose value is assigned to it in the function call. A function can receive multiple parameters (including none).</p>
       </div>
       <pre><code><span class="keyword">fn</span> greet(name <span class="type">string</span>) {
   <span class="keyword">println</span>(<span class="string">&quot;Hello, &quot;</span>, name, <span class="string">&quot;!&quot;</span>)
@@ -27,14 +27,14 @@
     <section class="example">
       <div class="explanation">
         <h2>Returning values</h2>
-        <p>We can also return values. "Returning" means the function has a kind of "result" which may be useful to the caller.</p> 
-        <p>In this code, the function <code>add</code> adds two numbers and returns the result of the addition. A function that returns something must define the returning value's type after the closing brackets of the parameters list.</p>
+        <p>We can also return values. "Returning" means the function produces a result which may be useful to the caller.</p> 
+        <p>In this code, the function <code>add</code> adds two numbers and returns the result of the addition. A function that returns something must define the return value's type after the closing brackets of the parameters list.</p>
       </div>
       <pre><code><span class="keyword">fn</span> add(x <span class="type">number</span>, y <span class="type">number</span>) <span class="type">number</span> {
   <span class="keyword">return</span> x + y <span class="comment">@ Must be 'number'</span>
 }</code></pre>
       <div class="explanation">
-        <p>Note that when a function receives more than one argument (parameter), they are separated by commas.</p>
+        <p>Note that when a function receives more than one argument, they are separated by commas.</p>
       </div>
     </section>
     <section class="example">
