@@ -6,19 +6,26 @@ import (
 
 	"github.com/eduardo-lamounier/setly/internal/diagnostics"
 	"github.com/eduardo-lamounier/setly/internal/lexer"
+	"github.com/eduardo-lamounier/setly/internal/parser"
 )
 
 func Run(source string) error {
 	tokens, hadError, ds := lexer.Scan(source)
 
-	fmt.Println("Tokens:")
-	for _, token := range tokens {
-		fmt.Println(token)
-	}
-
 	if hadError {
 		reportAll(ds)
 		return fmt.Errorf("errors were found in the source code")
+	}
+
+	expr, hadError, d := parser.Parse(source, tokens)
+
+	fmt.Println("Expression:")
+	if expr != nil {
+		fmt.Println(expr)
+	}
+
+	if hadError {
+		d.Report()
 	}
 
 	return fmt.Errorf("running not yet implemented")
