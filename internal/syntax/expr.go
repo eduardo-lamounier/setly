@@ -4,6 +4,10 @@ import "fmt"
 
 type Expr interface {
 	fmt.Stringer
+
+	Loc() int
+	Line() int
+	Col() int
 }
 
 type UnaryExpr struct {
@@ -39,6 +43,69 @@ func (e GroupingExpr) String() string {
 
 func (e LiteralExpr) String() string {
 	return fmt.Sprint(e.LiteralToken.Literal)
+}
+
+func (e UnaryExpr) Loc() int {
+	switch e.Operator.Kind {
+	case TokenNot, TokenMinus, TokenPlus:
+		return e.Operator.Loc
+	default:
+		panic("Some unary operator not handled when calculating expression location.")
+	}
+}
+
+func (e UnaryExpr) Line() int {
+	switch e.Operator.Kind {
+	case TokenNot, TokenMinus, TokenPlus:
+		return e.Operator.Line
+	default:
+		panic("Some unary operator not handled when calculating expression line.")
+	}
+}
+
+func (e UnaryExpr) Col() int {
+	switch e.Operator.Kind {
+	case TokenNot, TokenMinus, TokenPlus:
+		return e.Operator.Line
+	default:
+		panic("Some unary operator not handled when calculating expression column.")
+	}
+}
+
+func (e BinaryExpr) Loc() int {
+	return e.Operands[0].Loc()
+}
+
+func (e BinaryExpr) Line() int {
+	return e.Operands[0].Line()
+}
+
+func (e BinaryExpr) Col() int {
+	return e.Operands[0].Col()
+}
+
+func (e GroupingExpr) Loc() int {
+	return e.Inner.Loc()
+}
+
+func (e GroupingExpr) Line() int {
+	return e.Inner.Line()
+}
+
+func (e GroupingExpr) Col() int {
+	return e.Inner.Col()
+}
+
+func (e LiteralExpr) Loc() int {
+	return e.LiteralToken.Loc
+}
+
+func (e LiteralExpr) Line() int {
+	return e.LiteralToken.Line
+}
+
+func (e LiteralExpr) Col() int {
+	return e.LiteralToken.Col
 }
 
 ////////////////////////////////////////////////////////////////////////////////
