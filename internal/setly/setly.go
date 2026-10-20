@@ -25,15 +25,14 @@ func Run(source string) error {
 		return fmt.Errorf("errors were found in the source code")
 	}
 
-	result, hadError, d := interpreter.Evaluate(expr)
+	result, err := interpreter.Evaluate(expr)
 
-	if hadError {
-		d.Report()
-		return fmt.Errorf("some runtime error occurred")
+	if err == nil {
+		fmt.Println(result)
+		return nil
 	}
 
-	fmt.Println(result)
-	return nil
+	return err
 }
 
 func reportAll(ds []diagnostics.Diagnostic) {

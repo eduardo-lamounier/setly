@@ -2,11 +2,13 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/eduardo-lamounier/setly/internal/cli"
+	"github.com/eduardo-lamounier/setly/internal/runtime"
 	"github.com/eduardo-lamounier/setly/internal/setly"
 )
 
@@ -53,6 +55,13 @@ func RunPrompt() int {
 
 		err := setly.Run(prompt)
 		if err != nil {
+			// When in REPL-mode, the program should keep running even with
+			// runtime errors:
+			if re, ok := errors.AsType[*runtime.Error](err); ok {
+				re.Report()
+				continue
+			}
+
 			printError(err)
 			exitCode = 1
 		}
@@ -74,12 +83,20 @@ func RunFile(sourceFilePath string) int {
 	}
 
 	err = setly.Run(string(source))
-	if err != nil {
-		printError(err)
-		return 1
+
+	if err == nil {
+		return 0
 	}
 
-	return 0
+	// Differently from REPL-mode, when running from a file a runtime error
+	// should stop the program
+
+	if re, ok := errors.AsType[*runtime.Error](err); ok {
+		re.Report()
+	} else {
+		printError(err)
+	}
+	return 1
 }
 
 func printError(err error) {
