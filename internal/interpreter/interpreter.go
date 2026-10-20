@@ -59,7 +59,13 @@ func Evaluate(expr syntax.Expr) (any, *runtime.Error) {
 		case syntax.TokenStar:
 			return l.(float64) * r.(float64), nil
 		case syntax.TokenSlash:
-			// TODO: Handle division by zero with runtime error
+			if r.(float64) == 0 {
+				return nil, &runtime.Error{
+					Line:    expr.Operands[0].Line(),
+					Message: "Attempted division by zero.",
+				}
+			}
+
 			return l.(float64) / r.(float64), nil
 		case syntax.TokenGreater:
 			return l.(float64) > r.(float64), nil
