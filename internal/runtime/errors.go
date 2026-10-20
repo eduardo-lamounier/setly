@@ -14,7 +14,7 @@ type Error struct {
 }
 
 func (e Error) Error() string {
-	return fmt.Sprintf("%s [line %d]", e.Message, e.Line)
+	return fmt.Sprintf("setly: %s [line %d]", e.Message, e.Line)
 }
 
 func (e Error) Report() {
