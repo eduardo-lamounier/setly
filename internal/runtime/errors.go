@@ -18,7 +18,7 @@ func (e Error) Error() string {
 }
 
 func (e Error) Report() {
-	fmt.Fprint(os.Stderr, e)
+	fmt.Fprintln(os.Stderr, e)
 }
 
 func FromToken(message string, token syntax.Token) Error {
