@@ -9,14 +9,21 @@ import (
 )
 
 type Error struct {
-	Token   syntax.Token
+	Line    int
 	Message string
 }
 
 func (e Error) Error() string {
-	return fmt.Sprintf("%s [line %d]", e.Message, e.Token.Line)
+	return fmt.Sprintf("%s [line %d]", e.Message, e.Line)
 }
 
 func (e Error) Report() {
 	fmt.Fprint(os.Stderr, e)
+}
+
+func FromToken(message string, token syntax.Token) Error {
+	return Error{
+		Message: message,
+		Line:    token.Line,
+	}
 }
