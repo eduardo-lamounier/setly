@@ -7,5 +7,6 @@ type ExprStmt struct {
 }
 
 type PrintStmt struct {
-	expr Expr
+	newline bool
+	expr    Expr
 }
