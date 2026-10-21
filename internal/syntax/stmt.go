@@ -3,10 +3,10 @@ package syntax
 type Stmt interface{}
 
 type ExprStmt struct {
-	expr Expr
+	Expr Expr
 }
 
 type PrintStmt struct {
-	newline bool
-	expr    Expr
+	Newline bool
+	Expr    Expr
 }
