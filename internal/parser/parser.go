@@ -208,8 +208,57 @@ func (p *parser) expr() (syntax.Expr, bool) {
 	return p.equality()
 }
 
+func (p *parser) printStmt() (syntax.Stmt, bool) {
+	if !p.match(syntax.TokenParenL) {
+		p.report("Expected parentheses beggining a 'print' or 'println' statement.")
+		return nil, true
+	}
+
+	expr, hadError := p.expr()
+
+	if hadError {
+		return nil, true
+	}
+
+	if !p.match(syntax.TokenParenR) {
+		p.report("Expected parentheses closing a 'print' or 'println' statement.")
+		return nil, true
+	}
+
+	if !p.match(syntax.TokenSemicolon) {
+		p.report("Expected ';' after a 'print' or 'println' statement.")
+		return nil, true
+	}
+
+	return syntax.PrintStmt{
+		Newline: p.prev().Kind == syntax.TokenPrintln,
+		Expr:    expr,
+	}, false
+}
+
+func (p *parser) exprStmt() (syntax.Stmt, bool) {
+	expr, hadError := p.expr()
+
+	if hadError {
+		return nil, true
+	}
+
+	if !p.match(syntax.TokenSemicolon) {
+		p.report("Expected ';' after an expression.")
+		return nil, true
+	}
+
+	return syntax.ExprStmt{
+		Expr: expr,
+	}, false
+}
+
 func (p *parser) stmt() (syntax.Stmt, bool) {
-	return nil, false
+	if p.match(syntax.TokenPrint, syntax.TokenPrintln) {
+		return p.printStmt()
+	}
+
+	return p.exprStmt()
 }
 
 func Parse(source string, tokens []syntax.Token) (
