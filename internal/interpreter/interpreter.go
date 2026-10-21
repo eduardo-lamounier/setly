@@ -7,18 +7,18 @@ import (
 	"github.com/eduardo-lamounier/setly/internal/syntax"
 )
 
-func isTruthy(val any) bool {
+func isTruthy(val runtime.Value) bool {
 	switch val := val.(type) {
-	case nil:
+	case runtime.Nil:
 		return false
-	case bool:
-		return val
+	case runtime.Boolean:
+		return bool(val)
 	default:
 		return true
 	}
 }
 
-func Evaluate(expr syntax.Expr) (any, *runtime.Error) {
+func Evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) {
 	switch expr := expr.(type) {
 	case syntax.UnaryExpr:
 		op, err := Evaluate(expr.Operand)
@@ -28,11 +28,11 @@ func Evaluate(expr syntax.Expr) (any, *runtime.Error) {
 
 		switch expr.Operator.Kind {
 		case syntax.TokenNot:
-			return !isTruthy(op), nil
+			return runtime.Boolean(!isTruthy(op)), nil
 		case syntax.TokenMinus:
-			return -op.(float64), nil
+			return -op.(runtime.Number), nil
 		case syntax.TokenPlus:
-			return op.(float64), nil
+			return op.(runtime.Number), nil
 		default:
 			panic("Some unary operator not implemented.")
 		}
@@ -50,41 +50,41 @@ func Evaluate(expr syntax.Expr) (any, *runtime.Error) {
 		switch expr.Operator.Kind {
 		case syntax.TokenPlus:
 			switch l.(type) {
-			case float64:
-				return l.(float64) + r.(float64), nil
-			case string:
-				return l.(string) + r.(string), nil
+			case runtime.Number:
+				return l.(runtime.Number) + r.(runtime.Number), nil
+			case runtime.String:
+				return l.(runtime.String) + r.(runtime.String), nil
 			}
 		case syntax.TokenMinus:
-			return l.(float64) - r.(float64), nil
+			return l.(runtime.Number) - r.(runtime.Number), nil
 		case syntax.TokenStar:
-			return l.(float64) * r.(float64), nil
+			return l.(runtime.Number) * r.(runtime.Number), nil
 		case syntax.TokenSlash:
-			if r.(float64) == 0 {
+			if r.(runtime.Number) == 0 {
 				return nil, &runtime.Error{
 					Line:    expr.Operands[0].Line(),
 					Message: "Attempted division by zero.",
 				}
 			}
 
-			return l.(float64) / r.(float64), nil
+			return l.(runtime.Number) / r.(runtime.Number), nil
 		case syntax.TokenGreater:
-			return l.(float64) > r.(float64), nil
+			return runtime.Boolean(l.(runtime.Number) > r.(runtime.Number)), nil
 		case syntax.TokenLess:
-			return l.(float64) < r.(float64), nil
+			return runtime.Boolean(l.(runtime.Number) < r.(runtime.Number)), nil
 		case syntax.TokenGreaterEqual:
-			return l.(float64) >= r.(float64), nil
+			return runtime.Boolean(l.(runtime.Number) >= r.(runtime.Number)), nil
 		case syntax.TokenLessEqual:
-			return l.(float64) <= r.(float64), nil
+			return runtime.Boolean(l.(runtime.Number) <= r.(runtime.Number)), nil
 		case syntax.TokenEqual:
-			return l == r, nil
+			return runtime.Boolean(l == r), nil
 		case syntax.TokenTildeEqual:
-			return l != r, nil
+			return runtime.Boolean(l != r), nil
 		}
 
 		panic("Some binary operator not implemented.")
 	case syntax.LiteralExpr:
-		return expr.Literal(), nil
+		return runtime.ValueFromLiteral(expr.Literal()), nil
 	case syntax.GroupingExpr:
 		return Evaluate(expr.Inner)
 	default:
