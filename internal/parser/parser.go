@@ -3,7 +3,6 @@
 package parser
 
 import (
-	"fmt"
 	"slices"
 
 	"github.com/eduardo-lamounier/setly/internal/diagnostics"
@@ -15,8 +14,9 @@ type parser struct {
 	Tokens []syntax.Token
 	Pos    int
 
-	HadError bool
-	Exprs    []syntax.Expr
+	HadError    bool
+	Diagnostics []diagnostics.Diagnostic
+	Stmts       []syntax.Stmt
 }
 
 func (p parser) atEnd() bool {
@@ -45,16 +45,19 @@ func (p parser) check(expected syntax.TokenKind) bool {
 	return p.peek().Kind == expected
 }
 
-func (p *parser) error(
-	token syntax.Token, message string,
-) *diagnostics.Diagnostic {
-	return &diagnostics.Diagnostic{
+func (p *parser) report(message string) {
+	p.reportAt(p.peek(), message)
+}
+
+func (p *parser) reportAt(token syntax.Token, message string) {
+	p.HadError = true
+	p.Diagnostics = append(p.Diagnostics, diagnostics.Diagnostic{
 		Line:    token.Line,
 		Col:     token.Col,
 		Loc:     token.Loc,
 		Message: message,
 		Source:  p.Source,
-	}
+	})
 }
 
 func (p *parser) match(expected ...syntax.TokenKind) bool {
@@ -70,146 +73,164 @@ func (p *parser) match(expected ...syntax.TokenKind) bool {
 	return true
 }
 
-func (p *parser) primary() (syntax.Expr, bool, *diagnostics.Diagnostic) {
+func (p *parser) emitStmt(stmt syntax.Stmt) {
+	p.Stmts = append(p.Stmts, stmt)
+}
+
+func (p *parser) primary() (syntax.Expr, bool) {
 	if p.match(syntax.TokenNil, syntax.TokenFalse, syntax.TokenTrue,
 		syntax.TokenNumber, syntax.TokenString) {
 
-		return syntax.NewLiteralExpr(p.prev()), false, nil
+		return syntax.NewLiteralExpr(p.prev()), false
 	}
 
 	if p.match(syntax.TokenParenL) {
-		expr, hadError, d := p.expr()
+		expr, hadError := p.expr()
 
 		if hadError {
-			return nil, true, d
+			return nil, true
 		}
 
 		if !p.match(syntax.TokenParenR) {
-			return nil, true, p.error(p.peek(),
-				fmt.Sprintf("Expected ')', got '%s'.", p.peek().Lexeme))
+			p.reportAt(p.peek(), "Expected ')', got '%s'.")
+			return nil, true
 		}
 
-		return syntax.NewGroupingExpr(expr), false, nil
+		return syntax.NewGroupingExpr(expr), false
 	}
 
-	return nil, true, p.error(p.peek(), "Expected expression.")
+	p.reportAt(p.peek(), "Expected expression.")
+	return nil, true
 }
 
-func (p *parser) unary() (syntax.Expr, bool, *diagnostics.Diagnostic) {
+func (p *parser) unary() (syntax.Expr, bool) {
 	if p.match(syntax.TokenMinus, syntax.TokenPlus) {
 		operator := p.prev()
-		right, hadError, d := p.unary()
+		right, hadError := p.unary()
 
 		if hadError {
-			return nil, true, d
+			return nil, true
 		}
 
-		return syntax.NewUnaryExpr(operator, right), false, nil
+		return syntax.NewUnaryExpr(operator, right), false
 	}
 
 	return p.primary()
 }
 
-func (p *parser) factor() (syntax.Expr, bool, *diagnostics.Diagnostic) {
-	expr, hadError, d := p.unary()
+func (p *parser) factor() (syntax.Expr, bool) {
+	expr, hadError := p.unary()
 
 	if hadError {
-		return nil, true, d
+		return nil, true
 	}
 
 	for p.match(syntax.TokenStar, syntax.TokenSlash) {
 		operator := p.prev()
-		right, hadError, d := p.unary()
+		right, hadError := p.unary()
 
 		if hadError {
-			return nil, true, d
+			return nil, true
 		}
 
 		expr = syntax.NewBinaryExpr(operator, expr, right)
 	}
 
-	return expr, false, nil
+	return expr, false
 }
 
-func (p *parser) term() (syntax.Expr, bool, *diagnostics.Diagnostic) {
-	expr, hadError, d := p.factor()
+func (p *parser) term() (syntax.Expr, bool) {
+	expr, hadError := p.factor()
 
 	if hadError {
-		return nil, true, d
+		return nil, true
 	}
 
 	for p.match(syntax.TokenPlus, syntax.TokenMinus) {
 		operator := p.prev()
-		right, hadError, d := p.factor()
+		right, hadError := p.factor()
 
 		if hadError {
-			return nil, true, d
+			return nil, true
 		}
 
 		expr = syntax.NewBinaryExpr(operator, expr, right)
 	}
 
-	return expr, false, nil
+	return expr, false
 }
 
-func (p *parser) comparison() (syntax.Expr, bool, *diagnostics.Diagnostic) {
-	expr, hadError, d := p.term()
+func (p *parser) comparison() (syntax.Expr, bool) {
+	expr, hadError := p.term()
 
 	if hadError {
-		return nil, true, d
+		return nil, true
 	}
 
 	for p.match(syntax.TokenGreater, syntax.TokenLess,
 		syntax.TokenGreaterEqual, syntax.TokenLessEqual) {
 
 		operator := p.prev()
-		right, hadError, d := p.term()
+		right, hadError := p.term()
 
 		if hadError {
-			return nil, true, d
+			return nil, true
 		}
 
 		expr = syntax.NewBinaryExpr(operator, expr, right)
 	}
 
-	return expr, false, nil
+	return expr, false
 }
 
-func (p *parser) equality() (syntax.Expr, bool, *diagnostics.Diagnostic) {
-	expr, hadError, d := p.comparison()
+func (p *parser) equality() (syntax.Expr, bool) {
+	expr, hadError := p.comparison()
 
 	if hadError {
-		return nil, true, d
+		return nil, true
 	}
 
 	for p.match(syntax.TokenTildeEqual, syntax.TokenEqual) {
 		operator := p.prev()
-		right, hadError, d := p.comparison()
+		right, hadError := p.comparison()
 
 		if hadError {
-			return nil, true, d
+			return nil, true
 		}
 
 		expr = syntax.NewBinaryExpr(operator, expr, right)
 	}
 
-	return expr, false, nil
+	return expr, false
 }
 
-func (p *parser) expr() (syntax.Expr, bool, *diagnostics.Diagnostic) {
+func (p *parser) expr() (syntax.Expr, bool) {
 	return p.equality()
 }
 
+func (p *parser) stmt() (syntax.Stmt, bool) {
+	return nil, false
+}
+
 func Parse(source string, tokens []syntax.Token) (
-	syntax.Expr, bool, *diagnostics.Diagnostic,
+	[]syntax.Stmt, bool, []diagnostics.Diagnostic,
 ) {
 	p := parser{
 		Source: source,
 		Tokens: tokens,
 		Pos:    0,
 
-		Exprs: []syntax.Expr{},
+		Diagnostics: []diagnostics.Diagnostic{},
+		Stmts:       []syntax.Stmt{},
 	}
 
-	return p.expr()
+	for !p.atEnd() {
+		stmt, hadError := p.stmt()
+
+		if !hadError {
+			p.emitStmt(stmt)
+		}
+	}
+
+	return p.Stmts, p.HadError, p.Diagnostics
 }
