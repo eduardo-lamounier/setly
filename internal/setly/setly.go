@@ -5,11 +5,12 @@ import (
 	"fmt"
 
 	"github.com/eduardo-lamounier/setly/internal/diagnostics"
+	"github.com/eduardo-lamounier/setly/internal/interpreter"
 	"github.com/eduardo-lamounier/setly/internal/lexer"
 	"github.com/eduardo-lamounier/setly/internal/parser"
 )
 
-func Run(source string) error {
+func Run(source string, opts interpreter.Options) error {
 	tokens, hadError, ds := lexer.Scan(source)
 
 	if hadError {
@@ -17,11 +18,15 @@ func Run(source string) error {
 		return fmt.Errorf("errors were found in the source code")
 	}
 
-	_, hadError, ds = parser.Parse(source, tokens)
+	stmts, hadError, ds := parser.Parse(source, tokens)
 
 	if hadError {
 		reportAll(ds)
 		return fmt.Errorf("errors were found in the source code")
+	}
+
+	if err := interpreter.Interpret(stmts, opts); err != nil {
+		return err
 	}
 
 	return nil

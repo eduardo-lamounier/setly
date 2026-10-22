@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/eduardo-lamounier/setly/internal/cli"
+	"github.com/eduardo-lamounier/setly/internal/interpreter"
 	"github.com/eduardo-lamounier/setly/internal/runtime"
 	"github.com/eduardo-lamounier/setly/internal/setly"
 )
@@ -41,6 +42,9 @@ func main() {
 
 func RunPrompt() int {
 	exitCode := 0
+	opts := interpreter.Options{
+		ShowExprStmtsResults: true,
+	}
 	scanner := bufio.NewScanner(os.Stdin)
 
 	fmt.Println("You are now in interactive mode. Press Ctrl+C to finish.")
@@ -53,7 +57,7 @@ func RunPrompt() int {
 
 		prompt := scanner.Text()
 
-		err := setly.Run(prompt)
+		err := setly.Run(prompt, opts)
 		if err != nil {
 			// When in REPL-mode, the program should keep running even with
 			// runtime errors:
@@ -82,7 +86,7 @@ func RunFile(sourceFilePath string) int {
 		return 1
 	}
 
-	err = setly.Run(string(source))
+	err = setly.Run(string(source), interpreter.Options{})
 
 	if err == nil {
 		return 0
