@@ -6,6 +6,8 @@ import (
 )
 
 type Value interface {
+	fmt.Stringer
+
 	Stringify() string
 }
 
@@ -17,8 +19,24 @@ type Boolean bool
 
 type Nil struct{}
 
+func (n Number) String() string {
+	return n.Stringify()
+}
+
+func (s String) String() string {
+	return fmt.Sprintf("\"%s\"", s.Stringify())
+}
+
+func (b Boolean) String() string {
+	return b.Stringify()
+}
+
+func (n Nil) String() string {
+	return n.Stringify()
+}
+
 func (n Number) Stringify() string {
-	return strings.TrimSuffix(fmt.Sprint(n), ".0")
+	return strings.TrimSuffix(fmt.Sprint(float64(n)), ".0")
 }
 
 func (s String) Stringify() string {
