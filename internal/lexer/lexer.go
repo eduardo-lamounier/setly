@@ -313,21 +313,36 @@ func (l *lexer) scanToken() {
 }
 
 func (l *lexer) insertSemicolons() {
-	for i, tok := range l.Tokens {
-		if tok.Kind == syntax.TokenNewline && i > 0 {
-			switch l.Tokens[i-1].Kind {
-			case syntax.TokenParenR,
-				syntax.TokenBraceR,
-				syntax.TokenString,
-				syntax.TokenNumber,
-				syntax.TokenFalse,
-				syntax.TokenTrue,
-				syntax.TokenNil,
-				syntax.TokenID,
-				syntax.TokenReturn:
+	endsStatement := func(tk syntax.TokenKind) bool {
+		switch tk {
+		case syntax.TokenParenR,
+			syntax.TokenBraceR,
+			syntax.TokenString,
+			syntax.TokenNumber,
+			syntax.TokenFalse,
+			syntax.TokenTrue,
+			syntax.TokenNil,
+			syntax.TokenID,
+			syntax.TokenReturn:
+			return true
+		default:
+			return false
+		}
+	}
 
-				l.Tokens[i].Kind = syntax.TokenSemicolon
-			}
+	for i, tok := range l.Tokens {
+		if i == 0 || !endsStatement(l.Tokens[i-1].Kind) {
+			continue
+		}
+
+		switch tok.Kind {
+		case syntax.TokenNewline:
+			l.Tokens[i].Kind = syntax.TokenSemicolon
+		case syntax.TokenEOF:
+			newTok := l.Tokens[i]
+			newTok.Kind = syntax.TokenSemicolon
+
+			l.Tokens = slices.Insert(l.Tokens, i, newTok)
 		}
 	}
 }
