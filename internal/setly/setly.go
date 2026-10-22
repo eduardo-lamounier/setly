@@ -25,7 +25,11 @@ func Run(source string) error {
 		return fmt.Errorf("errors were found in the source code")
 	}
 
-	return interpreter.Interpret(stmts)
+	if err := interpreter.Interpret(stmts); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func reportAll(ds []diagnostics.Diagnostic) {
