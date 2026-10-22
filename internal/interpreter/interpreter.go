@@ -9,7 +9,16 @@ import (
 	"github.com/eduardo-lamounier/setly/internal/syntax"
 )
 
-func isTruthy(val runtime.Value) bool {
+type interpreter struct {
+	Stmts []syntax.Stmt
+	Opts  Options
+}
+
+type Options struct {
+	ShowExprStmtsResults bool
+}
+
+func (i interpreter) isTruthy(val runtime.Value) bool {
 	switch val := val.(type) {
 	case runtime.Nil:
 		return false
@@ -20,17 +29,17 @@ func isTruthy(val runtime.Value) bool {
 	}
 }
 
-func evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) {
+func (i interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) {
 	switch expr := expr.(type) {
 	case syntax.UnaryExpr:
-		op, err := evaluate(expr.Operand)
+		op, err := i.evaluate(expr.Operand)
 		if err != nil {
 			return nil, err
 		}
 
 		switch expr.Operator.Kind {
 		case syntax.TokenNot:
-			return runtime.Boolean(!isTruthy(op)), nil
+			return runtime.Boolean(!i.isTruthy(op)), nil
 		case syntax.TokenMinus:
 			return -op.(runtime.Number), nil
 		case syntax.TokenPlus:
@@ -39,12 +48,12 @@ func evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) {
 			panic("Some unary operator not implemented.")
 		}
 	case syntax.BinaryExpr:
-		l, err := evaluate(expr.Operands[0])
+		l, err := i.evaluate(expr.Operands[0])
 		if err != nil {
 			return nil, err
 		}
 
-		r, err := evaluate(expr.Operands[1])
+		r, err := i.evaluate(expr.Operands[1])
 		if err != nil {
 			return nil, err
 		}
@@ -88,16 +97,16 @@ func evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) {
 	case syntax.LiteralExpr:
 		return runtime.ValueFromLiteral(expr.Literal()), nil
 	case syntax.GroupingExpr:
-		return evaluate(expr.Inner)
+		return i.evaluate(expr.Inner)
 	default:
 		panic("Not implemented expr kind to evaluate.")
 	}
 }
 
-func execute(stmt syntax.Stmt) *runtime.Error {
+func (i interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 	switch stmt := stmt.(type) {
 	case syntax.PrintStmt:
-		value, err := evaluate(stmt.Expr)
+		value, err := i.evaluate(stmt.Expr)
 		if err != nil {
 			return err
 		}
@@ -107,7 +116,12 @@ func execute(stmt syntax.Stmt) *runtime.Error {
 			fmt.Println()
 		}
 	case syntax.ExprStmt:
-		_, err := evaluate(stmt.Expr)
+		value, err := i.evaluate(stmt.Expr)
+
+		if err == nil && i.Opts.ShowExprStmtsResults {
+			fmt.Println(value)
+		}
+
 		return err
 	default:
 		panic("Not implemented stmt kind to execute.")
@@ -116,9 +130,14 @@ func execute(stmt syntax.Stmt) *runtime.Error {
 	return nil
 }
 
-func Interpret(stmts []syntax.Stmt) *runtime.Error {
+func Interpret(stmts []syntax.Stmt, opts Options) *runtime.Error {
+	i := interpreter{
+		Stmts: stmts,
+		Opts:  opts,
+	}
+
 	for _, stmt := range stmts {
-		if err := execute(stmt); err != nil {
+		if err := i.execute(stmt); err != nil {
 			return err
 		}
 	}

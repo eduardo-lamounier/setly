@@ -10,7 +10,7 @@ import (
 	"github.com/eduardo-lamounier/setly/internal/parser"
 )
 
-func Run(source string) error {
+func Run(source string, opts interpreter.Options) error {
 	tokens, hadError, ds := lexer.Scan(source)
 
 	if hadError {
@@ -25,7 +25,7 @@ func Run(source string) error {
 		return fmt.Errorf("errors were found in the source code")
 	}
 
-	if err := interpreter.Interpret(stmts); err != nil {
+	if err := interpreter.Interpret(stmts, opts); err != nil {
 		return err
 	}
 
