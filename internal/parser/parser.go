@@ -209,6 +209,12 @@ func (p *parser) expr() (syntax.Expr, bool) {
 }
 
 func (p *parser) printStmt() (syntax.Stmt, bool) {
+	if p.prev().Kind != syntax.TokenPrint && p.prev().Kind != syntax.TokenPrintln {
+		panic("Tried parsing print statement without a 'print' or 'println' token")
+	}
+
+	newline := p.prev().Kind == syntax.TokenPrintln
+
 	if !p.match(syntax.TokenParenL) {
 		p.report("Expected parentheses beggining a 'print' or 'println' statement.")
 		return nil, true
@@ -231,7 +237,7 @@ func (p *parser) printStmt() (syntax.Stmt, bool) {
 	}
 
 	return syntax.PrintStmt{
-		Newline: p.prev().Kind == syntax.TokenPrintln,
+		Newline: newline,
 		Expr:    expr,
 	}, false
 }
