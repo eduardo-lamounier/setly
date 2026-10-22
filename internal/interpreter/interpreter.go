@@ -18,10 +18,10 @@ func isTruthy(val runtime.Value) bool {
 	}
 }
 
-func Evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) {
+func evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) {
 	switch expr := expr.(type) {
 	case syntax.UnaryExpr:
-		op, err := Evaluate(expr.Operand)
+		op, err := evaluate(expr.Operand)
 		if err != nil {
 			return nil, err
 		}
@@ -37,12 +37,12 @@ func Evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) {
 			panic("Some unary operator not implemented.")
 		}
 	case syntax.BinaryExpr:
-		l, err := Evaluate(expr.Operands[0])
+		l, err := evaluate(expr.Operands[0])
 		if err != nil {
 			return nil, err
 		}
 
-		r, err := Evaluate(expr.Operands[1])
+		r, err := evaluate(expr.Operands[1])
 		if err != nil {
 			return nil, err
 		}
@@ -86,7 +86,7 @@ func Evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) {
 	case syntax.LiteralExpr:
 		return runtime.ValueFromLiteral(expr.Literal()), nil
 	case syntax.GroupingExpr:
-		return Evaluate(expr.Inner)
+		return evaluate(expr.Inner)
 	default:
 		panic("Not implemented expr kind to evaluate.")
 	}
