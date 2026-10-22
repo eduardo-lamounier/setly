@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/eduardo-lamounier/setly/internal/diagnostics"
+	"github.com/eduardo-lamounier/setly/internal/interpreter"
 	"github.com/eduardo-lamounier/setly/internal/lexer"
 	"github.com/eduardo-lamounier/setly/internal/parser"
 )
@@ -17,14 +18,14 @@ func Run(source string) error {
 		return fmt.Errorf("errors were found in the source code")
 	}
 
-	_, hadError, ds = parser.Parse(source, tokens)
+	stmts, hadError, ds := parser.Parse(source, tokens)
 
 	if hadError {
 		reportAll(ds)
 		return fmt.Errorf("errors were found in the source code")
 	}
 
-	return nil
+	return interpreter.Interpret(stmts)
 }
 
 func reportAll(ds []diagnostics.Diagnostic) {

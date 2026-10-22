@@ -3,6 +3,8 @@
 package interpreter
 
 import (
+	"fmt"
+
 	"github.com/eduardo-lamounier/setly/internal/runtime"
 	"github.com/eduardo-lamounier/setly/internal/syntax"
 )
@@ -90,4 +92,36 @@ func evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) {
 	default:
 		panic("Not implemented expr kind to evaluate.")
 	}
+}
+
+func execute(stmt syntax.Stmt) *runtime.Error {
+	switch stmt := stmt.(type) {
+	case syntax.PrintStmt:
+		value, err := evaluate(stmt.Expr)
+		if err != nil {
+			return err
+		}
+
+		fmt.Print(value.Stringify())
+		if stmt.Newline {
+			fmt.Println()
+		}
+	case syntax.ExprStmt:
+		_, err := evaluate(stmt.Expr)
+		return err
+	default:
+		panic("Not implemented stmt kind to execute.")
+	}
+
+	return nil
+}
+
+func Interpret(stmts []syntax.Stmt) *runtime.Error {
+	for _, stmt := range stmts {
+		if err := execute(stmt); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
