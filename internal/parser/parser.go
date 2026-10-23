@@ -204,8 +204,65 @@ func (p *parser) equality() (syntax.Expr, bool) {
 	return expr, false
 }
 
-func (p *parser) expr() (syntax.Expr, bool) {
+func (p *parser) logicalNot() (syntax.Expr, bool) {
+	if p.match(syntax.TokenNot) {
+		operator := p.prev()
+		expr, hadError := p.logicalNot()
+
+		if hadError {
+			return nil, true
+		}
+
+		return syntax.NewUnaryExpr(operator, expr), false
+	}
+
 	return p.equality()
+}
+
+func (p *parser) logicalAnd() (syntax.Expr, bool) {
+	expr, hadError := p.logicalNot()
+
+	if hadError {
+		return nil, true
+	}
+
+	for p.match(syntax.TokenAnd) {
+		operator := p.prev()
+		right, hadError := p.logicalNot()
+
+		if hadError {
+			return nil, true
+		}
+
+		expr = syntax.NewBinaryExpr(operator, expr, right)
+	}
+
+	return expr, false
+}
+
+func (p *parser) logicalOr() (syntax.Expr, bool) {
+	expr, hadError := p.logicalAnd()
+
+	if hadError {
+		return nil, true
+	}
+
+	for p.match(syntax.TokenOr) {
+		operator := p.prev()
+		right, hadError := p.logicalAnd()
+
+		if hadError {
+			return nil, true
+		}
+
+		expr = syntax.NewBinaryExpr(operator, expr, right)
+	}
+
+	return expr, false
+}
+
+func (p *parser) expr() (syntax.Expr, bool) {
+	return p.logicalOr()
 }
 
 func (p *parser) printStmt() (syntax.Stmt, bool) {

@@ -53,12 +53,31 @@ func (i interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) 
 			return nil, err
 		}
 
+		// Returns early in logical expressions depending on what the left side
+		// evaluates to:
+		switch expr.Operator.Kind {
+		case syntax.TokenOr:
+			if i.isTruthy(l) {
+				return runtime.Boolean(true), nil
+			}
+		case syntax.TokenAnd:
+			if !i.isTruthy(l) {
+				return runtime.Boolean(false), nil
+			}
+		}
+
 		r, err := i.evaluate(expr.Operands[1])
 		if err != nil {
 			return nil, err
 		}
 
 		switch expr.Operator.Kind {
+		case syntax.TokenOr:
+			// left side is 'false' if we got here
+			return runtime.Boolean(i.isTruthy(r)), nil
+		case syntax.TokenAnd:
+			// left side is 'true' if we got here
+			return runtime.Boolean(i.isTruthy(r)), nil
 		case syntax.TokenPlus:
 			switch l.(type) {
 			case runtime.Number:
