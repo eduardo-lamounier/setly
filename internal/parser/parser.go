@@ -350,6 +350,27 @@ func (p *parser) stmt() (syntax.Stmt, bool) {
 	return p.exprStmt()
 }
 
+func (p *parser) synchronize() {
+	p.advance()
+	for ; !p.atEnd(); p.advance() {
+		if p.prev().Kind == syntax.TokenSemicolon {
+			return
+		}
+
+		switch p.peek().Kind {
+		case syntax.TokenFn,
+			syntax.TokenLet,
+			syntax.TokenFor,
+			syntax.TokenWhile,
+			syntax.TokenIf,
+			syntax.TokenPrint,
+			syntax.TokenPrintln,
+			syntax.TokenReturn:
+			return
+		}
+	}
+}
+
 func Parse(source string, tokens []syntax.Token) (
 	[]syntax.Stmt, bool, []diagnostics.Diagnostic,
 ) {
