@@ -125,6 +125,18 @@ func (i interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) 
 func (i interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 	switch stmt := stmt.(type) {
 	case syntax.PrintStmt:
+		// Returns early for a 'println()' (no expr passed):
+		if stmt.Newline && stmt.Expr == nil {
+			fmt.Println()
+			return nil
+		}
+
+		// 'print()' REQUIRES an expression, differently of 'println()', in which
+		// it is optional
+		if stmt.Expr == nil {
+			panic("No expression passed to 'print' statement.")
+		}
+
 		value, err := i.evaluate(stmt.Expr)
 		if err != nil {
 			return err

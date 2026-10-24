@@ -282,9 +282,27 @@ func (p *parser) printStmt() (syntax.Stmt, bool) {
 
 	newline := p.prev().Kind == syntax.TokenPrintln
 
-	if !p.match(syntax.TokenParenL) {
-		p.report("Expected parentheses beggining a 'print' or 'println' statement.")
+	if !p.expect(syntax.TokenParenL, "Expected opening parentheses.") {
 		return nil, true
+	}
+
+	// only 'print()' is required to have received an expression:
+	if p.match(syntax.TokenParenR) {
+		if !newline {
+			p.reportAt(p.prev(), "Expected expression to print")
+			p.expect(syntax.TokenSemicolon, "Expected ';' after statement.")
+
+			return nil, true
+		}
+
+		if !p.expect(syntax.TokenSemicolon, "Expected ';' after statement.") {
+			return nil, true
+		}
+
+		return syntax.PrintStmt{
+			Newline: true,
+			Expr:    nil,
+		}, false
 	}
 
 	expr, hadError := p.expr()
@@ -293,13 +311,11 @@ func (p *parser) printStmt() (syntax.Stmt, bool) {
 		return nil, true
 	}
 
-	if !p.match(syntax.TokenParenR) {
-		p.report("Expected parentheses closing a 'print' or 'println' statement.")
+	if !p.expect(syntax.TokenParenR, "Expected closing parentheses.") {
 		return nil, true
 	}
 
-	if !p.match(syntax.TokenSemicolon) {
-		p.report("Expected ';' after a 'print' or 'println' statement.")
+	if !p.expect(syntax.TokenSemicolon, "Expected ';' after statement.") {
 		return nil, true
 	}
 
