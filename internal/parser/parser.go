@@ -124,6 +124,10 @@ func (p *parser) primary() (syntax.Expr, bool) {
 		return syntax.NewGroupingExpr(expr), false
 	}
 
+	if p.match(syntax.TokenID) {
+		return syntax.NewVarExpr(p.prev()), false
+	}
+
 	p.report("Expected expression.")
 	return nil, true
 }
