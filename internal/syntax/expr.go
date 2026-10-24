@@ -28,6 +28,10 @@ type LiteralExpr struct {
 	LiteralToken Token
 }
 
+type VarExpr struct {
+	Name Token
+}
+
 func (e UnaryExpr) String() string {
 	return fmt.Sprintf("%s[ %s ]", e.Operator.Lexeme, e.Operand)
 }
@@ -43,6 +47,10 @@ func (e GroupingExpr) String() string {
 
 func (e LiteralExpr) String() string {
 	return fmt.Sprint(e.LiteralToken.Literal)
+}
+
+func (e VarExpr) String() string {
+	return fmt.Sprint(e.Name.Lexeme)
 }
 
 func (e UnaryExpr) Loc() int {
@@ -108,6 +116,18 @@ func (e LiteralExpr) Col() int {
 	return e.LiteralToken.Col
 }
 
+func (e VarExpr) Loc() int {
+	return e.Name.Loc
+}
+
+func (e VarExpr) Line() int {
+	return e.Name.Line
+}
+
+func (e VarExpr) Col() int {
+	return e.Name.Col
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 func (e LiteralExpr) Literal() any {
@@ -157,5 +177,11 @@ func NewLiteralExpr(literal Token) LiteralExpr {
 		}
 	default:
 		panic(fmt.Sprint("Non-literal token ", literal, " passed to the constructor of LiteralExpr."))
+	}
+}
+
+func NewVarExpr(name Token) VarExpr {
+	return VarExpr{
+		Name: name,
 	}
 }
