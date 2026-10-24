@@ -10,3 +10,9 @@ type PrintStmt struct {
 	Newline bool
 	Expr    Expr
 }
+
+type VarStmt struct {
+	Name        Token
+	Type        Token
+	Initializer Expr
+}
