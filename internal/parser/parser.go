@@ -73,6 +73,16 @@ func (p *parser) match(expected ...syntax.TokenKind) bool {
 	return true
 }
 
+func (p *parser) expect(expected syntax.TokenKind, message string) bool {
+	if !p.match(expected) {
+		p.report(message)
+		p.advance()
+		return false
+	}
+
+	return true
+}
+
 func (p *parser) emitStmt(stmt syntax.Stmt) {
 	p.Stmts = append(p.Stmts, stmt)
 }
