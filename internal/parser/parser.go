@@ -318,10 +318,7 @@ func (p *parser) printStmt() (syntax.Stmt, bool) {
 			return nil, true
 		}
 
-		return syntax.PrintStmt{
-			Newline: true,
-			Expr:    nil,
-		}, false
+		return syntax.NewPrintStmt(nil, true), false
 	}
 
 	expr, hadError := p.expr()
@@ -338,10 +335,7 @@ func (p *parser) printStmt() (syntax.Stmt, bool) {
 		return nil, true
 	}
 
-	return syntax.PrintStmt{
-		Newline: newline,
-		Expr:    expr,
-	}, false
+	return syntax.NewPrintStmt(expr, newline), false
 }
 
 func (p *parser) exprStmt() (syntax.Stmt, bool) {
@@ -356,9 +350,7 @@ func (p *parser) exprStmt() (syntax.Stmt, bool) {
 		return nil, true
 	}
 
-	return syntax.ExprStmt{
-		Expr: expr,
-	}, false
+	return syntax.NewExprStmt(expr), false
 }
 
 func (p *parser) stmt() (syntax.Stmt, bool) {
@@ -394,11 +386,7 @@ func (p *parser) varDeclaration() (syntax.Stmt, bool) {
 		return nil, true
 	}
 
-	return syntax.VarStmt{
-		Name:        varName,
-		Type:        typeName,
-		Initializer: initializer,
-	}, false
+	return syntax.NewVarStmt(varName, typeName, initializer), false
 }
 
 func (p *parser) declaration() syntax.Stmt {
