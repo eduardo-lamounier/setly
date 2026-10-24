@@ -102,14 +102,14 @@ func (p *parser) primary() (syntax.Expr, bool) {
 		}
 
 		if !p.match(syntax.TokenParenR) {
-			p.reportAt(p.peek(), "Expected ')', got '%s'.")
+			p.report("Expected ')', got '%s'.")
 			return nil, true
 		}
 
 		return syntax.NewGroupingExpr(expr), false
 	}
 
-	p.reportAt(p.peek(), "Expected expression.")
+	p.report("Expected expression.")
 	return nil, true
 }
 
