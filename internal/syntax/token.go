@@ -86,6 +86,55 @@ var KeywordForLexeme = map[string]TokenKind{
 	"let":     TokenLet,
 }
 
+var lexemeForTokenKind = map[TokenKind]string{
+	TokenParenL: "(",
+	TokenParenR: ")",
+	TokenBraceL: "{",
+	TokenBraceR: "}",
+
+	TokenComma:     ",",
+	TokenDot:       ".",
+	TokenColon:     ":",
+	TokenSemicolon: ";",
+
+	TokenNewline: "\n",
+
+	TokenMinus:      "-",
+	TokenPlus:       "+",
+	TokenStar:       "*",
+	TokenSlash:      "/",
+	TokenSlashSlash: "//",
+
+	TokenColonEqual:   ":=",
+	TokenEqual:        "=",
+	TokenTildeEqual:   "~=",
+	TokenGreater:      ">",
+	TokenLess:         "<",
+	TokenGreaterEqual: ">=",
+	TokenLessEqual:    "<=",
+
+	// Literals do not have a specific lexeme
+
+	TokenFalse:   "false",
+	TokenTrue:    "true",
+	TokenNil:     "nil",
+	TokenAnd:     "and",
+	TokenOr:      "or",
+	TokenNot:     "not",
+	TokenIf:      "if",
+	TokenElse:    "else",
+	TokenElif:    "elif",
+	TokenWhile:   "while",
+	TokenFor:     "for",
+	TokenPrint:   "print",
+	TokenPrintln: "println",
+	TokenFn:      "fn",
+	TokenReturn:  "return",
+	TokenLet:     "let",
+
+	TokenEOF: "",
+}
+
 var tokenKindsToString = map[TokenKind]string{
 	TokenParenL: "LEFT_PAREN",
 	TokenParenR: "RIGHT_PAREN",
@@ -135,6 +184,14 @@ var tokenKindsToString = map[TokenKind]string{
 	TokenLet:     "LET",
 
 	TokenEOF: "EOF",
+}
+
+func (tk TokenKind) GetLexeme() string {
+	if tk == TokenID || tk == TokenString || tk == TokenNumber {
+		panic("Tried getting the lexeme of a literal token kind.")
+	}
+
+	return lexemeForTokenKind[tk]
 }
 
 func (t Token) String() string {

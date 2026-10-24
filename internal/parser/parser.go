@@ -3,6 +3,7 @@
 package parser
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/eduardo-lamounier/setly/internal/diagnostics"
@@ -73,14 +74,14 @@ func (p *parser) match(expected ...syntax.TokenKind) bool {
 	return true
 }
 
-func (p *parser) expect(expected syntax.TokenKind, message string) bool {
-	if !p.match(expected) {
-		p.report(message)
-		p.advance()
-		return false
+func (p *parser) expect(expected syntax.TokenKind) bool {
+	if p.match(expected) {
+		return true
 	}
 
-	return true
+	p.report(fmt.Sprintf("Expected '%s', got '%s'.", expected.GetLexeme(), p.peek().Lexeme))
+	p.advance()
+	return false
 }
 
 func (p *parser) emitStmt(stmt syntax.Stmt) {
@@ -282,7 +283,7 @@ func (p *parser) printStmt() (syntax.Stmt, bool) {
 
 	newline := p.prev().Kind == syntax.TokenPrintln
 
-	if !p.expect(syntax.TokenParenL, "Expected opening parentheses.") {
+	if !p.expect(syntax.TokenParenL) {
 		return nil, true
 	}
 
@@ -290,12 +291,12 @@ func (p *parser) printStmt() (syntax.Stmt, bool) {
 	if p.match(syntax.TokenParenR) {
 		if !newline {
 			p.reportAt(p.prev(), "Expected expression to print")
-			p.expect(syntax.TokenSemicolon, "Expected ';' after statement.")
+			p.expect(syntax.TokenSemicolon)
 
 			return nil, true
 		}
 
-		if !p.expect(syntax.TokenSemicolon, "Expected ';' after statement.") {
+		if !p.expect(syntax.TokenSemicolon) {
 			return nil, true
 		}
 
@@ -311,11 +312,11 @@ func (p *parser) printStmt() (syntax.Stmt, bool) {
 		return nil, true
 	}
 
-	if !p.expect(syntax.TokenParenR, "Expected closing parentheses.") {
+	if !p.expect(syntax.TokenParenR) {
 		return nil, true
 	}
 
-	if !p.expect(syntax.TokenSemicolon, "Expected ';' after statement.") {
+	if !p.expect(syntax.TokenSemicolon) {
 		return nil, true
 	}
 
