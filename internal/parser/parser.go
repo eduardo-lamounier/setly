@@ -365,6 +365,60 @@ func (p *parser) stmt() (syntax.Stmt, bool) {
 	return p.exprStmt()
 }
 
+func (p *parser) varDeclaration() (syntax.Stmt, bool) {
+	varName := p.peek()
+	if !p.expectWithMsg(syntax.TokenID, "Expected variable name.") {
+		return nil, true
+	}
+
+	typeName := p.peek()
+	if !p.expectWithMsg(syntax.TokenID, "Expected the variable's type.") {
+		return nil, true
+	}
+
+	var initializer syntax.Expr = nil
+	if p.match(syntax.TokenColonEqual) {
+		var hadError bool
+		initializer, hadError = p.expr()
+
+		if hadError {
+			return nil, true
+		}
+	}
+
+	if !p.expect(syntax.TokenSemicolon) {
+		return nil, true
+	}
+
+	return syntax.VarStmt{
+		Name:        varName,
+		Type:        typeName,
+		Initializer: initializer,
+	}, false
+}
+
+func (p *parser) declaration() syntax.Stmt {
+	if p.match(syntax.TokenLet) {
+		stmt, hadError := p.varDeclaration()
+
+		if hadError {
+			p.synchronize()
+			return nil
+		}
+
+		return stmt
+	}
+
+	stmt, hadError := p.stmt()
+
+	if hadError {
+		p.synchronize()
+		return nil
+	}
+
+	return stmt
+}
+
 func (p *parser) synchronize() {
 	p.advance()
 	for ; !p.atEnd(); p.advance() {
@@ -399,9 +453,9 @@ func Parse(source string, tokens []syntax.Token) (
 	}
 
 	for !p.atEnd() {
-		stmt, hadError := p.stmt()
+		stmt := p.declaration()
 
-		if !hadError {
+		if stmt != nil {
 			p.emitStmt(stmt)
 		}
 	}
