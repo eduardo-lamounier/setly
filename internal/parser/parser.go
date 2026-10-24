@@ -75,11 +75,25 @@ func (p *parser) match(expected ...syntax.TokenKind) bool {
 }
 
 func (p *parser) expect(expected syntax.TokenKind) bool {
+	if expected == syntax.TokenID || expected == syntax.TokenString || expected == syntax.TokenNumber {
+		panic("Could not expect a literal token.")
+	}
+
 	if p.match(expected) {
 		return true
 	}
 
 	p.report(fmt.Sprintf("Expected '%s', got '%s'.", expected.GetLexeme(), p.peek().Lexeme))
+	p.advance()
+	return false
+}
+
+func (p *parser) expectWithMsg(expected syntax.TokenKind, message string) bool {
+	if p.match(expected) {
+		return true
+	}
+
+	p.report(message)
 	p.advance()
 	return false
 }
