@@ -293,8 +293,8 @@ func (l *lexer) scanToken() {
 		}
 
 		// Identifier:
-		if unicode.IsLetter(chr) {
-			for ; unicode.IsLetter(l.peek()) || unicode.IsNumber(l.peek()); l.advance() {
+		if unicode.IsLetter(chr) || chr == '_' {
+			for ; unicode.IsLetter(l.peek()) || l.peek() == '_' || unicode.IsNumber(l.peek()); l.advance() {
 			}
 
 			s := l.Source[l.Start:l.Pos]
