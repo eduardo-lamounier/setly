@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/eduardo-lamounier/setly/internal/runtime"
+	"github.com/eduardo-lamounier/setly/internal/runtime/environment"
 	"github.com/eduardo-lamounier/setly/internal/syntax"
 )
 
@@ -117,6 +118,8 @@ func (i interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) 
 		return runtime.ValueFromLiteral(expr.Literal()), nil
 	case syntax.GroupingExpr:
 		return i.evaluate(expr.Inner)
+	case syntax.VarExpr:
+		return environment.Access(expr.Name.Lexeme), nil
 	default:
 		panic("Not implemented expr kind to evaluate.")
 	}
@@ -154,6 +157,19 @@ func (i interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 		}
 
 		return err
+	case syntax.VarStmt:
+		var value runtime.Value = nil
+		if stmt.Initializer != nil {
+			var err *runtime.Error
+
+			value, err = i.evaluate(stmt.Initializer)
+			if err != nil {
+				return err
+			}
+		}
+
+		environment.Define(stmt.Name.Lexeme, value)
+		return nil
 	default:
 		panic("Not implemented stmt kind to execute.")
 	}
