@@ -27,6 +27,10 @@ func (p parser) atEnd() bool {
 func (p *parser) advance() {
 	if !p.atEnd() {
 		p.Pos++
+
+		// Skips newlines
+		for ; p.peek().Kind == syntax.TokenNewline; p.Pos++ {
+		}
 	}
 }
 
