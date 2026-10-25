@@ -294,8 +294,35 @@ func (p *parser) logicalOr() (syntax.Expr, bool) {
 	return expr, false
 }
 
+func (p *parser) assignment() (syntax.Expr, bool) {
+	expr, hadError := p.logicalNot()
+
+	if hadError {
+		return nil, true
+	}
+
+	if p.match(syntax.TokenColonEqual) {
+		op := p.prev()
+		value, hadError := p.assignment()
+
+		if hadError {
+			return nil, true
+		}
+
+		switch expr := expr.(type) {
+		case syntax.VarExpr:
+			return syntax.NewAssignExpr(expr.Name, value), false
+		default:
+			p.reportAt(op, "Invalid target to assign a value to.")
+			return nil, true
+		}
+	}
+
+	return expr, false
+}
+
 func (p *parser) expr() (syntax.Expr, bool) {
-	return p.logicalOr()
+	return p.assignment()
 }
 
 func (p *parser) printStmt() (syntax.Stmt, bool) {
