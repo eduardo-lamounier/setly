@@ -32,6 +32,11 @@ type VarExpr struct {
 	Name Token
 }
 
+type AssignExpr struct {
+	Name  Token
+	Value Expr
+}
+
 func (e UnaryExpr) String() string {
 	return fmt.Sprintf("%s[ %s ]", e.Operator.Lexeme, e.Operand)
 }
@@ -51,6 +56,10 @@ func (e LiteralExpr) String() string {
 
 func (e VarExpr) String() string {
 	return fmt.Sprint(e.Name.Lexeme)
+}
+
+func (e AssignExpr) String() string {
+	return fmt.Sprintf(":=[ %s, %s ]", e.Name, e.Value)
 }
 
 func (e UnaryExpr) Loc() int {
@@ -128,6 +137,18 @@ func (e VarExpr) Col() int {
 	return e.Name.Col
 }
 
+func (e AssignExpr) Loc() int {
+	return e.Name.Loc
+}
+
+func (e AssignExpr) Line() int {
+	return e.Name.Line
+}
+
+func (e AssignExpr) Col() int {
+	return e.Name.Col
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 func (e LiteralExpr) Literal() any {
@@ -183,5 +204,12 @@ func NewLiteralExpr(literal Token) LiteralExpr {
 func NewVarExpr(name Token) VarExpr {
 	return VarExpr{
 		Name: name,
+	}
+}
+
+func NewAssignExpr(name Token, value Expr) AssignExpr {
+	return AssignExpr{
+		Name:  name,
+		Value: value,
 	}
 }
