@@ -1,4 +1,4 @@
-// Package runtime TODO: Add package description
+// Package runtime Defines runtime error and value types
 package runtime
 
 import (
