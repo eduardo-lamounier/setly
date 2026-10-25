@@ -120,6 +120,14 @@ func (i interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) 
 		return i.evaluate(expr.Inner)
 	case syntax.VarExpr:
 		return environment.Access(expr.Name.Lexeme), nil
+	case syntax.AssignExpr:
+		value, err := i.evaluate(expr.Value)
+		if err != nil {
+			return nil, err
+		}
+
+		environment.Define(expr.Name.Lexeme, value)
+		return environment.Access(expr.Name.Lexeme), nil
 	default:
 		panic("Not implemented expr kind to evaluate.")
 	}
