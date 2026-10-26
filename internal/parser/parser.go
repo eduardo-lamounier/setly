@@ -295,7 +295,7 @@ func (p *parser) logicalOr() (syntax.Expr, bool) {
 }
 
 func (p *parser) assignment() (syntax.Expr, bool) {
-	expr, hadError := p.logicalNot()
+	expr, hadError := p.logicalOr()
 
 	if hadError {
 		return nil, true
