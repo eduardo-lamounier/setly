@@ -178,6 +178,17 @@ func (i interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 
 		i.Environment.Define(stmt.Name.Lexeme, value)
 		return nil
+	case syntax.BlockStmt:
+		prev := i.Environment
+
+		i.Environment = runtime.NewEnvironment(&prev)
+		defer func() { i.Environment = prev }()
+
+		for _, stmt := range stmt.Stmts {
+			if err := i.execute(stmt); err != nil {
+				return err
+			}
+		}
 	default:
 		panic("Not implemented stmt kind to execute.")
 	}
