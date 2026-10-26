@@ -17,6 +17,10 @@ type VarStmt struct {
 	Initializer Expr
 }
 
+type BlockStmt struct {
+	Stmts []Stmt
+}
+
 func NewExprStmt(expr Expr) ExprStmt {
 	return ExprStmt{
 		Expr: expr,
@@ -35,5 +39,11 @@ func NewVarStmt(name Token, valueType Token, initializer Expr) VarStmt {
 		Name:        name,
 		Type:        valueType,
 		Initializer: initializer,
+	}
+}
+
+func NewBlockStmt(stmts []Stmt) BlockStmt {
+	return BlockStmt{
+		Stmts: stmts,
 	}
 }
