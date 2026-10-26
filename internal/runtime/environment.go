@@ -28,7 +28,7 @@ func (e *Environment) Access(name string) Value {
 	}
 
 	if e.enclosing != nil {
-		return e.enclosing.enclosing.Access(name)
+		return e.enclosing.Access(name)
 	}
 
 	panic(fmt.Sprintf("Undefined variable %s.", name))
