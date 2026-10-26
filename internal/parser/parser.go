@@ -384,9 +384,25 @@ func (p *parser) exprStmt() (syntax.Stmt, bool) {
 	return syntax.NewExprStmt(expr), false
 }
 
+func (p *parser) blockStmt() (syntax.Stmt, bool) {
+	var stmts []syntax.Stmt
+
+	for !p.check(syntax.TokenBraceR) && !p.atEnd() {
+		stmts = append(stmts, p.declaration())
+	}
+
+	if !p.expect(syntax.TokenBraceR) || !p.expect(syntax.TokenSemicolon) {
+		return nil, true
+	}
+
+	return syntax.NewBlockStmt(stmts), false
+}
+
 func (p *parser) stmt() (syntax.Stmt, bool) {
 	if p.match(syntax.TokenPrint, syntax.TokenPrintln) {
 		return p.printStmt()
+	} else if p.match(syntax.TokenBraceL) {
+		return p.blockStmt()
 	}
 
 	return p.exprStmt()
