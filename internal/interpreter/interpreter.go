@@ -6,13 +6,13 @@ import (
 	"fmt"
 
 	"github.com/eduardo-lamounier/setly/internal/runtime"
-	"github.com/eduardo-lamounier/setly/internal/runtime/environment"
 	"github.com/eduardo-lamounier/setly/internal/syntax"
 )
 
 type interpreter struct {
-	Stmts []syntax.Stmt
-	Opts  Options
+	Environment runtime.Environment
+	Stmts       []syntax.Stmt
+	Opts        Options
 }
 
 type Options struct {
@@ -119,15 +119,15 @@ func (i interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) 
 	case syntax.GroupingExpr:
 		return i.evaluate(expr.Inner)
 	case syntax.VarExpr:
-		return environment.Access(expr.Name.Lexeme), nil
+		return i.Environment.Access(expr.Name.Lexeme), nil
 	case syntax.AssignExpr:
 		value, err := i.evaluate(expr.Value)
 		if err != nil {
 			return nil, err
 		}
 
-		environment.Define(expr.Name.Lexeme, value)
-		return environment.Access(expr.Name.Lexeme), nil
+		i.Environment.Define(expr.Name.Lexeme, value)
+		return i.Environment.Access(expr.Name.Lexeme), nil
 	default:
 		panic("Not implemented expr kind to evaluate.")
 	}
@@ -176,7 +176,7 @@ func (i interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 			}
 		}
 
-		environment.Define(stmt.Name.Lexeme, value)
+		i.Environment.Define(stmt.Name.Lexeme, value)
 		return nil
 	default:
 		panic("Not implemented stmt kind to execute.")
@@ -187,8 +187,9 @@ func (i interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 
 func Interpret(stmts []syntax.Stmt, opts Options) *runtime.Error {
 	i := interpreter{
-		Stmts: stmts,
-		Opts:  opts,
+		Environment: runtime.GlobalEnvironment,
+		Stmts:       stmts,
+		Opts:        opts,
 	}
 
 	for _, stmt := range stmts {

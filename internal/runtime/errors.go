@@ -1,4 +1,5 @@
-// Package runtime Defines runtime error and value types
+// Package runtime Defines runtime error, value types and the runtime's
+// environment structure
 package runtime
 
 import (
