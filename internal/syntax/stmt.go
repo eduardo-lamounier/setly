@@ -21,6 +21,12 @@ type BlockStmt struct {
 	Stmts []Stmt
 }
 
+type IfStmt struct {
+	Condition  Expr
+	ThenBranch Stmt
+	ElseBranch Stmt
+}
+
 func NewExprStmt(expr Expr) ExprStmt {
 	return ExprStmt{
 		Expr: expr,
@@ -45,5 +51,13 @@ func NewVarStmt(name Token, valueType Token, initializer Expr) VarStmt {
 func NewBlockStmt(stmts []Stmt) BlockStmt {
 	return BlockStmt{
 		Stmts: stmts,
+	}
+}
+
+func NewIfStmt(condition Expr, thenBranch Stmt, elseBranch Stmt) IfStmt {
+	return IfStmt{
+		Condition:  condition,
+		ThenBranch: thenBranch,
+		ElseBranch: elseBranch,
 	}
 }
