@@ -59,11 +59,11 @@ func (i interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) 
 		switch expr.Operator.Kind {
 		case syntax.TokenOr:
 			if i.isTruthy(l) {
-				return runtime.Boolean(true), nil
+				return l, nil
 			}
 		case syntax.TokenAnd:
 			if !i.isTruthy(l) {
-				return runtime.Boolean(false), nil
+				return l, nil
 			}
 		}
 
@@ -75,10 +75,10 @@ func (i interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) 
 		switch expr.Operator.Kind {
 		case syntax.TokenOr:
 			// left side is "falsy" if we got here
-			return runtime.Boolean(i.isTruthy(r)), nil
+			return r, nil
 		case syntax.TokenAnd:
 			// left side is "truthy" if we got here
-			return runtime.Boolean(i.isTruthy(r)), nil
+			return r, nil
 		case syntax.TokenPlus:
 			switch l.(type) {
 			case runtime.Number:
