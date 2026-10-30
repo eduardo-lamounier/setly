@@ -384,11 +384,40 @@ func (p *parser) blockStmt() (syntax.Stmt, bool) {
 	return syntax.NewBlockStmt(stmts), false
 }
 
+func (p *parser) ifStmt() (stmt syntax.Stmt, hadError bool) {
+	cond, hadError := p.expr()
+
+	if hadError {
+		return
+	}
+
+	thenBranch, hadError := p.stmt()
+
+	if hadError {
+		return
+	}
+
+	var elseBranch syntax.Stmt = nil
+
+	if p.match(syntax.TokenElse) {
+		elseBranch, hadError = p.stmt()
+
+		if hadError {
+			return
+		}
+	}
+
+	stmt = syntax.NewIfStmt(cond, thenBranch, elseBranch)
+	return
+}
+
 func (p *parser) stmt() (syntax.Stmt, bool) {
 	if p.match(syntax.TokenPrint, syntax.TokenPrintln) {
 		return p.printStmt()
 	} else if p.match(syntax.TokenBraceL) {
 		return p.blockStmt()
+	} else if p.match(syntax.TokenIf) {
+		return p.ifStmt()
 	}
 
 	return p.exprStmt()
