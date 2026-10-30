@@ -391,7 +391,7 @@ func (p *parser) blockStmt() (syntax.Stmt, bool) {
 		stmts = append(stmts, p.declaration())
 	}
 
-	if !p.expect(syntax.TokenBraceR) || !p.expect(syntax.TokenSemicolon) {
+	if !p.expect(syntax.TokenBraceR) {
 		return nil, true
 	}
 
