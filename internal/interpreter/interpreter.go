@@ -189,6 +189,19 @@ func (i interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 				return err
 			}
 		}
+	case syntax.IfStmt:
+		condition, err := i.evaluate(stmt.Condition)
+		if err != nil {
+			return err
+		}
+
+		if i.isTruthy(condition) {
+			err = i.execute(stmt.ThenBranch)
+		} else if stmt.ElseBranch != nil {
+			err = i.execute(stmt.ElseBranch)
+		}
+
+		return err
 	default:
 		panic("Not implemented stmt kind to execute.")
 	}
