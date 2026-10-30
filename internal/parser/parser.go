@@ -326,10 +326,6 @@ func (p *parser) expr() (syntax.Expr, bool) {
 }
 
 func (p *parser) printStmt() (syntax.Stmt, bool) {
-	if p.prev().Kind != syntax.TokenPrint && p.prev().Kind != syntax.TokenPrintln {
-		panic("Tried parsing print statement without a 'print' or 'println' token")
-	}
-
 	newline := p.prev().Kind == syntax.TokenPrintln
 
 	if !p.expect(syntax.TokenParenL) {
@@ -340,12 +336,7 @@ func (p *parser) printStmt() (syntax.Stmt, bool) {
 	if p.match(syntax.TokenParenR) {
 		if !newline {
 			p.reportAt(p.prev(), "Expected expression to print")
-			p.expect(syntax.TokenSemicolon)
 
-			return nil, true
-		}
-
-		if !p.expect(syntax.TokenSemicolon) {
 			return nil, true
 		}
 
@@ -362,10 +353,6 @@ func (p *parser) printStmt() (syntax.Stmt, bool) {
 		return nil, true
 	}
 
-	if !p.expect(syntax.TokenSemicolon) {
-		return nil, true
-	}
-
 	return syntax.NewPrintStmt(expr, newline), false
 }
 
@@ -373,11 +360,6 @@ func (p *parser) exprStmt() (syntax.Stmt, bool) {
 	expr, hadError := p.expr()
 
 	if hadError {
-		return nil, true
-	}
-
-	if !p.match(syntax.TokenSemicolon) {
-		p.report("Expected ';' after an expression.")
 		return nil, true
 	}
 
@@ -389,6 +371,10 @@ func (p *parser) blockStmt() (syntax.Stmt, bool) {
 
 	for !p.check(syntax.TokenBraceR) && !p.atEnd() {
 		stmts = append(stmts, p.declaration())
+
+		if !p.expect(syntax.TokenSemicolon) {
+			return nil, true
+		}
 	}
 
 	if !p.expect(syntax.TokenBraceR) {
@@ -427,10 +413,6 @@ func (p *parser) varDeclaration() (syntax.Stmt, bool) {
 		if hadError {
 			return nil, true
 		}
-	}
-
-	if !p.expect(syntax.TokenSemicolon) {
-		return nil, true
 	}
 
 	return syntax.NewVarStmt(varName, typeName, initializer), false
@@ -496,6 +478,10 @@ func Parse(source string, tokens []syntax.Token) (
 
 		if stmt != nil {
 			p.emitStmt(stmt)
+		}
+
+		if !p.expect(syntax.TokenSemicolon) {
+			p.synchronize()
 		}
 	}
 
