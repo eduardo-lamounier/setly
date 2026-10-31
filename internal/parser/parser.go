@@ -110,7 +110,7 @@ func (p *parser) primary() (syntax.Expr, bool) {
 	if p.match(syntax.TokenNil, syntax.TokenFalse, syntax.TokenTrue,
 		syntax.TokenNumber, syntax.TokenString) {
 
-		return syntax.NewLiteralExpr(p.prev()), false
+		return syntax.NewLiteralExprFromToken(p.prev()), false
 	}
 
 	if p.match(syntax.TokenParenL) {
