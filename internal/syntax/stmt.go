@@ -27,6 +27,13 @@ type IfStmt struct {
 	ElseBranch Stmt
 }
 
+type LoopStmt struct {
+	Initialization Stmt
+	Condition      Expr
+	Update         Stmt
+	Block          Stmt
+}
+
 func NewExprStmt(expr Expr) ExprStmt {
 	return ExprStmt{
 		Expr: expr,
@@ -59,5 +66,16 @@ func NewIfStmt(condition Expr, thenBranch Stmt, elseBranch Stmt) IfStmt {
 		Condition:  condition,
 		ThenBranch: thenBranch,
 		ElseBranch: elseBranch,
+	}
+}
+
+func NewLoopStmt(
+	initialization Stmt, condition Expr, update Stmt, block Stmt,
+) LoopStmt {
+	return LoopStmt{
+		Initialization: initialization,
+		Condition:      condition,
+		Update:         update,
+		Block:          block,
 	}
 }
