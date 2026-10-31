@@ -184,7 +184,7 @@ func NewLiteralExprFromToken(literal Token) (expr LiteralExpr) {
 
 	switch literal.Kind {
 	case TokenString, TokenNumber:
-		expr.Literal = literal
+		expr.Literal = literal.Literal
 		return
 	case TokenNil:
 		expr.Literal = nil
