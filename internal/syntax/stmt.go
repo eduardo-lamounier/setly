@@ -1,6 +1,8 @@
 package syntax
 
-type Stmt interface{}
+type Stmt interface {
+	stmt()
+}
 
 type ExprStmt struct {
 	Expr Expr
@@ -33,6 +35,15 @@ type LoopStmt struct {
 	Update         Stmt
 	Block          Stmt
 }
+
+func (s ExprStmt) stmt()  {}
+func (s PrintStmt) stmt() {}
+func (s VarStmt) stmt()   {}
+func (s BlockStmt) stmt() {}
+func (s IfStmt) stmt()    {}
+func (s LoopStmt) stmt()  {}
+
+////////////////////////////////////////////////////////////////////////////////
 
 func NewExprStmt(expr Expr) ExprStmt {
 	return ExprStmt{

@@ -3,6 +3,8 @@ package syntax
 import "fmt"
 
 type Expr interface {
+	expr()
+
 	fmt.Stringer
 
 	Loc() int
@@ -36,6 +38,13 @@ type AssignExpr struct {
 	Name  Token
 	Value Expr
 }
+
+func (e UnaryExpr) expr()    {}
+func (e BinaryExpr) expr()   {}
+func (e GroupingExpr) expr() {}
+func (e LiteralExpr) expr()  {}
+func (e VarExpr) expr()      {}
+func (e AssignExpr) expr()   {}
 
 func (e UnaryExpr) String() string {
 	return fmt.Sprintf("%s[ %s ]", e.Operator.Lexeme, e.Operand)
