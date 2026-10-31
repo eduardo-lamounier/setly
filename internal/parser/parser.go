@@ -412,15 +412,16 @@ func (p *parser) ifStmt() (stmt syntax.Stmt, hadError bool) {
 }
 
 func (p *parser) stmt() (syntax.Stmt, bool) {
-	if p.match(syntax.TokenPrint, syntax.TokenPrintln) {
+	switch {
+	case p.match(syntax.TokenPrint, syntax.TokenPrintln):
 		return p.printStmt()
-	} else if p.match(syntax.TokenBraceL) {
+	case p.match(syntax.TokenBraceL):
 		return p.blockStmt()
-	} else if p.match(syntax.TokenIf) {
+	case p.match(syntax.TokenIf):
 		return p.ifStmt()
+	default:
+		return p.exprStmt()
 	}
-
-	return p.exprStmt()
 }
 
 func (p *parser) varDeclaration() (syntax.Stmt, bool) {
