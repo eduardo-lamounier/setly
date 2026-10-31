@@ -196,6 +196,10 @@ var tokenKindsToString = map[TokenKind]string{
 	TokenEOF: "EOF",
 }
 
+func NewLocation(pos int, line int, col int) Location {
+	return Location{pos, line, col}
+}
+
 func (l Location) Pos() int {
 	return l.pos
 }
@@ -208,17 +212,17 @@ func (l Location) Col() int {
 	return l.col
 }
 
-func NewToken(kind TokenKind, lexeme string, pos int, line int, col int) Token {
-	return NewLiteralToken(kind, lexeme, nil, pos, line, col)
+func NewToken(kind TokenKind, lexeme string, location Location) Token {
+	return NewLiteralToken(kind, lexeme, nil, location)
 }
 
-func NewLiteralToken(kind TokenKind, lexeme string, literal any, pos int, line int, col int) Token {
+func NewLiteralToken(kind TokenKind, lexeme string, literal any, location Location) Token {
 	return Token{
 		Kind:    kind,
 		Lexeme:  lexeme,
 		Literal: literal,
 
-		Location: Location{pos, line, col},
+		Location: location,
 	}
 }
 

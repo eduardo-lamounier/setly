@@ -149,9 +149,7 @@ func (l *lexer) addLiteralToken(
 		kind,
 		l.Source[l.Start:l.Pos],
 		literal,
-		line,
-		col,
-		l.Start,
+		syntax.NewLocation(l.Start, line, col),
 	)
 
 	l.Tokens = append(l.Tokens, token)
