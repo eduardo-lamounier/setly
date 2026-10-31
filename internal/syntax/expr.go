@@ -24,7 +24,9 @@ type GroupingExpr struct {
 }
 
 type LiteralExpr struct {
-	LiteralToken Token
+	Location
+
+	Literal any
 }
 
 type VarExpr struct {
@@ -57,7 +59,7 @@ func (e GroupingExpr) String() string {
 }
 
 func (e LiteralExpr) String() string {
-	return fmt.Sprint(e.LiteralToken.Literal)
+	return fmt.Sprint(e.Literal)
 }
 
 func (e VarExpr) String() string {
@@ -120,15 +122,15 @@ func (e GroupingExpr) Col() int {
 }
 
 func (e LiteralExpr) Pos() int {
-	return e.LiteralToken.Pos()
+	return e.pos
 }
 
 func (e LiteralExpr) Line() int {
-	return e.LiteralToken.Line()
+	return e.line
 }
 
 func (e LiteralExpr) Col() int {
-	return e.LiteralToken.Col()
+	return e.col
 }
 
 func (e VarExpr) Pos() int {
@@ -157,10 +159,6 @@ func (e AssignExpr) Col() int {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-func (e LiteralExpr) Literal() any {
-	return e.LiteralToken.Literal
-}
-
 func NewUnaryExpr(operator Token, operand Expr) UnaryExpr {
 	return UnaryExpr{
 		Operator: operator,
@@ -181,29 +179,31 @@ func NewGroupingExpr(inner Expr) GroupingExpr {
 	}
 }
 
-func NewLiteralExpr(literal Token) LiteralExpr {
+func NewLiteralExprFromToken(literal Token) (expr LiteralExpr) {
+	expr.Location = literal.Location
+
 	switch literal.Kind {
 	case TokenString, TokenNumber:
-		return LiteralExpr{
-			LiteralToken: literal,
-		}
+		expr.Literal = literal
+		return
 	case TokenNil:
-		literal.Literal = nil
-		return LiteralExpr{
-			LiteralToken: literal,
-		}
+		expr.Literal = nil
+		return
 	case TokenFalse:
-		literal.Literal = false
-		return LiteralExpr{
-			LiteralToken: literal,
-		}
+		expr.Literal = false
+		return
 	case TokenTrue:
-		literal.Literal = true
-		return LiteralExpr{
-			LiteralToken: literal,
-		}
+		expr.Literal = true
+		return
 	default:
 		panic(fmt.Sprint("Non-literal token ", literal, " passed to the constructor of LiteralExpr."))
+	}
+}
+
+func NewLiteralExprAt(literal any, loc Location) (expr LiteralExpr) {
+	return LiteralExpr{
+		Literal:  literal,
+		Location: loc,
 	}
 }
 

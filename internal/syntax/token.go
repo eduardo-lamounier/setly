@@ -62,6 +62,10 @@ type Token struct {
 	Lexeme  string
 	Literal any
 
+	Location
+}
+
+type Location struct {
 	pos  int
 	line int
 	col  int
@@ -192,6 +196,18 @@ var tokenKindsToString = map[TokenKind]string{
 	TokenEOF: "EOF",
 }
 
+func (l Location) Pos() int {
+	return l.pos
+}
+
+func (l Location) Line() int {
+	return l.line
+}
+
+func (l Location) Col() int {
+	return l.col
+}
+
 func NewToken(kind TokenKind, lexeme string, pos int, line int, col int) Token {
 	return NewLiteralToken(kind, lexeme, nil, pos, line, col)
 }
@@ -202,9 +218,7 @@ func NewLiteralToken(kind TokenKind, lexeme string, literal any, pos int, line i
 		Lexeme:  lexeme,
 		Literal: literal,
 
-		line: line,
-		col:  col,
-		pos:  pos,
+		Location: Location{pos, line, col},
 	}
 }
 
@@ -225,16 +239,4 @@ func (t Token) String() string {
 
 	return fmt.Sprintf("[%d:%d - %d, %s, \"%s\"]",
 		t.Line(), t.Col(), t.Pos(), kind, t.Lexeme)
-}
-
-func (t Token) Pos() int {
-	return t.pos
-}
-
-func (t Token) Line() int {
-	return t.line
-}
-
-func (t Token) Col() int {
-	return t.col
 }

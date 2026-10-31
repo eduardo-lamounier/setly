@@ -115,7 +115,7 @@ func (i interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) 
 
 		panic("Some binary operator not implemented.")
 	case syntax.LiteralExpr:
-		return runtime.ValueFromLiteral(expr.Literal()), nil
+		return runtime.ValueFromLiteral(expr.Literal), nil
 	case syntax.GroupingExpr:
 		return i.evaluate(expr.Inner)
 	case syntax.VarExpr:
