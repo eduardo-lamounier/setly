@@ -15,7 +15,8 @@ type UnaryExpr struct {
 
 type BinaryExpr struct {
 	Operator Token
-	Operands [2]Expr
+	Left     Expr
+	Right    Expr
 }
 
 type GroupingExpr struct {
@@ -49,7 +50,7 @@ func (e UnaryExpr) Line() int {
 }
 
 func (e BinaryExpr) Line() int {
-	return e.Operands[0].Line()
+	return e.Left.Line()
 }
 
 func (e GroupingExpr) Line() int {
@@ -80,7 +81,8 @@ func NewUnaryExpr(operator Token, operand Expr) UnaryExpr {
 func NewBinaryExpr(operator Token, left Expr, right Expr) BinaryExpr {
 	return BinaryExpr{
 		Operator: operator,
-		Operands: [...]Expr{left, right},
+		Left:     left,
+		Right:    right,
 	}
 }
 

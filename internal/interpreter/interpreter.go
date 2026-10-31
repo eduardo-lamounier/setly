@@ -49,7 +49,7 @@ func (i interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) 
 			panic("Some unary operator not implemented.")
 		}
 	case syntax.BinaryExpr:
-		l, err := i.evaluate(expr.Operands[0])
+		l, err := i.evaluate(expr.Left)
 		if err != nil {
 			return nil, err
 		}
@@ -67,7 +67,7 @@ func (i interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) 
 			}
 		}
 
-		r, err := i.evaluate(expr.Operands[1])
+		r, err := i.evaluate(expr.Right)
 		if err != nil {
 			return nil, err
 		}
