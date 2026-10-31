@@ -10,14 +10,14 @@ import (
 type Diagnostic struct {
 	Line    int
 	Col     int
-	Loc     int
+	Pos     int
 	Message string
 	Source  string
 }
 
 func (d Diagnostic) Report() {
 	lineBegin := 0
-	for i := d.Loc; i > 0; i-- {
+	for i := d.Pos; i > 0; i-- {
 		if d.Source[i-1] == '\n' {
 			lineBegin = i
 			break
@@ -25,7 +25,7 @@ func (d Diagnostic) Report() {
 	}
 
 	lineEnding := len(d.Source)
-	for i := d.Loc; i < len(d.Source)-1; i++ {
+	for i := d.Pos; i < len(d.Source)-1; i++ {
 		if d.Source[i] == '\n' {
 			lineEnding = i
 			break
@@ -38,5 +38,5 @@ func (d Diagnostic) Report() {
 	fmt.Fprintf(os.Stderr, "%d | %s\n", d.Line, line)
 
 	offset := int(math.Log10(float64(d.Line))+1) + 3
-	fmt.Fprintf(os.Stderr, "%*s\n", offset+d.Loc-lineBegin+len("^ here!"), "^ here!")
+	fmt.Fprintf(os.Stderr, "%*s\n", offset+d.Pos-lineBegin+len("^ here!"), "^ here!")
 }

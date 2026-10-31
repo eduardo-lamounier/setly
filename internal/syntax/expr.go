@@ -6,10 +6,7 @@ type Expr interface {
 	expr()
 
 	fmt.Stringer
-
-	Loc() int
-	Line() int
-	Col() int
+	locatable
 }
 
 type UnaryExpr struct {
@@ -71,10 +68,10 @@ func (e AssignExpr) String() string {
 	return fmt.Sprintf(":=[ %s, %s ]", e.Name, e.Value)
 }
 
-func (e UnaryExpr) Loc() int {
+func (e UnaryExpr) Pos() int {
 	switch e.Operator.Kind {
 	case TokenNot, TokenMinus, TokenPlus:
-		return e.Operator.Loc
+		return e.Operator.Pos()
 	default:
 		panic("Some unary operator not handled when calculating expression location.")
 	}
@@ -83,7 +80,7 @@ func (e UnaryExpr) Loc() int {
 func (e UnaryExpr) Line() int {
 	switch e.Operator.Kind {
 	case TokenNot, TokenMinus, TokenPlus:
-		return e.Operator.Line
+		return e.Operator.Line()
 	default:
 		panic("Some unary operator not handled when calculating expression line.")
 	}
@@ -92,14 +89,14 @@ func (e UnaryExpr) Line() int {
 func (e UnaryExpr) Col() int {
 	switch e.Operator.Kind {
 	case TokenNot, TokenMinus, TokenPlus:
-		return e.Operator.Line
+		return e.Operator.Line()
 	default:
 		panic("Some unary operator not handled when calculating expression column.")
 	}
 }
 
-func (e BinaryExpr) Loc() int {
-	return e.Operands[0].Loc()
+func (e BinaryExpr) Pos() int {
+	return e.Operands[0].Pos()
 }
 
 func (e BinaryExpr) Line() int {
@@ -110,8 +107,8 @@ func (e BinaryExpr) Col() int {
 	return e.Operands[0].Col()
 }
 
-func (e GroupingExpr) Loc() int {
-	return e.Inner.Loc()
+func (e GroupingExpr) Pos() int {
+	return e.Inner.Pos()
 }
 
 func (e GroupingExpr) Line() int {
@@ -122,40 +119,40 @@ func (e GroupingExpr) Col() int {
 	return e.Inner.Col()
 }
 
-func (e LiteralExpr) Loc() int {
-	return e.LiteralToken.Loc
+func (e LiteralExpr) Pos() int {
+	return e.LiteralToken.Pos()
 }
 
 func (e LiteralExpr) Line() int {
-	return e.LiteralToken.Line
+	return e.LiteralToken.Line()
 }
 
 func (e LiteralExpr) Col() int {
-	return e.LiteralToken.Col
+	return e.LiteralToken.Col()
 }
 
-func (e VarExpr) Loc() int {
-	return e.Name.Loc
+func (e VarExpr) Pos() int {
+	return e.Name.Pos()
 }
 
 func (e VarExpr) Line() int {
-	return e.Name.Line
+	return e.Name.Line()
 }
 
 func (e VarExpr) Col() int {
-	return e.Name.Col
+	return e.Name.Col()
 }
 
-func (e AssignExpr) Loc() int {
-	return e.Name.Loc
+func (e AssignExpr) Pos() int {
+	return e.Name.Pos()
 }
 
 func (e AssignExpr) Line() int {
-	return e.Name.Line
+	return e.Name.Line()
 }
 
 func (e AssignExpr) Col() int {
-	return e.Name.Col
+	return e.Name.Col()
 }
 
 ////////////////////////////////////////////////////////////////////////////////

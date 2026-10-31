@@ -25,6 +25,6 @@ func (e Error) Report() {
 func FromToken(message string, token syntax.Token) Error {
 	return Error{
 		Message: message,
-		Line:    token.Line,
+		Line:    token.Line(),
 	}
 }

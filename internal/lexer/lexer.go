@@ -115,13 +115,13 @@ func (l *lexer) report(message string) {
 	l.reportAt(l.Line, l.Col, l.Pos, message)
 }
 
-func (l *lexer) reportAt(line int, col int, loc int, message string) {
+func (l *lexer) reportAt(line int, col int, pos int, message string) {
 	l.HadError = true
 	l.Diagnostics = append(l.Diagnostics, diagnostics.Diagnostic{
 		Source:  l.Source,
 		Line:    line,
 		Col:     col,
-		Loc:     loc,
+		Pos:     pos,
 		Message: message,
 	})
 }
@@ -145,15 +145,16 @@ func (l *lexer) addLiteralToken(
 		}
 	}
 
-	l.Tokens = append(l.Tokens, syntax.Token{
-		Kind:    kind,
-		Lexeme:  l.Source[l.Start:l.Pos],
-		Literal: literal,
+	token := syntax.NewLiteralToken(
+		kind,
+		l.Source[l.Start:l.Pos],
+		literal,
+		line,
+		col,
+		l.Start,
+	)
 
-		Line: line,
-		Col:  col,
-		Loc:  l.Start,
-	})
+	l.Tokens = append(l.Tokens, token)
 }
 
 func (l *lexer) scanToken() {

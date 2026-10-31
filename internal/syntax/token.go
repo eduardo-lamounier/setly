@@ -62,9 +62,15 @@ type Token struct {
 	Lexeme  string
 	Literal any
 
-	Line int
-	Col  int
-	Loc  int
+	pos  int
+	line int
+	col  int
+}
+
+type locatable interface {
+	Pos() int
+	Line() int
+	Col() int
 }
 
 var KeywordForLexeme = map[string]TokenKind{
@@ -186,6 +192,22 @@ var tokenKindsToString = map[TokenKind]string{
 	TokenEOF: "EOF",
 }
 
+func NewToken(kind TokenKind, lexeme string, pos int, line int, col int) Token {
+	return NewLiteralToken(kind, lexeme, nil, pos, line, col)
+}
+
+func NewLiteralToken(kind TokenKind, lexeme string, literal any, pos int, line int, col int) Token {
+	return Token{
+		Kind:    kind,
+		Lexeme:  lexeme,
+		Literal: literal,
+
+		line: line,
+		col:  col,
+		pos:  pos,
+	}
+}
+
 func (tk TokenKind) GetLexeme() string {
 	if tk == TokenID || tk == TokenString || tk == TokenNumber {
 		panic("Tried getting the lexeme of a literal token kind.")
@@ -202,5 +224,17 @@ func (t Token) String() string {
 	}
 
 	return fmt.Sprintf("[%d:%d - %d, %s, \"%s\"]",
-		t.Line, t.Col, t.Loc, kind, t.Lexeme)
+		t.Line(), t.Col(), t.Pos(), kind, t.Lexeme)
+}
+
+func (t Token) Pos() int {
+	return t.pos
+}
+
+func (t Token) Line() int {
+	return t.line
+}
+
+func (t Token) Col() int {
+	return t.col
 }

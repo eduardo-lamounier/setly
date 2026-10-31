@@ -57,9 +57,9 @@ func (p *parser) report(message string) {
 func (p *parser) reportAt(token syntax.Token, message string) {
 	p.HadError = true
 	p.Diagnostics = append(p.Diagnostics, diagnostics.Diagnostic{
-		Line:    token.Line,
-		Col:     token.Col,
-		Loc:     token.Loc,
+		Line:    token.Line(),
+		Col:     token.Col(),
+		Pos:     token.Pos(),
 		Message: message,
 		Source:  p.Source,
 	})
