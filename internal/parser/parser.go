@@ -411,6 +411,23 @@ func (p *parser) ifStmt() (stmt syntax.Stmt, hadError bool) {
 	return
 }
 
+func (p *parser) whileStmt() (stmt syntax.Stmt, hadError bool) {
+	cond, hadError := p.expr()
+
+	if hadError {
+		return
+	}
+
+	block, hadError := p.stmt()
+
+	if hadError {
+		return
+	}
+
+	stmt = syntax.NewLoopStmt(nil, cond, nil, block)
+	return
+}
+
 func (p *parser) stmt() (syntax.Stmt, bool) {
 	switch {
 	case p.match(syntax.TokenPrint, syntax.TokenPrintln):
@@ -419,6 +436,8 @@ func (p *parser) stmt() (syntax.Stmt, bool) {
 		return p.blockStmt()
 	case p.match(syntax.TokenIf):
 		return p.ifStmt()
+	case p.match(syntax.TokenWhile):
+		return p.whileStmt()
 	default:
 		return p.exprStmt()
 	}
