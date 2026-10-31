@@ -93,7 +93,7 @@ func (i interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) 
 		case syntax.TokenSlash:
 			if r.(runtime.Number) == 0 {
 				return nil, &runtime.Error{
-					Line:    expr.Operands[0].Line(),
+					Line:    expr.Line(),
 					Message: "Attempted division by zero.",
 				}
 			}
