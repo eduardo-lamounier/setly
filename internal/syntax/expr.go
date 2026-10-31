@@ -6,8 +6,6 @@ type Expr interface {
 	expr()
 
 	Line() int
-
-	fmt.Stringer
 }
 
 type UnaryExpr struct {
@@ -45,31 +43,6 @@ func (e GroupingExpr) expr() {}
 func (e LiteralExpr) expr()  {}
 func (e VarExpr) expr()      {}
 func (e AssignExpr) expr()   {}
-
-func (e UnaryExpr) String() string {
-	return fmt.Sprintf("%s[ %s ]", e.Operator.Lexeme, e.Operand)
-}
-
-func (e BinaryExpr) String() string {
-	return fmt.Sprintf("%s[ %s, %s ]", e.Operator.Lexeme,
-		e.Operands[0], e.Operands[1])
-}
-
-func (e GroupingExpr) String() string {
-	return fmt.Sprint("( ", e.Inner, " )")
-}
-
-func (e LiteralExpr) String() string {
-	return fmt.Sprint(e.Literal)
-}
-
-func (e VarExpr) String() string {
-	return fmt.Sprint(e.Name.Lexeme)
-}
-
-func (e AssignExpr) String() string {
-	return fmt.Sprintf(":=[ %s, %s ]", e.Name, e.Value)
-}
 
 func (e UnaryExpr) Line() int {
 	switch e.Operator.Kind {
