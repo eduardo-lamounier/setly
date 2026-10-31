@@ -48,6 +48,10 @@ const (
 	TokenElif
 	TokenWhile
 	TokenFor
+	TokenFrom
+	TokenTo
+	TokenUntil
+	TokenBy
 	TokenPrint
 	TokenPrintln
 	TokenFn
@@ -94,6 +98,10 @@ var KeywordForLexeme = map[string]TokenKind{
 	"fn":      TokenFn,
 	"return":  TokenReturn,
 	"let":     TokenLet,
+	"from":    TokenFrom,
+	"to":      TokenTo,
+	"until":   TokenUntil,
+	"by":      TokenBy,
 }
 
 var lexemeForTokenKind = map[TokenKind]string{
@@ -136,6 +144,10 @@ var lexemeForTokenKind = map[TokenKind]string{
 	TokenElif:    "elif",
 	TokenWhile:   "while",
 	TokenFor:     "for",
+	TokenFrom:    "from",
+	TokenTo:      "to",
+	TokenUntil:   "until",
+	TokenBy:      "by",
 	TokenPrint:   "print",
 	TokenPrintln: "println",
 	TokenFn:      "fn",
@@ -187,6 +199,10 @@ var tokenKindsToString = map[TokenKind]string{
 	TokenElif:    "ELIF",
 	TokenWhile:   "WHILE",
 	TokenFor:     "FOR",
+	TokenFrom:    "FROM",
+	TokenTo:      "TO",
+	TokenUntil:   "UNTIL",
+	TokenBy:      "BY",
 	TokenPrint:   "PRINT",
 	TokenPrintln: "PRINTLN",
 	TokenFn:      "FN",
