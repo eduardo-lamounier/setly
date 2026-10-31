@@ -5,8 +5,9 @@ import "fmt"
 type Expr interface {
 	expr()
 
+	Line() int
+
 	fmt.Stringer
-	locatable
 }
 
 type UnaryExpr struct {
@@ -70,15 +71,6 @@ func (e AssignExpr) String() string {
 	return fmt.Sprintf(":=[ %s, %s ]", e.Name, e.Value)
 }
 
-func (e UnaryExpr) Pos() int {
-	switch e.Operator.Kind {
-	case TokenNot, TokenMinus, TokenPlus:
-		return e.Operator.Pos()
-	default:
-		panic("Some unary operator not handled when calculating expression location.")
-	}
-}
-
 func (e UnaryExpr) Line() int {
 	switch e.Operator.Kind {
 	case TokenNot, TokenMinus, TokenPlus:
@@ -88,73 +80,24 @@ func (e UnaryExpr) Line() int {
 	}
 }
 
-func (e UnaryExpr) Col() int {
-	switch e.Operator.Kind {
-	case TokenNot, TokenMinus, TokenPlus:
-		return e.Operator.Col()
-	default:
-		panic("Some unary operator not handled when calculating expression column.")
-	}
-}
-
-func (e BinaryExpr) Pos() int {
-	return e.Operands[0].Pos()
-}
-
 func (e BinaryExpr) Line() int {
 	return e.Operands[0].Line()
-}
-
-func (e BinaryExpr) Col() int {
-	return e.Operands[0].Col()
-}
-
-func (e GroupingExpr) Pos() int {
-	return e.Inner.Pos()
 }
 
 func (e GroupingExpr) Line() int {
 	return e.Inner.Line()
 }
 
-func (e GroupingExpr) Col() int {
-	return e.Inner.Col()
-}
-
-func (e LiteralExpr) Pos() int {
-	return e.pos
-}
-
 func (e LiteralExpr) Line() int {
 	return e.line
-}
-
-func (e LiteralExpr) Col() int {
-	return e.col
-}
-
-func (e VarExpr) Pos() int {
-	return e.Name.Pos()
 }
 
 func (e VarExpr) Line() int {
 	return e.Name.Line()
 }
 
-func (e VarExpr) Col() int {
-	return e.Name.Col()
-}
-
-func (e AssignExpr) Pos() int {
-	return e.Name.Pos()
-}
-
 func (e AssignExpr) Line() int {
 	return e.Name.Line()
-}
-
-func (e AssignExpr) Col() int {
-	return e.Name.Col()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
