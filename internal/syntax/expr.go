@@ -91,7 +91,7 @@ func (e UnaryExpr) Line() int {
 func (e UnaryExpr) Col() int {
 	switch e.Operator.Kind {
 	case TokenNot, TokenMinus, TokenPlus:
-		return e.Operator.Line()
+		return e.Operator.Col()
 	default:
 		panic("Some unary operator not handled when calculating expression column.")
 	}
