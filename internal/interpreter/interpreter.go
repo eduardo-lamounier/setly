@@ -134,6 +134,10 @@ func (i interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) 
 }
 
 func (i interpreter) execute(stmt syntax.Stmt) *runtime.Error {
+	if stmt == nil {
+		panic("Tried running no statement.")
+	}
+
 	switch stmt := stmt.(type) {
 	case syntax.PrintStmt:
 		// Returns early for a 'println()' (no expr passed):
@@ -202,6 +206,36 @@ func (i interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 		}
 
 		return err
+	case syntax.LoopStmt:
+		if stmt.Initialization != nil {
+			err := i.execute(stmt.Initialization)
+			if err != nil {
+				return err
+			}
+		}
+
+		for {
+			cond, err := i.evaluate(stmt.Condition)
+			if err != nil {
+				return err
+			}
+
+			if !i.isTruthy(cond) {
+				break
+			}
+
+			err = i.execute(stmt.Block)
+			if err != nil {
+				return err
+			}
+
+			if stmt.Update != nil {
+				err := i.execute(stmt.Update)
+				if err != nil {
+					return err
+				}
+			}
+		}
 	default:
 		panic("Not implemented stmt kind to execute.")
 	}
