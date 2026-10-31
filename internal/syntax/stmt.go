@@ -29,11 +29,9 @@ type IfStmt struct {
 	ElseBranch Stmt
 }
 
-type LoopStmt struct {
-	Initialization Stmt
-	Condition      Expr
-	Update         Stmt
-	Block          Stmt
+type WhileStmt struct {
+	Condition Expr
+	Block     Stmt
 }
 
 func (s ExprStmt) stmt()  {}
@@ -41,7 +39,7 @@ func (s PrintStmt) stmt() {}
 func (s VarStmt) stmt()   {}
 func (s BlockStmt) stmt() {}
 func (s IfStmt) stmt()    {}
-func (s LoopStmt) stmt()  {}
+func (s WhileStmt) stmt() {}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -80,13 +78,9 @@ func NewIfStmt(condition Expr, thenBranch Stmt, elseBranch Stmt) IfStmt {
 	}
 }
 
-func NewLoopStmt(
-	initialization Stmt, condition Expr, update Stmt, block Stmt,
-) LoopStmt {
-	return LoopStmt{
-		Initialization: initialization,
-		Condition:      condition,
-		Update:         update,
-		Block:          block,
+func NewWhileStmt(condition Expr, block Stmt) WhileStmt {
+	return WhileStmt{
+		Condition: condition,
+		Block:     block,
 	}
 }

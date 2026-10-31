@@ -206,19 +206,7 @@ func (i interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 		}
 
 		return err
-	case syntax.LoopStmt:
-		prev := i.Environment
-
-		i.Environment = runtime.NewEnvironment(&prev)
-		defer func() { i.Environment = prev }()
-
-		if stmt.Initialization != nil {
-			err := i.execute(stmt.Initialization)
-			if err != nil {
-				return err
-			}
-		}
-
+	case syntax.WhileStmt:
 		for {
 			cond, err := i.evaluate(stmt.Condition)
 			if err != nil {
@@ -232,13 +220,6 @@ func (i interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 			err = i.execute(stmt.Block)
 			if err != nil {
 				return err
-			}
-
-			if stmt.Update != nil {
-				err := i.execute(stmt.Update)
-				if err != nil {
-					return err
-				}
 			}
 		}
 	default:

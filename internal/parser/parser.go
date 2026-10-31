@@ -424,7 +424,7 @@ func (p *parser) whileStmt() (stmt syntax.Stmt, hadError bool) {
 		return
 	}
 
-	stmt = syntax.NewLoopStmt(nil, cond, nil, block)
+	stmt = syntax.NewWhileStmt(cond, block)
 	return
 }
 
