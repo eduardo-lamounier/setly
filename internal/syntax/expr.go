@@ -23,7 +23,7 @@ type GroupingExpr struct {
 }
 
 type LiteralExpr struct {
-	Location
+	line int
 
 	Literal any
 }
@@ -91,7 +91,7 @@ func NewGroupingExpr(inner Expr) GroupingExpr {
 }
 
 func NewLiteralExprFromToken(literal Token) (expr LiteralExpr) {
-	expr.Location = literal.Location
+	expr.line = literal.line
 
 	switch literal.Kind {
 	case TokenString, TokenNumber:
@@ -111,10 +111,10 @@ func NewLiteralExprFromToken(literal Token) (expr LiteralExpr) {
 	}
 }
 
-func NewLiteralExprAt(literal any, loc Location) (expr LiteralExpr) {
+func NewLiteralExprAt(literal any, line int) (expr LiteralExpr) {
 	return LiteralExpr{
-		Literal:  literal,
-		Location: loc,
+		Literal: literal,
+		line:    line,
 	}
 }
 
