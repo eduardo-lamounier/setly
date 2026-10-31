@@ -2,6 +2,8 @@ package syntax
 
 type Stmt interface {
 	stmt()
+
+	Line() int
 }
 
 type ExprStmt struct {
@@ -20,6 +22,8 @@ type VarStmt struct {
 }
 
 type BlockStmt struct {
+	line int
+
 	Stmts []Stmt
 }
 
@@ -40,6 +44,30 @@ func (s VarStmt) stmt()   {}
 func (s BlockStmt) stmt() {}
 func (s IfStmt) stmt()    {}
 func (s WhileStmt) stmt() {}
+
+func (s ExprStmt) Line() int {
+	return s.Expr.Line()
+}
+
+func (s PrintStmt) Line() int {
+	return s.Expr.Line()
+}
+
+func (s VarStmt) Line() int {
+	return s.Name.Line()
+}
+
+func (s BlockStmt) Line() int {
+	return s.line
+}
+
+func (s IfStmt) Line() int {
+	return s.Condition.Line()
+}
+
+func (s WhileStmt) Line() int {
+	return s.Condition.Line()
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
