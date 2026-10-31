@@ -170,7 +170,7 @@ func (i interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 
 		return err
 	case syntax.VarStmt:
-		var value runtime.Value = nil
+		var value runtime.Value = runtime.Nil{}
 		if stmt.Initializer != nil {
 			var err *runtime.Error
 
