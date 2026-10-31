@@ -127,10 +127,10 @@ func (l *lexer) reportAt(line int, col int, pos int, message string) {
 }
 
 func (l *lexer) emitToken(kind syntax.TokenKind) {
-	l.addLiteralToken(kind, nil)
+	l.emitLiteralToken(kind, nil)
 }
 
-func (l *lexer) addLiteralToken(
+func (l *lexer) emitLiteralToken(
 	kind syntax.TokenKind, literal any,
 ) {
 	line := l.Line
@@ -267,7 +267,7 @@ func (l *lexer) scanToken() {
 
 		l.advance() // Consumes the last "
 		s := l.Source[l.Start+1 : l.Pos-1]
-		l.addLiteralToken(syntax.TokenString, s)
+		l.emitLiteralToken(syntax.TokenString, s)
 
 	default:
 		// Number literal:
@@ -287,7 +287,7 @@ func (l *lexer) scanToken() {
 				panic("Could not convert number literal to a float.")
 			}
 
-			l.addLiteralToken(syntax.TokenNumber, n)
+			l.emitLiteralToken(syntax.TokenNumber, n)
 			break
 		}
 
@@ -300,7 +300,7 @@ func (l *lexer) scanToken() {
 			if tk, isKeyword := syntax.KeywordForLexeme[s]; isKeyword {
 				l.emitToken(tk)
 			} else {
-				l.addLiteralToken(syntax.TokenID, s)
+				l.emitLiteralToken(syntax.TokenID, s)
 			}
 
 			break
