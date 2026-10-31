@@ -146,10 +146,8 @@ func (l *lexer) emitLiteralToken(
 	}
 
 	token := syntax.NewLiteralToken(
-		kind,
-		l.Source[l.Start:l.Pos],
-		literal,
-		syntax.NewLocation(l.Start, line, col),
+		kind, l.Source[l.Start:l.Pos], literal,
+		l.Start, line, col,
 	)
 
 	l.Tokens = append(l.Tokens, token)
