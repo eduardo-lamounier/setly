@@ -126,7 +126,7 @@ func (i interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) 
 			return nil, err
 		}
 
-		i.Environment.Define(expr.Name.Lexeme, value)
+		i.Environment.Assign(expr.Name.Lexeme, value)
 		return i.Environment.Access(expr.Name.Lexeme), nil
 	default:
 		panic("Not implemented expr kind to evaluate.")
