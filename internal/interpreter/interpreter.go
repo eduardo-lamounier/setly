@@ -207,6 +207,11 @@ func (i interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 
 		return err
 	case syntax.LoopStmt:
+		prev := i.Environment
+
+		i.Environment = runtime.NewEnvironment(&prev)
+		defer func() { i.Environment = prev }()
+
 		if stmt.Initialization != nil {
 			err := i.execute(stmt.Initialization)
 			if err != nil {
