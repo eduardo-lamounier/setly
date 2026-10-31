@@ -45,12 +45,7 @@ func (e VarExpr) expr()      {}
 func (e AssignExpr) expr()   {}
 
 func (e UnaryExpr) Line() int {
-	switch e.Operator.Kind {
-	case TokenNot, TokenMinus, TokenPlus:
-		return e.Operator.Line()
-	default:
-		panic("Some unary operator not handled when calculating expression line.")
-	}
+	return e.Operator.Line()
 }
 
 func (e BinaryExpr) Line() int {
