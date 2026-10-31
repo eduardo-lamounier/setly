@@ -88,7 +88,6 @@ func (p *parser) expect(expected syntax.TokenKind) bool {
 	}
 
 	p.report(fmt.Sprintf("Expected '%s', got '%s'.", expected.GetLexeme(), p.peek().Lexeme))
-	p.advance()
 	return false
 }
 
@@ -98,7 +97,6 @@ func (p *parser) expectWithMsg(expected syntax.TokenKind, message string) bool {
 	}
 
 	p.report(message)
-	p.advance()
 	return false
 }
 
