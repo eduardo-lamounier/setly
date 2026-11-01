@@ -355,9 +355,7 @@ func (p *parser) exprStmt() (syntax.Stmt, bool) {
 	return syntax.NewExprStmt(expr), false
 }
 
-func (p *parser) blockStmt() (stmt syntax.Stmt, hadError bool) {
-	var stmts []syntax.Stmt
-
+func (p *parser) blockStmt() (stmts []syntax.Stmt, hadError bool) {
 	for !p.check(syntax.TokenBraceR) && !p.atEnd() {
 		decl, hadErrorInDecl := p.declaration()
 
@@ -373,8 +371,6 @@ func (p *parser) blockStmt() (stmt syntax.Stmt, hadError bool) {
 			continue
 		}
 	}
-
-	stmt = syntax.NewBlockStmt(stmts)
 
 	if !p.expect(syntax.TokenBraceR) {
 		hadError = true
@@ -432,7 +428,13 @@ func (p *parser) stmt() (syntax.Stmt, bool) {
 	case p.match(syntax.TokenPrint):
 		return p.printStmt()
 	case p.match(syntax.TokenBraceL):
-		return p.blockStmt()
+		stmts, hadError := p.blockStmt()
+
+		if hadError {
+			return nil, true
+		}
+
+		return syntax.NewBlockStmt(stmts), false
 	case p.match(syntax.TokenIf):
 		return p.ifStmt()
 	case p.match(syntax.TokenWhile):
