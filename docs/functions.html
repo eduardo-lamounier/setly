@@ -20,7 +20,7 @@
         <p>In this code, we define a function that prints a message to the console. This function receives a value <code>name</code>, which we call a parameter.</p>
         <p>A parameter is a variable whose value is assigned to it in the function call. A function can receive multiple parameters (including none).</p>
       </div>
-      <pre><code><span class="keyword">fn</span> greet(name <span class="type">string</span>) {
+      <pre><code><span class="keyword">function</span> greet(name <span class="type">string</span>) {
   <span class="keyword">print</span>(<span class="string">&quot;Hello, &quot;</span>+name+<span class="string">&quot;!&quot;</span>)
 }</code></pre>
     </section>
@@ -30,7 +30,7 @@
         <p>We can also return values. "Returning" means the function produces a result which may be useful to the caller.</p> 
         <p>In this code, the function <code>add</code> adds two numbers and returns the result of the addition. A function that returns something must define the return value's type after the closing brackets of the parameters list.</p>
       </div>
-      <pre><code><span class="keyword">fn</span> add(x <span class="type">number</span>, y <span class="type">number</span>) - <span class="type">number</span> {
+      <pre><code><span class="keyword">function</span> add(x <span class="type">number</span>, y <span class="type">number</span>) - <span class="type">number</span> {
   <span class="keyword">return</span> x+y <span class="comment">@ Must be 'number'</span>
 }</code></pre>
       <div class="explanation">
