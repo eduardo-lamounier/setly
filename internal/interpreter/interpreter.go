@@ -30,7 +30,25 @@ func (i interpreter) isTruthy(val runtime.Value) bool {
 	}
 }
 
-func (i interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) {
+func (i *interpreter) executeBlock(
+	stmts []syntax.Stmt, env runtime.Environment,
+) *runtime.Error {
+	prev := i.Environment
+
+	i.Environment = env
+	defer func() { i.Environment = prev }()
+
+	for _, stmt := range stmts {
+		if err := i.execute(stmt); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+
+func (i *interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) {
 	switch expr := expr.(type) {
 	case syntax.UnaryExpr:
 		op, err := i.evaluate(expr.Operand)
@@ -133,7 +151,7 @@ func (i interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) 
 	}
 }
 
-func (i interpreter) execute(stmt syntax.Stmt) *runtime.Error {
+func (i *interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 	if stmt == nil {
 		panic("Tried running no statement.")
 	}
@@ -174,16 +192,7 @@ func (i interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 		i.Environment.Define(stmt.Name.Lexeme, value)
 		return nil
 	case syntax.BlockStmt:
-		prev := i.Environment
-
-		i.Environment = runtime.NewEnvironment(&prev)
-		defer func() { i.Environment = prev }()
-
-		for _, stmt := range stmt.Stmts {
-			if err := i.execute(stmt); err != nil {
-				return err
-			}
-		}
+		return i.executeBlock(stmt.Stmts, runtime.NewEnvironment(&i.Environment))
 	case syntax.IfStmt:
 		condition, err := i.evaluate(stmt.Condition)
 		if err != nil {
