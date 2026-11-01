@@ -11,8 +11,7 @@ type ExprStmt struct {
 }
 
 type PrintStmt struct {
-	Newline bool
-	Expr    Expr
+	Expr Expr
 }
 
 type VarStmt struct {
@@ -77,10 +76,9 @@ func NewExprStmt(expr Expr) ExprStmt {
 	}
 }
 
-func NewPrintStmt(expr Expr, newline bool) PrintStmt {
+func NewPrintStmt(expr Expr) PrintStmt {
 	return PrintStmt{
-		Newline: newline,
-		Expr:    expr,
+		Expr: expr,
 	}
 }
 

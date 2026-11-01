@@ -324,21 +324,12 @@ func (p *parser) expr() (syntax.Expr, bool) {
 }
 
 func (p *parser) printStmt() (syntax.Stmt, bool) {
-	newline := p.prev().Kind == syntax.TokenPrintln
-
 	if !p.expect(syntax.TokenParenL) {
 		return nil, true
 	}
 
-	// only 'print()' is required to have received an expression:
 	if p.match(syntax.TokenParenR) {
-		if !newline {
-			p.reportAt(p.prev(), "Expected expression to print")
-
-			return nil, true
-		}
-
-		return syntax.NewPrintStmt(nil, true), false
+		return syntax.NewPrintStmt(nil), false
 	}
 
 	expr, hadError := p.expr()
@@ -351,7 +342,7 @@ func (p *parser) printStmt() (syntax.Stmt, bool) {
 		return nil, true
 	}
 
-	return syntax.NewPrintStmt(expr, newline), false
+	return syntax.NewPrintStmt(expr), false
 }
 
 func (p *parser) exprStmt() (syntax.Stmt, bool) {
@@ -438,7 +429,7 @@ func (p *parser) whileStmt() (stmt syntax.Stmt, hadError bool) {
 
 func (p *parser) stmt() (syntax.Stmt, bool) {
 	switch {
-	case p.match(syntax.TokenPrint, syntax.TokenPrintln):
+	case p.match(syntax.TokenPrint):
 		return p.printStmt()
 	case p.match(syntax.TokenBraceL):
 		return p.blockStmt()
@@ -510,7 +501,6 @@ func (p *parser) synchronize() {
 			syntax.TokenWhile,
 			syntax.TokenIf,
 			syntax.TokenPrint,
-			syntax.TokenPrintln,
 			syntax.TokenReturn:
 			return
 		}
