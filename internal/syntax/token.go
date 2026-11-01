@@ -71,12 +71,6 @@ type Token struct {
 	col  int
 }
 
-type locatable interface {
-	Pos() int
-	Line() int
-	Col() int
-}
-
 var KeywordForLexeme = map[string]TokenKind{
 	"false":   TokenFalse,
 	"true":    TokenTrue,
