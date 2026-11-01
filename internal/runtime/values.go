@@ -6,6 +6,8 @@ import (
 )
 
 type Value interface {
+	value()
+
 	fmt.Stringer
 
 	Stringify() string
@@ -18,6 +20,14 @@ type String string
 type Boolean bool
 
 type Nil struct{}
+
+type Function struct{}
+
+func (n Number) value()   {}
+func (s String) value()   {}
+func (b Boolean) value()  {}
+func (n Nil) value()      {}
+func (f Function) value() {}
 
 func (n Number) String() string {
 	return n.Stringify()
