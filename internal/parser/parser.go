@@ -467,7 +467,8 @@ func (p *parser) varDeclaration() (syntax.Stmt, bool) {
 }
 
 func (p *parser) declaration() (syntax.Stmt, bool) {
-	if p.match(syntax.TokenLet) {
+	switch {
+	case p.match(syntax.TokenLet):
 		stmt, hadError := p.varDeclaration()
 
 		if hadError {
@@ -476,16 +477,16 @@ func (p *parser) declaration() (syntax.Stmt, bool) {
 		}
 
 		return stmt, false
+	default:
+		stmt, hadError := p.stmt()
+
+		if hadError {
+			p.synchronize()
+			return nil, true
+		}
+
+		return stmt, false
 	}
-
-	stmt, hadError := p.stmt()
-
-	if hadError {
-		p.synchronize()
-		return nil, true
-	}
-
-	return stmt, false
 }
 
 func (p *parser) synchronize() {
