@@ -364,22 +364,32 @@ func (p *parser) exprStmt() (syntax.Stmt, bool) {
 	return syntax.NewExprStmt(expr), false
 }
 
-func (p *parser) blockStmt() (syntax.Stmt, bool) {
+func (p *parser) blockStmt() (stmt syntax.Stmt, hadError bool) {
 	var stmts []syntax.Stmt
 
 	for !p.check(syntax.TokenBraceR) && !p.atEnd() {
-		stmts = append(stmts, p.declaration())
+		decl, hadErrorInDecl := p.declaration()
+
+		if hadErrorInDecl {
+			hadError = true
+			continue
+		}
+
+		stmts = append(stmts, decl)
 
 		if !p.expect(syntax.TokenSemicolon) {
-			return nil, true
+			hadError = true
+			continue
 		}
 	}
 
+	stmt = syntax.NewBlockStmt(stmts)
+
 	if !p.expect(syntax.TokenBraceR) {
-		return nil, true
+		hadError = true
 	}
 
-	return syntax.NewBlockStmt(stmts), false
+	return
 }
 
 func (p *parser) ifStmt() (stmt syntax.Stmt, hadError bool) {
@@ -465,30 +475,29 @@ func (p *parser) varDeclaration() (syntax.Stmt, bool) {
 	return syntax.NewVarStmt(varName, typeName, initializer), false
 }
 
-func (p *parser) declaration() syntax.Stmt {
+func (p *parser) declaration() (syntax.Stmt, bool) {
 	if p.match(syntax.TokenLet) {
 		stmt, hadError := p.varDeclaration()
 
 		if hadError {
 			p.synchronize()
-			return nil
+			return nil, true
 		}
 
-		return stmt
+		return stmt, false
 	}
 
 	stmt, hadError := p.stmt()
 
 	if hadError {
 		p.synchronize()
-		return nil
+		return nil, true
 	}
 
-	return stmt
+	return stmt, false
 }
 
 func (p *parser) synchronize() {
-	p.advance()
 	for ; !p.atEnd(); p.advance() {
 		if p.prev().Kind == syntax.TokenSemicolon {
 			return
@@ -521,7 +530,11 @@ func Parse(source string, tokens []syntax.Token) (
 	}
 
 	for !p.atEnd() {
-		stmt := p.declaration()
+		stmt, hadError := p.declaration()
+
+		if hadError {
+			continue
+		}
 
 		if stmt != nil {
 			p.emitStmt(stmt)
