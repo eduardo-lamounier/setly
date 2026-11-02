@@ -247,9 +247,15 @@ func (i *interpreter) execute(
 		var ret *returnValue
 
 		if i.isTruthy(condition) {
-			err, ret = i.execute(stmt.ThenBranch)
+			err, ret = i.executeBlock(
+				stmt.ThenBranch,
+				runtime.NewEnvironment(i.Environment),
+			)
 		} else if stmt.ElseBranch != nil {
-			err, ret = i.execute(stmt.ElseBranch)
+			err, ret = i.executeBlock(
+				stmt.ElseBranch,
+				runtime.NewEnvironment(i.Environment),
+			)
 		}
 
 		return err, ret

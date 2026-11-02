@@ -28,8 +28,8 @@ type BlockStmt struct {
 
 type IfStmt struct {
 	Condition  Expr
-	ThenBranch Stmt
-	ElseBranch Stmt
+	ThenBranch []Stmt
+	ElseBranch []Stmt
 }
 
 type WhileStmt struct {
@@ -121,7 +121,7 @@ func NewBlockStmt(stmts []Stmt) BlockStmt {
 	}
 }
 
-func NewIfStmt(condition Expr, thenBranch Stmt, elseBranch Stmt) IfStmt {
+func NewIfStmt(condition Expr, thenBranch []Stmt, elseBranch []Stmt) IfStmt {
 	return IfStmt{
 		Condition:  condition,
 		ThenBranch: thenBranch,

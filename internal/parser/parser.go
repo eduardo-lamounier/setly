@@ -423,16 +423,26 @@ func (p *parser) ifStmt() (stmt syntax.Stmt, hadError bool) {
 		return
 	}
 
-	thenBranch, hadError := p.stmt()
+	if !p.expect(syntax.TokenBraceL) {
+		hadError = true
+		return
+	}
+
+	thenBranch, hadError := p.blockStmt()
 
 	if hadError {
 		return
 	}
 
-	var elseBranch syntax.Stmt = nil
+	var elseBranch []syntax.Stmt = nil
 
 	if p.match(syntax.TokenElse) {
-		elseBranch, hadError = p.stmt()
+		if !p.expect(syntax.TokenBraceL) {
+			hadError = true
+			return
+		}
+
+		elseBranch, hadError = p.blockStmt()
 
 		if hadError {
 			return
