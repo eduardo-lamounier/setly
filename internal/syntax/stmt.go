@@ -37,12 +37,22 @@ type WhileStmt struct {
 	Block     Stmt
 }
 
-func (s ExprStmt) stmt()  {}
-func (s PrintStmt) stmt() {}
-func (s VarStmt) stmt()   {}
-func (s BlockStmt) stmt() {}
-func (s IfStmt) stmt()    {}
-func (s WhileStmt) stmt() {}
+type FunctionStmt struct {
+	Name       Token
+	Parameters []struct {
+		Name Token
+		Type Token
+	}
+	Body []Stmt
+}
+
+func (s ExprStmt) stmt()     {}
+func (s PrintStmt) stmt()    {}
+func (s VarStmt) stmt()      {}
+func (s BlockStmt) stmt()    {}
+func (s IfStmt) stmt()       {}
+func (s WhileStmt) stmt()    {}
+func (s FunctionStmt) stmt() {}
 
 func (s ExprStmt) Line() int {
 	return s.Expr.Line()
@@ -66,6 +76,10 @@ func (s IfStmt) Line() int {
 
 func (s WhileStmt) Line() int {
 	return s.Condition.Line()
+}
+
+func (s FunctionStmt) Line() int {
+	return s.Name.Line()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -108,5 +122,20 @@ func NewWhileStmt(condition Expr, block Stmt) WhileStmt {
 	return WhileStmt{
 		Condition: condition,
 		Block:     block,
+	}
+}
+
+func NewFunctionStmt(
+	name Token,
+	parameters []struct {
+		Name Token
+		Type Token
+	},
+	body []Stmt,
+) FunctionStmt {
+	return FunctionStmt{
+		Name:       name,
+		Parameters: parameters,
+		Body:       body,
 	}
 }
