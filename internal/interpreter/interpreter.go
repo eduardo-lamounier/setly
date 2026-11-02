@@ -271,7 +271,11 @@ func (i *interpreter) execute(
 			}
 
 			var ret *returnValue
-			err, ret = i.execute(stmt.Block)
+			err, ret = i.executeBlock(
+				stmt.Block,
+				runtime.NewEnvironment(i.Environment),
+			)
+
 			if err != nil {
 				return err, nil
 			}

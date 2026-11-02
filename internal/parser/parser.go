@@ -460,7 +460,12 @@ func (p *parser) whileStmt() (stmt syntax.Stmt, hadError bool) {
 		return
 	}
 
-	block, hadError := p.stmt()
+	if !p.expect(syntax.TokenBraceL) {
+		hadError = true
+		return
+	}
+
+	block, hadError := p.blockStmt()
 
 	if hadError {
 		return

@@ -34,7 +34,7 @@ type IfStmt struct {
 
 type WhileStmt struct {
 	Condition Expr
-	Block     Stmt
+	Block     []Stmt
 }
 
 type FunctionStmt struct {
@@ -129,7 +129,7 @@ func NewIfStmt(condition Expr, thenBranch []Stmt, elseBranch []Stmt) IfStmt {
 	}
 }
 
-func NewWhileStmt(condition Expr, block Stmt) WhileStmt {
+func NewWhileStmt(condition Expr, block []Stmt) WhileStmt {
 	return WhileStmt{
 		Condition: condition,
 		Block:     block,
