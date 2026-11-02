@@ -493,7 +493,7 @@ func (p *parser) declaration() (syntax.Stmt, bool) {
 
 func (p *parser) synchronize() {
 	for ; !p.atEnd(); p.advance() {
-		if p.prev().Kind == syntax.TokenSemicolon {
+		if p.Pos > 0 && p.prev().Kind == syntax.TokenSemicolon {
 			return
 		}
 
