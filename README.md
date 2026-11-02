@@ -1,5 +1,5 @@
 # Setly
-An interpreter for the Setly programming language. Written in Go (Golang).
+The interpreter for the Setly programming language.
 
 ## Documentation
 
