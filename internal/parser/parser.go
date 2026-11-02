@@ -460,6 +460,25 @@ func (p *parser) whileStmt() (stmt syntax.Stmt, hadError bool) {
 	return
 }
 
+func (p *parser) returnStmt() (stmt syntax.Stmt, hadError bool) {
+	line := p.prev().Line()
+
+	if p.check(syntax.TokenSemicolon) {
+		stmt = syntax.NewReturnStmtAt(nil, line)
+		return
+	}
+
+	var value syntax.Expr
+	value, hadError = p.expr()
+
+	if hadError {
+		return
+	}
+
+	stmt = syntax.NewReturnStmtAt(value, line)
+	return
+}
+
 func (p *parser) stmt() (syntax.Stmt, bool) {
 	switch {
 	case p.match(syntax.TokenPrint):
@@ -476,6 +495,8 @@ func (p *parser) stmt() (syntax.Stmt, bool) {
 		return p.ifStmt()
 	case p.match(syntax.TokenWhile):
 		return p.whileStmt()
+	case p.match(syntax.TokenReturn):
+		return p.returnStmt()
 	default:
 		return p.exprStmt()
 	}
