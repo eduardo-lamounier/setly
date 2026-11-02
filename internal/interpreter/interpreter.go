@@ -10,7 +10,7 @@ import (
 )
 
 type interpreter struct {
-	Environment runtime.Environment
+	Environment *runtime.Environment
 	Stmts       []syntax.Stmt
 	Opts        Options
 }
@@ -31,7 +31,7 @@ func (i interpreter) isTruthy(val runtime.Value) bool {
 }
 
 func (i *interpreter) executeBlock(
-	stmts []syntax.Stmt, env runtime.Environment,
+	stmts []syntax.Stmt, env *runtime.Environment,
 ) *runtime.Error {
 	prev := i.Environment
 
@@ -192,7 +192,7 @@ func (i *interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 		i.Environment.Define(stmt.Name.Lexeme, value)
 		return nil
 	case syntax.BlockStmt:
-		return i.executeBlock(stmt.Stmts, runtime.NewEnvironment(&i.Environment))
+		return i.executeBlock(stmt.Stmts, runtime.NewEnvironment(i.Environment))
 	case syntax.IfStmt:
 		condition, err := i.evaluate(stmt.Condition)
 		if err != nil {
@@ -231,7 +231,7 @@ func (i *interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 
 func Interpret(stmts []syntax.Stmt, opts Options) *runtime.Error {
 	i := interpreter{
-		Environment: runtime.GlobalEnvironment,
+		Environment: runtime.GlobalEnvironment(),
 		Stmts:       stmts,
 		Opts:        opts,
 	}

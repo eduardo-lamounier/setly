@@ -9,10 +9,18 @@ type Environment struct {
 	values    map[string]Value
 }
 
-var GlobalEnvironment = NewEnvironment(nil)
+var globalEnvironment *Environment
 
-func NewEnvironment(enclosing *Environment) Environment {
-	return Environment{
+func GlobalEnvironment() *Environment {
+	if globalEnvironment == nil {
+		globalEnvironment = NewEnvironment(nil)
+	}
+
+	return globalEnvironment
+}
+
+func NewEnvironment(enclosing *Environment) *Environment {
+	return &Environment{
 		enclosing: enclosing,
 		values:    make(map[string]Value),
 	}
