@@ -47,6 +47,18 @@ func (i *interpreter) executeBlock(
 	return nil
 }
 
+func (i *interpreter) CallFunction(
+	function runtime.Function, arguments []runtime.Value,
+) (runtime.Value, *runtime.Error) {
+	environment := runtime.NewEnvironment(runtime.GlobalEnvironment())
+
+	for i, param := range function.Declaration.Parameters {
+		environment.Define(param.Name.Lexeme, arguments[i])
+	}
+
+	// TODO: Return the real function's return value
+	return runtime.Nil{}, i.executeBlock(function.Declaration.Body, environment)
+}
 
 func (i *interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) {
 	switch expr := expr.(type) {
@@ -146,6 +158,24 @@ func (i *interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error)
 
 		i.Environment.Assign(expr.Name.Lexeme, value)
 		return i.Environment.Access(expr.Name.Lexeme), nil
+	case syntax.CallExpr:
+		callee, err := i.evaluate(expr.Callee)
+		if err != nil {
+			return nil, err
+		}
+
+		var arguments []runtime.Value
+		for _, argument := range expr.Arguments {
+			v, err := i.evaluate(argument)
+			if err != nil {
+				return nil, err
+			}
+
+			arguments = append(arguments, v)
+		}
+
+		function := callee.(runtime.Function)
+		return i.CallFunction(function, arguments)
 	default:
 		panic("Not implemented expr kind to evaluate.")
 	}
