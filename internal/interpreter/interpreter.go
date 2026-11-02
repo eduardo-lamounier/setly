@@ -19,6 +19,10 @@ type Options struct {
 	ShowExprStmtsResults bool
 }
 
+type returnValue struct {
+	Value runtime.Value
+}
+
 func (i interpreter) isTruthy(val runtime.Value) bool {
 	switch val := val.(type) {
 	case runtime.Nil:
@@ -32,19 +36,21 @@ func (i interpreter) isTruthy(val runtime.Value) bool {
 
 func (i *interpreter) executeBlock(
 	stmts []syntax.Stmt, env *runtime.Environment,
-) *runtime.Error {
+) (*runtime.Error, *returnValue) {
 	prev := i.Environment
 
 	i.Environment = env
 	defer func() { i.Environment = prev }()
 
 	for _, stmt := range stmts {
-		if err := i.execute(stmt); err != nil {
-			return err
+		if err, ret := i.execute(stmt); err != nil {
+			return err, nil
+		} else if ret != nil {
+			return nil, ret
 		}
 	}
 
-	return nil
+	return nil, nil
 }
 
 func (i *interpreter) CallFunction(
@@ -56,11 +62,18 @@ func (i *interpreter) CallFunction(
 		environment.Define(param.Name.Lexeme, arguments[i])
 	}
 
-	// TODO: Return the real function's return value
-	return runtime.Nil{}, i.executeBlock(function.Declaration.Body, environment)
+	err, ret := i.executeBlock(function.Declaration.Body, environment)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ret.Value, nil
 }
 
-func (i *interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error) {
+func (i *interpreter) evaluate(
+	expr syntax.Expr,
+) (runtime.Value, *runtime.Error) {
 	switch expr := expr.(type) {
 	case syntax.UnaryExpr:
 		op, err := i.evaluate(expr.Operand)
@@ -181,7 +194,9 @@ func (i *interpreter) evaluate(expr syntax.Expr) (runtime.Value, *runtime.Error)
 	}
 }
 
-func (i *interpreter) execute(stmt syntax.Stmt) *runtime.Error {
+func (i *interpreter) execute(
+	stmt syntax.Stmt,
+) (*runtime.Error, *returnValue) {
 	if stmt == nil {
 		panic("Tried running no statement.")
 	}
@@ -191,12 +206,12 @@ func (i *interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 		// Returns early if no expr was passed:
 		if stmt.Expr == nil {
 			fmt.Println()
-			return nil
+			return nil, nil
 		}
 
 		value, err := i.evaluate(stmt.Expr)
 		if err != nil {
-			return err
+			return err, nil
 		}
 
 		fmt.Println(value.Stringify())
@@ -207,7 +222,7 @@ func (i *interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 			fmt.Println(value)
 		}
 
-		return err
+		return err, nil
 	case syntax.VarStmt:
 		var value runtime.Value = runtime.Nil{}
 		if stmt.Initializer != nil {
@@ -215,51 +230,65 @@ func (i *interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 
 			value, err = i.evaluate(stmt.Initializer)
 			if err != nil {
-				return err
+				return err, nil
 			}
 		}
 
 		i.Environment.Define(stmt.Name.Lexeme, value)
-		return nil
+		return nil, nil
 	case syntax.BlockStmt:
 		return i.executeBlock(stmt.Stmts, runtime.NewEnvironment(i.Environment))
 	case syntax.IfStmt:
 		condition, err := i.evaluate(stmt.Condition)
 		if err != nil {
-			return err
+			return err, nil
 		}
+
+		var ret *returnValue
 
 		if i.isTruthy(condition) {
-			err = i.execute(stmt.ThenBranch)
+			err, ret = i.execute(stmt.ThenBranch)
 		} else if stmt.ElseBranch != nil {
-			err = i.execute(stmt.ElseBranch)
+			err, ret = i.execute(stmt.ElseBranch)
 		}
 
-		return err
+		return err, ret
 	case syntax.WhileStmt:
 		for {
 			cond, err := i.evaluate(stmt.Condition)
 			if err != nil {
-				return err
+				return err, nil
 			}
 
 			if !i.isTruthy(cond) {
 				break
 			}
 
-			err = i.execute(stmt.Block)
+			var ret *returnValue
+			err, ret = i.execute(stmt.Block)
 			if err != nil {
-				return err
+				return err, nil
+			}
+
+			if ret != nil {
+				return nil, ret
 			}
 		}
 	case syntax.FunctionStmt:
 		function := runtime.Function{Declaration: stmt}
 		i.Environment.Define(stmt.Name.Lexeme, function)
+	case syntax.ReturnStmt:
+		v, err := i.evaluate(stmt.Value)
+		if err != nil {
+			return err, nil
+		}
+
+		return nil, &returnValue{Value: v}
 	default:
 		panic("Not implemented stmt kind to execute.")
 	}
 
-	return nil
+	return nil, nil
 }
 
 func Interpret(stmts []syntax.Stmt, opts Options) *runtime.Error {
@@ -270,7 +299,7 @@ func Interpret(stmts []syntax.Stmt, opts Options) *runtime.Error {
 	}
 
 	for _, stmt := range stmts {
-		if err := i.execute(stmt); err != nil {
+		if err, _ := i.execute(stmt); err != nil {
 			return err
 		}
 	}
