@@ -522,6 +522,12 @@ func Parse(source string, tokens []syntax.Token) (
 		Stmts:       []syntax.Stmt{},
 	}
 
+	// Skips first newline tokens:
+	for p.match(syntax.TokenNewline) {
+	}
+
+	// The rest of the newline tokens are skipped by 'p.advance()'
+
 	for !p.atEnd() {
 		stmt, hadError := p.declaration()
 
