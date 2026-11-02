@@ -3,6 +3,8 @@ package runtime
 import (
 	"fmt"
 	"strings"
+
+	"github.com/eduardo-lamounier/setly/internal/syntax"
 )
 
 type Value interface {
@@ -21,7 +23,9 @@ type Boolean bool
 
 type Nil struct{}
 
-type Function struct{}
+type Function struct {
+	Declaration syntax.FunctionStmt
+}
 
 func (n Number) value()   {}
 func (s String) value()   {}
@@ -45,6 +49,16 @@ func (n Nil) String() string {
 	return n.Stringify()
 }
 
+func (f Function) String() string {
+	params := make([]string, f.Arity())
+
+	for i, parameter := range f.Declaration.Parameters {
+		params[i] = fmt.Sprintf("%s %s", parameter.Name.Lexeme, parameter.Type.Lexeme)
+	}
+
+	return fmt.Sprintf("function(%s)", strings.Join(params, ","))
+}
+
 func (n Number) Stringify() string {
 	return strings.TrimSuffix(fmt.Sprint(float64(n)), ".0")
 }
@@ -65,6 +79,10 @@ func (n Nil) Stringify() string {
 	return "nil"
 }
 
+func (f Function) Stringify() string {
+	return fmt.Sprintf("<function %s>", f.Declaration.Name.Lexeme)
+}
+
 func ValueFromLiteral(literal any) Value {
 	switch value := literal.(type) {
 	case float64:
@@ -75,7 +93,14 @@ func ValueFromLiteral(literal any) Value {
 		return Boolean(value)
 	case nil:
 		return Nil{}
+		// TODO: Add case for a function
 	}
 
 	panic("Invalid literal type to convert into a supported value.")
+}
+
+// =============================================================================
+
+func (f Function) Arity() int {
+	return len(f.Declaration.Parameters)
 }
