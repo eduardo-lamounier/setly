@@ -134,6 +134,43 @@ func (p *parser) primary() (syntax.Expr, bool) {
 	return nil, true
 }
 
+func (p *parser) call() (expr syntax.Expr, hadError bool) {
+	expr, hadError = p.primary()
+
+	if hadError {
+		return
+	}
+
+	for p.match(syntax.TokenParenL) {
+		arguments := []syntax.Expr{}
+		if !p.check(syntax.TokenParenR) {
+			for {
+				var e syntax.Expr
+				e, hadError = p.expr()
+
+				if hadError {
+					return
+				}
+
+				arguments = append(arguments, e)
+
+				if !p.match(syntax.TokenComma) {
+					break
+				}
+			}
+		}
+
+		if !p.expect(syntax.TokenParenR) {
+			hadError = true
+			return
+		}
+
+		expr = syntax.NewCallExpr(expr, arguments)
+	}
+
+	return
+}
+
 func (p *parser) unary() (syntax.Expr, bool) {
 	if p.match(syntax.TokenMinus, syntax.TokenPlus) {
 		operator := p.prev()
@@ -146,7 +183,7 @@ func (p *parser) unary() (syntax.Expr, bool) {
 		return syntax.NewUnaryExpr(operator, right), false
 	}
 
-	return p.primary()
+	return p.call()
 }
 
 func (p *parser) factor() (syntax.Expr, bool) {
