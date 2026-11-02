@@ -468,10 +468,86 @@ func (p *parser) varDeclaration() (syntax.Stmt, bool) {
 	return syntax.NewVarStmt(varName, typeName, initializer), false
 }
 
+func (p *parser) functionDeclaration() (stmt syntax.Stmt, hadError bool) {
+	if !p.expectWithMsg(syntax.TokenID, "Expected function name.") {
+		hadError = true
+		return
+	}
+
+	name := p.prev()
+
+	if !p.expect(syntax.TokenParenL) {
+		hadError = true
+		return
+	}
+
+	var parameters []struct {
+		Name syntax.Token
+		Type syntax.Token
+	}
+
+	if !p.check(syntax.TokenParenR) {
+		for {
+			var parameter struct {
+				Name syntax.Token
+				Type syntax.Token
+			}
+
+			if !p.expectWithMsg(syntax.TokenID, "Expected parameter name.") {
+				hadError = true
+				return
+			}
+
+			parameter.Name = p.prev()
+
+			if !p.expectWithMsg(syntax.TokenID, "Expected parameter type.") {
+				hadError = true
+				return
+			}
+
+			parameter.Type = p.prev()
+
+			parameters = append(parameters, parameter)
+
+			if !p.match(syntax.TokenComma) {
+				break
+			}
+		}
+	}
+
+	if !p.expect(syntax.TokenParenR) {
+		hadError = true
+		return
+	}
+
+	if !p.expectWithMsg(syntax.TokenBraceL, "Expected '{' before function body.") {
+		hadError = true
+		return
+	}
+
+	body, hadError := p.blockStmt()
+
+	if hadError {
+		return
+	}
+
+	stmt = syntax.NewFunctionStmt(name, parameters, body)
+	return
+}
+
 func (p *parser) declaration() (syntax.Stmt, bool) {
 	switch {
 	case p.match(syntax.TokenLet):
 		stmt, hadError := p.varDeclaration()
+
+		if hadError {
+			p.synchronize()
+			return nil, true
+		}
+
+		return stmt, false
+	case p.match(syntax.TokenFunction):
+		stmt, hadError := p.functionDeclaration()
 
 		if hadError {
 			p.synchronize()
