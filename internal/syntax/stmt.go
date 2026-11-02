@@ -46,6 +46,12 @@ type FunctionStmt struct {
 	Body []Stmt
 }
 
+type ReturnStmt struct {
+	line int
+
+	Value Expr
+}
+
 func (s ExprStmt) stmt()     {}
 func (s PrintStmt) stmt()    {}
 func (s VarStmt) stmt()      {}
@@ -53,6 +59,7 @@ func (s BlockStmt) stmt()    {}
 func (s IfStmt) stmt()       {}
 func (s WhileStmt) stmt()    {}
 func (s FunctionStmt) stmt() {}
+func (s ReturnStmt) stmt()   {}
 
 func (s ExprStmt) Line() int {
 	return s.Expr.Line()
@@ -80,6 +87,10 @@ func (s WhileStmt) Line() int {
 
 func (s FunctionStmt) Line() int {
 	return s.Name.Line()
+}
+
+func (s ReturnStmt) Line() int {
+	return s.line
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -137,5 +148,12 @@ func NewFunctionStmt(
 		Name:       name,
 		Parameters: parameters,
 		Body:       body,
+	}
+}
+
+func NewReturnStmtAt(value Expr, line int) ReturnStmt {
+	return ReturnStmt{
+		line:  line,
+		Value: value,
 	}
 }
