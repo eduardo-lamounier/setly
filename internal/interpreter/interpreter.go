@@ -222,6 +222,9 @@ func (i *interpreter) execute(stmt syntax.Stmt) *runtime.Error {
 				return err
 			}
 		}
+	case syntax.FunctionStmt:
+		function := runtime.Function{Declaration: stmt}
+		i.Environment.Define(stmt.Name.Lexeme, function)
 	default:
 		panic("Not implemented stmt kind to execute.")
 	}
