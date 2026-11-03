@@ -19,9 +19,18 @@ type Options struct {
 	ShowExprStmtsResults bool
 }
 
-type returnValue struct {
+type completion interface {
+	completion()
+}
+
+type normalCompletion struct{}
+
+type returnCompletion struct {
 	Value runtime.Value
 }
+
+func (c returnCompletion) completion() {}
+func (c normalCompletion) completion() {}
 
 func (i interpreter) isTruthy(val runtime.Value) bool {
 	switch val := val.(type) {
@@ -36,7 +45,7 @@ func (i interpreter) isTruthy(val runtime.Value) bool {
 
 func (i *interpreter) executeBlock(
 	stmts []syntax.Stmt, env *runtime.Environment,
-) (*runtime.Error, *returnValue) {
+) (*runtime.Error, completion) {
 	prev := i.Environment
 
 	i.Environment = env
@@ -68,7 +77,12 @@ func (i *interpreter) CallFunction(
 		return nil, err
 	}
 
-	return ret.Value, nil
+	switch ret := ret.(type) {
+	case returnCompletion:
+		return ret.Value, nil
+	default:
+		return nil, nil
+	}
 }
 
 func (i *interpreter) evaluate(
@@ -196,7 +210,7 @@ func (i *interpreter) evaluate(
 
 func (i *interpreter) execute(
 	stmt syntax.Stmt,
-) (*runtime.Error, *returnValue) {
+) (*runtime.Error, completion) {
 	if stmt == nil {
 		panic("Tried running no statement.")
 	}
@@ -244,21 +258,21 @@ func (i *interpreter) execute(
 			return err, nil
 		}
 
-		var ret *returnValue
+		var compl completion
 
 		if i.isTruthy(condition) {
-			err, ret = i.executeBlock(
+			err, compl = i.executeBlock(
 				stmt.ThenBranch,
 				runtime.NewEnvironment(i.Environment),
 			)
 		} else if stmt.ElseBranch != nil {
-			err, ret = i.executeBlock(
+			err, compl = i.executeBlock(
 				stmt.ElseBranch,
 				runtime.NewEnvironment(i.Environment),
 			)
 		}
 
-		return err, ret
+		return err, compl
 	case syntax.WhileStmt:
 		for {
 			cond, err := i.evaluate(stmt.Condition)
@@ -270,8 +284,8 @@ func (i *interpreter) execute(
 				break
 			}
 
-			var ret *returnValue
-			err, ret = i.executeBlock(
+			var compl completion
+			err, compl = i.executeBlock(
 				stmt.Block,
 				runtime.NewEnvironment(i.Environment),
 			)
@@ -280,9 +294,12 @@ func (i *interpreter) execute(
 				return err, nil
 			}
 
-			if ret != nil {
-				return nil, ret
+			switch compl.(type) {
+			case normalCompletion:
+				continue
 			}
+
+			return nil, compl
 		}
 	case syntax.FunctionStmt:
 		function := runtime.Function{Declaration: stmt}
@@ -293,12 +310,12 @@ func (i *interpreter) execute(
 			return err, nil
 		}
 
-		return nil, &returnValue{Value: v}
+		return nil, returnCompletion{Value: v}
 	default:
 		panic("Not implemented stmt kind to execute.")
 	}
 
-	return nil, nil
+	return nil, normalCompletion{}
 }
 
 func Interpret(stmts []syntax.Stmt, opts Options) *runtime.Error {
