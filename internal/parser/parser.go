@@ -436,6 +436,18 @@ func (p *parser) ifStmt() (stmt syntax.Stmt, hadError bool) {
 
 	var elseBranch []syntax.Stmt = nil
 
+	if p.match(syntax.TokenElif) {
+		var elif syntax.Stmt
+		elif, hadError = p.ifStmt()
+
+		if hadError {
+			return
+		}
+
+		stmt = syntax.NewIfStmt(cond, thenBranch, []syntax.Stmt{elif})
+		return
+	}
+
 	if p.match(syntax.TokenElse) {
 		if !p.expect(syntax.TokenBraceL) {
 			hadError = true
