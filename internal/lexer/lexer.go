@@ -320,7 +320,9 @@ func (l *lexer) insertSemicolons() {
 			syntax.TokenTrue,
 			syntax.TokenNil,
 			syntax.TokenID,
-			syntax.TokenReturn:
+			syntax.TokenReturn,
+			syntax.TokenBreak,
+			syntax.TokenContinue:
 			return true
 		default:
 			return false
