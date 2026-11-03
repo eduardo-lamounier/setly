@@ -487,6 +487,62 @@ func (p *parser) whileStmt() (stmt syntax.Stmt, hadError bool) {
 	return
 }
 
+func (p *parser) forStmt() (stmt syntax.Stmt, hadError bool) {
+	line := p.peek().Line()
+
+	if !p.expectWithMsg(syntax.TokenID, "Expected variable name.") {
+		hadError = true
+		return
+	}
+
+	varName := p.prev()
+
+	if !p.expect(syntax.TokenColonEqual) {
+		hadError = true
+		return
+	}
+
+	start, hadError := p.expr()
+
+	if hadError {
+		return
+	}
+
+	if !p.expectWithMsg(syntax.TokenComma, "Expected limit value.") {
+		hadError = true
+		return
+	}
+
+	limit, hadError := p.expr()
+
+	if hadError {
+		return
+	}
+
+	var step syntax.Expr = syntax.NewLiteralExprAt(float64(1), line)
+
+	if p.match(syntax.TokenComma) {
+		step, hadError = p.expr()
+
+		if hadError {
+			return
+		}
+	}
+
+	if !p.expect(syntax.TokenBraceL) {
+		hadError = true
+		return
+	}
+
+	block, hadError := p.blockStmt()
+
+	if hadError {
+		return
+	}
+
+	return syntax.NewForNumStmt(varName, start, limit, step, block, line), false
+}
+
 func (p *parser) repeatStmt() (stmt syntax.Stmt, hadError bool) {
 	if !p.expect(syntax.TokenBraceL) {
 		hadError = true
@@ -569,6 +625,8 @@ func (p *parser) stmt() (syntax.Stmt, bool) {
 		return p.ifStmt()
 	case p.match(syntax.TokenWhile):
 		return p.whileStmt()
+	case p.match(syntax.TokenFor):
+		return p.forStmt()
 	case p.match(syntax.TokenRepeat):
 		return p.repeatStmt()
 	case p.match(syntax.TokenReturn):
