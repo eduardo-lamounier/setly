@@ -316,6 +316,61 @@ func (i *interpreter) execute(
 				return nil, compl
 			}
 		}
+	case syntax.ForNumStmt:
+		prev := i.Environment
+
+		i.Environment = runtime.NewEnvironment(i.Environment)
+		defer func() { i.Environment = prev }()
+
+		start, err := i.evaluate(stmt.Start)
+		if err != nil {
+			return err, nil
+		}
+
+		i.Environment.Define(stmt.Var.Lexeme, start)
+
+		limit, err := i.evaluate(stmt.Limit)
+		if err != nil {
+			return err, nil
+		}
+
+		step, err := i.evaluate(stmt.Step)
+		if err != nil {
+			return err, nil
+		}
+
+		isUpperLimit := limit.(runtime.Number) > start.(runtime.Number)
+
+		// non-inclusive
+		stop := func() bool {
+			controlVar := i.Environment.Access(stmt.Var.Lexeme).(runtime.Number)
+			if isUpperLimit {
+				return controlVar >= limit.(runtime.Number)
+			} else {
+				return controlVar <= limit.(runtime.Number)
+			}
+		}
+
+		for !stop() {
+			controlVar := i.Environment.Access(stmt.Var.Lexeme).(runtime.Number)
+
+			err, compl := i.executeBlock(
+				stmt.Block, runtime.NewEnvironment(i.Environment),
+			)
+
+			if err != nil {
+				return err, nil
+			}
+
+			switch compl.(type) {
+			case breakCompletion:
+				return nil, nil
+			case returnCompletion:
+				return nil, compl
+			}
+
+			i.Environment.Assign(stmt.Var.Lexeme, controlVar+step.(runtime.Number))
+		}
 	case syntax.FunctionStmt:
 		function := runtime.Function{Declaration: stmt}
 		i.Environment.Define(stmt.Name.Lexeme, function)
