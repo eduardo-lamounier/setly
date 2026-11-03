@@ -487,6 +487,45 @@ func (p *parser) whileStmt() (stmt syntax.Stmt, hadError bool) {
 	return
 }
 
+func (p *parser) repeatStmt() (stmt syntax.Stmt, hadError bool) {
+	if !p.expect(syntax.TokenBraceL) {
+		hadError = true
+		return
+	}
+
+	block, hadError := p.blockStmt()
+
+	if hadError {
+		return
+	}
+
+	line := p.peek().Line()
+
+	var cond syntax.Expr = syntax.NewLiteralExprAt(false, line)
+
+	if p.match(syntax.TokenUntil) {
+		cond, hadError = p.expr()
+
+		if hadError {
+			return
+		}
+	}
+
+	block = append(
+		block, syntax.NewIfStmt(
+			cond,
+			[]syntax.Stmt{syntax.NewBreakStmt(line)},
+			nil,
+		),
+	)
+
+	stmt = syntax.NewWhileStmt(
+		syntax.NewLiteralExprAt(true, line),
+		block,
+	)
+	return
+}
+
 func (p *parser) returnStmt() (stmt syntax.Stmt, hadError bool) {
 	line := p.prev().Line()
 
@@ -530,6 +569,8 @@ func (p *parser) stmt() (syntax.Stmt, bool) {
 		return p.ifStmt()
 	case p.match(syntax.TokenWhile):
 		return p.whileStmt()
+	case p.match(syntax.TokenRepeat):
+		return p.repeatStmt()
 	case p.match(syntax.TokenReturn):
 		return p.returnStmt()
 	case p.match(syntax.TokenBreak):
