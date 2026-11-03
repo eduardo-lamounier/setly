@@ -26,6 +26,24 @@
     </section>
     <section class="example">
       <div class="explanation">
+        <h2>Repeat loop</h2>
+        <p>A repeat loop is similar to a while-loop, but the condition is only checked AFTER the block of code is executed.</p>
+        <p>The following code will print "Got here!" one time, since it's executed before checking the condition set to <code>false</code>.</p>
+      </div>
+      <pre><code><span class="keyword">repeat</span> {
+  <span class="keyword">print</span>(<span class="string">"Got here!"</span>)
+} <span class="keyword">until</span> <span class="literal">false</span></code></pre>
+    </section>
+    <section class="example">
+      <div class="explanation">
+        In a repeat-loop, you can also omit the <code>until &lt;condition&gt;</code>. This makes it equivalent to a <code>while true</code>.
+      </div>
+      <pre><code><span class="keyword">repeat</span> {
+  <span class="keyword">print</span>(<span class="string">"Won't stop!"</span>)
+}</code></pre>
+    </section>
+    <section class="example">
+      <div class="explanation">
         <h2>For loop</h2>
         <p>Let's say you want to print all elements from 1 to 10. You can use a for-loop for this: <code>i</code> goes from 1 to 10, being incremented by one at each iteration.</p>
         <p>Keep in mind that the loop's limit value is not included. That's why we use 11 instead of 10.</p>
