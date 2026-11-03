@@ -29,8 +29,14 @@ type returnCompletion struct {
 	Value runtime.Value
 }
 
-func (c returnCompletion) completion() {}
-func (c normalCompletion) completion() {}
+type breakCompletion struct{}
+
+type continueCompletion struct{}
+
+func (c returnCompletion) completion()   {}
+func (c normalCompletion) completion()   {}
+func (c breakCompletion) completion()    {}
+func (c continueCompletion) completion() {}
 
 func (i interpreter) isTruthy(val runtime.Value) bool {
 	switch val := val.(type) {
@@ -52,14 +58,19 @@ func (i *interpreter) executeBlock(
 	defer func() { i.Environment = prev }()
 
 	for _, stmt := range stmts {
-		if err, ret := i.execute(stmt); err != nil {
+		if err, compl := i.execute(stmt); err != nil {
 			return err, nil
-		} else if ret != nil {
-			return nil, ret
+		} else {
+			switch compl.(type) {
+			case normalCompletion:
+				continue
+			default:
+				return nil, compl
+			}
 		}
 	}
 
-	return nil, nil
+	return nil, normalCompletion{}
 }
 
 func (i *interpreter) CallFunction(
@@ -81,7 +92,7 @@ func (i *interpreter) CallFunction(
 	case returnCompletion:
 		return ret.Value, nil
 	default:
-		return nil, nil
+		return runtime.Nil{}, nil
 	}
 }
 
@@ -231,12 +242,13 @@ func (i *interpreter) execute(
 		fmt.Println(value.Stringify())
 	case syntax.ExprStmt:
 		value, err := i.evaluate(stmt.Expr)
-
-		if err == nil && i.Opts.ShowExprStmtsResults {
-			fmt.Println(value)
+		if err != nil {
+			return err, nil
 		}
 
-		return err, nil
+		if i.Opts.ShowExprStmtsResults {
+			fmt.Println(value)
+		}
 	case syntax.VarStmt:
 		var value runtime.Value = runtime.Nil{}
 		if stmt.Initializer != nil {
@@ -249,7 +261,6 @@ func (i *interpreter) execute(
 		}
 
 		i.Environment.Define(stmt.Name.Lexeme, value)
-		return nil, nil
 	case syntax.BlockStmt:
 		return i.executeBlock(stmt.Stmts, runtime.NewEnvironment(i.Environment))
 	case syntax.IfStmt:
@@ -258,7 +269,7 @@ func (i *interpreter) execute(
 			return err, nil
 		}
 
-		var compl completion
+		var compl completion = normalCompletion{}
 
 		if i.isTruthy(condition) {
 			err, compl = i.executeBlock(
@@ -272,7 +283,11 @@ func (i *interpreter) execute(
 			)
 		}
 
-		return err, compl
+		if err != nil {
+			return err, nil
+		}
+
+		return nil, compl
 	case syntax.WhileStmt:
 		for {
 			cond, err := i.evaluate(stmt.Condition)
@@ -295,22 +310,30 @@ func (i *interpreter) execute(
 			}
 
 			switch compl.(type) {
-			case normalCompletion:
-				continue
+			case breakCompletion:
+				return nil, nil
+			case returnCompletion:
+				return nil, compl
 			}
-
-			return nil, compl
 		}
 	case syntax.FunctionStmt:
 		function := runtime.Function{Declaration: stmt}
 		i.Environment.Define(stmt.Name.Lexeme, function)
 	case syntax.ReturnStmt:
+		if stmt.Value == nil {
+			return nil, returnCompletion{Value: runtime.Nil{}}
+		}
+
 		v, err := i.evaluate(stmt.Value)
 		if err != nil {
 			return err, nil
 		}
 
 		return nil, returnCompletion{Value: v}
+	case syntax.BreakStmt:
+		return nil, breakCompletion{}
+	case syntax.ContinueStmt:
+		return nil, continueCompletion{}
 	default:
 		panic("Not implemented stmt kind to execute.")
 	}
