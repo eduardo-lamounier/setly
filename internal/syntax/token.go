@@ -47,6 +47,7 @@ const (
 	TokenElse
 	TokenElif
 	TokenWhile
+	TokenRepeat
 	TokenFor
 	TokenFrom
 	TokenTo
@@ -83,6 +84,7 @@ var KeywordForLexeme = map[string]TokenKind{
 	"else":     TokenElse,
 	"elif":     TokenElif,
 	"while":    TokenWhile,
+	"repeat":   TokenRepeat,
 	"for":      TokenFor,
 	"print":    TokenPrint,
 	"function": TokenFunction,
@@ -135,6 +137,7 @@ var lexemeForTokenKind = map[TokenKind]string{
 	TokenElse:     "else",
 	TokenElif:     "elif",
 	TokenWhile:    "while",
+	TokenRepeat:   "repeat",
 	TokenFor:      "for",
 	TokenFrom:     "from",
 	TokenTo:       "to",
@@ -191,6 +194,7 @@ var tokenKindsToString = map[TokenKind]string{
 	TokenElse:     "ELSE",
 	TokenElif:     "ELIF",
 	TokenWhile:    "WHILE",
+	TokenRepeat:   "REPEAT",
 	TokenFor:      "FOR",
 	TokenFrom:     "FROM",
 	TokenTo:       "TO",
