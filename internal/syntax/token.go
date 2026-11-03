@@ -49,8 +49,6 @@ const (
 	TokenWhile
 	TokenRepeat
 	TokenFor
-	TokenFrom
-	TokenTo
 	TokenUntil
 	TokenBy
 	TokenBreak
@@ -90,8 +88,6 @@ var KeywordForLexeme = map[string]TokenKind{
 	"function": TokenFunction,
 	"return":   TokenReturn,
 	"let":      TokenLet,
-	"from":     TokenFrom,
-	"to":       TokenTo,
 	"until":    TokenUntil,
 	"by":       TokenBy,
 	"break":    TokenBreak,
@@ -139,8 +135,6 @@ var lexemeForTokenKind = map[TokenKind]string{
 	TokenWhile:    "while",
 	TokenRepeat:   "repeat",
 	TokenFor:      "for",
-	TokenFrom:     "from",
-	TokenTo:       "to",
 	TokenUntil:    "until",
 	TokenBy:       "by",
 	TokenBreak:    "break",
@@ -196,8 +190,6 @@ var tokenKindsToString = map[TokenKind]string{
 	TokenWhile:    "WHILE",
 	TokenRepeat:   "REPEAT",
 	TokenFor:      "FOR",
-	TokenFrom:     "FROM",
-	TokenTo:       "TO",
 	TokenUntil:    "UNTIL",
 	TokenBy:       "BY",
 	TokenBreak:    "BREAK",
