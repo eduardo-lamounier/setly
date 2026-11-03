@@ -506,6 +506,14 @@ func (p *parser) returnStmt() (stmt syntax.Stmt, hadError bool) {
 	return
 }
 
+func (p *parser) breakStmt() (stmt syntax.Stmt, hadError bool) {
+	return syntax.NewBreakStmt(p.prev().Line()), false
+}
+
+func (p *parser) continueStmt() (stmt syntax.Stmt, hadError bool) {
+	return syntax.NewContinueStmt(p.prev().Line()), false
+}
+
 func (p *parser) stmt() (syntax.Stmt, bool) {
 	switch {
 	case p.match(syntax.TokenPrint):
@@ -524,6 +532,10 @@ func (p *parser) stmt() (syntax.Stmt, bool) {
 		return p.whileStmt()
 	case p.match(syntax.TokenReturn):
 		return p.returnStmt()
+	case p.match(syntax.TokenBreak):
+		return p.breakStmt()
+	case p.match(syntax.TokenContinue):
+		return p.continueStmt()
 	default:
 		return p.exprStmt()
 	}
