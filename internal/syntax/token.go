@@ -52,6 +52,8 @@ const (
 	TokenTo
 	TokenUntil
 	TokenBy
+	TokenBreak
+	TokenContinue
 	TokenPrint
 	TokenFunction
 	TokenReturn
@@ -90,6 +92,8 @@ var KeywordForLexeme = map[string]TokenKind{
 	"to":       TokenTo,
 	"until":    TokenUntil,
 	"by":       TokenBy,
+	"break":    TokenBreak,
+	"continue": TokenContinue,
 }
 
 var lexemeForTokenKind = map[TokenKind]string{
@@ -136,6 +140,8 @@ var lexemeForTokenKind = map[TokenKind]string{
 	TokenTo:       "to",
 	TokenUntil:    "until",
 	TokenBy:       "by",
+	TokenBreak:    "break",
+	TokenContinue: "continue",
 	TokenPrint:    "print",
 	TokenFunction: "function",
 	TokenReturn:   "return",
@@ -190,6 +196,8 @@ var tokenKindsToString = map[TokenKind]string{
 	TokenTo:       "TO",
 	TokenUntil:    "UNTIL",
 	TokenBy:       "BY",
+	TokenBreak:    "BREAK",
+	TokenContinue: "CONTINUE",
 	TokenPrint:    "PRINT",
 	TokenFunction: "FUNCTION",
 	TokenReturn:   "RETURN",
