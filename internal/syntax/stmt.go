@@ -52,6 +52,14 @@ type ReturnStmt struct {
 	Value Expr
 }
 
+type BreakStmt struct {
+	line int
+}
+
+type ContinueStmt struct {
+	line int
+}
+
 func (s ExprStmt) stmt()     {}
 func (s PrintStmt) stmt()    {}
 func (s VarStmt) stmt()      {}
@@ -60,6 +68,8 @@ func (s IfStmt) stmt()       {}
 func (s WhileStmt) stmt()    {}
 func (s FunctionStmt) stmt() {}
 func (s ReturnStmt) stmt()   {}
+func (s BreakStmt) stmt()    {}
+func (s ContinueStmt) stmt() {}
 
 func (s ExprStmt) Line() int {
 	return s.Expr.Line()
@@ -90,6 +100,14 @@ func (s FunctionStmt) Line() int {
 }
 
 func (s ReturnStmt) Line() int {
+	return s.line
+}
+
+func (s BreakStmt) Line() int {
+	return s.line
+}
+
+func (s ContinueStmt) Line() int {
 	return s.line
 }
 
@@ -155,5 +173,17 @@ func NewReturnStmtAt(value Expr, line int) ReturnStmt {
 	return ReturnStmt{
 		line:  line,
 		Value: value,
+	}
+}
+
+func NewBreakStmt(line int) BreakStmt {
+	return BreakStmt{
+		line: line,
+	}
+}
+
+func NewContinueStmt(line int) ContinueStmt {
+	return ContinueStmt{
+		line: line,
 	}
 }
