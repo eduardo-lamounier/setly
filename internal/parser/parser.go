@@ -140,10 +140,6 @@ func (p *parser) paramsList() (
 		}
 	}
 
-	if !p.expect(syntax.TokenParenR) {
-		hadError = true
-	}
-
 	return
 }
 
@@ -159,6 +155,10 @@ func (p *parser) primary() (syntax.Expr, bool) {
 
 		if hadError {
 			return nil, true
+		}
+
+		if !p.expect(syntax.TokenParenR) {
+			hadError = true
 		}
 
 		if !p.expectWithMsg(syntax.TokenBraceL, "Expected '{' before function body.") {
@@ -750,6 +750,10 @@ func (p *parser) functionDeclaration() (stmt syntax.Stmt, hadError bool) {
 
 	if hadError {
 		return
+	}
+
+	if !p.expect(syntax.TokenParenR) {
+		hadError = true
 	}
 
 	if !p.expectWithMsg(syntax.TokenBraceL, "Expected '{' before function body.") {
