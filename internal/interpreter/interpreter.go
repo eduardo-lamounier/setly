@@ -196,6 +196,11 @@ func (i *interpreter) evaluate(
 
 		i.Environment.Assign(expr.Name.Lexeme, value)
 		return i.Environment.Access(expr.Name.Lexeme), nil
+	case syntax.FunctionExpr:
+		return runtime.Function{
+			Declaration: expr,
+			Closure:     i.Environment,
+		}, nil
 	case syntax.CallExpr:
 		callee, err := i.evaluate(expr.Callee)
 		if err != nil {
@@ -371,12 +376,6 @@ func (i *interpreter) execute(
 
 			i.Environment.Assign(stmt.Var.Lexeme, controlVar+step.(runtime.Number))
 		}
-	case syntax.FunctionStmt:
-		function := runtime.Function{
-			Declaration: stmt,
-			Closure:     i.Environment,
-		}
-		i.Environment.Define(stmt.Name.Lexeme, function)
 	case syntax.ReturnStmt:
 		if stmt.Value == nil {
 			return nil, returnCompletion{Value: runtime.Nil{}}

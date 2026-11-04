@@ -38,6 +38,16 @@ type AssignExpr struct {
 	Value Expr
 }
 
+type FunctionExpr struct {
+	line int
+
+	Parameters []struct {
+		Name Token
+		Type Token
+	}
+	Body []Stmt
+}
+
 type CallExpr struct {
 	Callee    Expr
 	Arguments []Expr
@@ -49,6 +59,7 @@ func (e GroupingExpr) expr() {}
 func (e LiteralExpr) expr()  {}
 func (e VarExpr) expr()      {}
 func (e AssignExpr) expr()   {}
+func (e FunctionExpr) expr() {}
 func (e CallExpr) expr()     {}
 
 func (e UnaryExpr) Line() int {
@@ -73,6 +84,10 @@ func (e VarExpr) Line() int {
 
 func (e AssignExpr) Line() int {
 	return e.Name.Line()
+}
+
+func (s FunctionExpr) Line() int {
+	return s.line
 }
 
 func (e CallExpr) Line() int {
@@ -140,6 +155,22 @@ func NewAssignExpr(name Token, value Expr) AssignExpr {
 	return AssignExpr{
 		Name:  name,
 		Value: value,
+	}
+}
+
+func NewFunctionExpr(
+	parameters []struct {
+		Name Token
+		Type Token
+	},
+	body []Stmt,
+	line int,
+) FunctionExpr {
+	return FunctionExpr{
+		line: line,
+
+		Parameters: parameters,
+		Body:       body,
 	}
 }
 

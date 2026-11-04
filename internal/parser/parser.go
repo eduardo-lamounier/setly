@@ -104,7 +104,76 @@ func (p *parser) emitStmt(stmt syntax.Stmt) {
 	p.Stmts = append(p.Stmts, stmt)
 }
 
+func (p *parser) paramsList() (
+	parameters []struct {
+		Name syntax.Token
+		Type syntax.Token
+	},
+	hadError bool,
+) {
+	if !p.check(syntax.TokenParenR) {
+		for {
+			var parameter struct {
+				Name syntax.Token
+				Type syntax.Token
+			}
+
+			if !p.expectWithMsg(syntax.TokenID, "Expected parameter name.") {
+				hadError = true
+				return
+			}
+
+			parameter.Name = p.prev()
+
+			if !p.expectWithMsg(syntax.TokenID, "Expected parameter type.") {
+				hadError = true
+				return
+			}
+
+			parameter.Type = p.prev()
+
+			parameters = append(parameters, parameter)
+
+			if !p.match(syntax.TokenComma) {
+				break
+			}
+		}
+	}
+
+	if !p.expect(syntax.TokenParenR) {
+		hadError = true
+	}
+
+	return
+}
+
 func (p *parser) primary() (syntax.Expr, bool) {
+	if p.match(syntax.TokenFunction) {
+		line := p.prev().Line()
+
+		if !p.expect(syntax.TokenParenL) {
+			return nil, true
+		}
+
+		parameters, hadError := p.paramsList()
+
+		if hadError {
+			return nil, true
+		}
+
+		if !p.expectWithMsg(syntax.TokenBraceL, "Expected '{' before function body.") {
+			return nil, true
+		}
+
+		body, hadError := p.blockStmt()
+
+		if hadError {
+			return nil, true
+		}
+
+		return syntax.NewFunctionExpr(parameters, body, line), false
+	}
+
 	if p.match(syntax.TokenNil, syntax.TokenFalse, syntax.TokenTrue,
 		syntax.TokenNumber, syntax.TokenString) {
 
@@ -677,42 +746,9 @@ func (p *parser) functionDeclaration() (stmt syntax.Stmt, hadError bool) {
 		return
 	}
 
-	var parameters []struct {
-		Name syntax.Token
-		Type syntax.Token
-	}
+	parameters, hadError := p.paramsList()
 
-	if !p.check(syntax.TokenParenR) {
-		for {
-			var parameter struct {
-				Name syntax.Token
-				Type syntax.Token
-			}
-
-			if !p.expectWithMsg(syntax.TokenID, "Expected parameter name.") {
-				hadError = true
-				return
-			}
-
-			parameter.Name = p.prev()
-
-			if !p.expectWithMsg(syntax.TokenID, "Expected parameter type.") {
-				hadError = true
-				return
-			}
-
-			parameter.Type = p.prev()
-
-			parameters = append(parameters, parameter)
-
-			if !p.match(syntax.TokenComma) {
-				break
-			}
-		}
-	}
-
-	if !p.expect(syntax.TokenParenR) {
-		hadError = true
+	if hadError {
 		return
 	}
 
@@ -727,7 +763,11 @@ func (p *parser) functionDeclaration() (stmt syntax.Stmt, hadError bool) {
 		return
 	}
 
-	stmt = syntax.NewFunctionStmt(name, parameters, body)
+	stmt = syntax.NewVarStmt(
+		name,
+		syntax.Token{Lexeme: "number"},
+		syntax.NewFunctionExpr(parameters, body, name.Line()),
+	)
 	return
 }
 

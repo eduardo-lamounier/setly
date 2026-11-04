@@ -47,15 +47,6 @@ type ForNumStmt struct {
 	Block []Stmt
 }
 
-type FunctionStmt struct {
-	Name       Token
-	Parameters []struct {
-		Name Token
-		Type Token
-	}
-	Body []Stmt
-}
-
 type ReturnStmt struct {
 	line int
 
@@ -76,7 +67,6 @@ func (s VarStmt) stmt()      {}
 func (s BlockStmt) stmt()    {}
 func (s IfStmt) stmt()       {}
 func (s WhileStmt) stmt()    {}
-func (s FunctionStmt) stmt() {}
 func (s ReturnStmt) stmt()   {}
 func (s BreakStmt) stmt()    {}
 func (s ContinueStmt) stmt() {}
@@ -104,10 +94,6 @@ func (s IfStmt) Line() int {
 
 func (s WhileStmt) Line() int {
 	return s.Condition.Line()
-}
-
-func (s FunctionStmt) Line() int {
-	return s.Name.Line()
 }
 
 func (s ReturnStmt) Line() int {
@@ -166,21 +152,6 @@ func NewWhileStmt(condition Expr, block []Stmt) WhileStmt {
 	return WhileStmt{
 		Condition: condition,
 		Block:     block,
-	}
-}
-
-func NewFunctionStmt(
-	name Token,
-	parameters []struct {
-		Name Token
-		Type Token
-	},
-	body []Stmt,
-) FunctionStmt {
-	return FunctionStmt{
-		Name:       name,
-		Parameters: parameters,
-		Body:       body,
 	}
 }
 

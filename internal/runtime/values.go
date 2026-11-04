@@ -24,7 +24,8 @@ type Boolean bool
 type Nil struct{}
 
 type Function struct {
-	Declaration syntax.FunctionStmt
+	Name        syntax.Token
+	Declaration syntax.FunctionExpr
 	Closure     *Environment
 }
 
@@ -81,7 +82,7 @@ func (n Nil) Stringify() string {
 }
 
 func (f Function) Stringify() string {
-	return fmt.Sprintf("<function %s>", f.Declaration.Name.Lexeme)
+	return fmt.Sprintf("<function %s>", f.Name.Lexeme)
 }
 
 func ValueFromLiteral(literal any) Value {
