@@ -25,6 +25,7 @@ type Nil struct{}
 
 type Function struct {
 	Declaration syntax.FunctionStmt
+	Closure     *Environment
 }
 
 func (n Number) value()   {}

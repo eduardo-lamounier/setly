@@ -76,7 +76,7 @@ func (i *interpreter) executeBlock(
 func (i *interpreter) CallFunction(
 	function runtime.Function, arguments []runtime.Value,
 ) (runtime.Value, *runtime.Error) {
-	environment := runtime.NewEnvironment(runtime.GlobalEnvironment())
+	environment := runtime.NewEnvironment(function.Closure)
 
 	for i, param := range function.Declaration.Parameters {
 		environment.Define(param.Name.Lexeme, arguments[i])
@@ -372,7 +372,10 @@ func (i *interpreter) execute(
 			i.Environment.Assign(stmt.Var.Lexeme, controlVar+step.(runtime.Number))
 		}
 	case syntax.FunctionStmt:
-		function := runtime.Function{Declaration: stmt}
+		function := runtime.Function{
+			Declaration: stmt,
+			Closure:     i.Environment,
+		}
 		i.Environment.Define(stmt.Name.Lexeme, function)
 	case syntax.ReturnStmt:
 		if stmt.Value == nil {
