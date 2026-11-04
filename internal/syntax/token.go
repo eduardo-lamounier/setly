@@ -57,6 +57,7 @@ const (
 	TokenFunction
 	TokenReturn
 	TokenLet
+	TokenType
 
 	TokenEOF
 )
@@ -88,6 +89,7 @@ var KeywordForLexeme = map[string]TokenKind{
 	"function": TokenFunction,
 	"return":   TokenReturn,
 	"let":      TokenLet,
+	"type":     TokenType,
 	"until":    TokenUntil,
 	"by":       TokenBy,
 	"break":    TokenBreak,
@@ -143,6 +145,7 @@ var lexemeForTokenKind = map[TokenKind]string{
 	TokenFunction: "function",
 	TokenReturn:   "return",
 	TokenLet:      "let",
+	TokenType:     "type",
 
 	TokenEOF: "",
 }
@@ -198,6 +201,7 @@ var tokenKindsToString = map[TokenKind]string{
 	TokenFunction: "FUNCTION",
 	TokenReturn:   "RETURN",
 	TokenLet:      "LET",
+	TokenType:     "TYPE",
 
 	TokenEOF: "EOF",
 }
