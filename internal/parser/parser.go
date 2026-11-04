@@ -104,6 +104,22 @@ func (p *parser) emitStmt(stmt syntax.Stmt) {
 	p.Stmts = append(p.Stmts, stmt)
 }
 
+/* *** Grammar notation ********************************************************
+
+The grammar uses a variation of EBNF notation.
+
+- `::=` defines a production.
+- `|` separates alternatives.
+- `[ ... ]` denotes an optional expression.
+- `{ ... }` denotes zero or more repetitions.
+- `( ... )` groups expressions.
+- `"..."` denotes literal tokens.
+- `.` terminates a production.
+*******************************************************************************/
+
+// paramsList ::= [ parameter { "," parameter } ] .
+//
+// parameter ::= ID ID .
 func (p *parser) paramsList() (
 	parameters []struct {
 		Name syntax.Token
@@ -143,6 +159,12 @@ func (p *parser) paramsList() (
 	return
 }
 
+// primaryExpr ::= functionExpr | varExpr | literalExpr | groupingExpr .
+//
+// functionExpr ::= "function" "(" paramsList ")" blockStmt .
+// varExpr      ::= ID .
+// literalExpr  ::= "nil" | "false" | "true" | STRING | NUMBER .
+// groupingExpr ::= "(" expr ")" .
 func (p *parser) primary() (syntax.Expr, bool) {
 	if p.match(syntax.TokenFunction) {
 		line := p.prev().Line()
@@ -203,6 +225,9 @@ func (p *parser) primary() (syntax.Expr, bool) {
 	return nil, true
 }
 
+// callExpr ::= primary { "(" argumentsList ")" } .
+//
+// argumentsList ::= [ expr { "," expr } ] .
 func (p *parser) call() (expr syntax.Expr, hadError bool) {
 	expr, hadError = p.primary()
 
@@ -240,6 +265,7 @@ func (p *parser) call() (expr syntax.Expr, hadError bool) {
 	return
 }
 
+// unaryExpr ::= callExpr | ( ( "-" | "+" ) unaryExpr ) .
 func (p *parser) unary() (syntax.Expr, bool) {
 	if p.match(syntax.TokenMinus, syntax.TokenPlus) {
 		operator := p.prev()
@@ -255,6 +281,7 @@ func (p *parser) unary() (syntax.Expr, bool) {
 	return p.call()
 }
 
+// factorExpr ::= unaryExpr { ( "*" | "/" ) unaryExpr } .
 func (p *parser) factor() (syntax.Expr, bool) {
 	expr, hadError := p.unary()
 
@@ -276,6 +303,7 @@ func (p *parser) factor() (syntax.Expr, bool) {
 	return expr, false
 }
 
+// termExpr ::= factorExpr { ( "+" | "-" ) factorExpr } .
 func (p *parser) term() (syntax.Expr, bool) {
 	expr, hadError := p.factor()
 
@@ -297,6 +325,7 @@ func (p *parser) term() (syntax.Expr, bool) {
 	return expr, false
 }
 
+// comparisonExpr ::= termExpr { ( ">" | "<" | ">=" | "<=" ) termExpr } .
 func (p *parser) comparison() (syntax.Expr, bool) {
 	expr, hadError := p.term()
 
@@ -320,6 +349,7 @@ func (p *parser) comparison() (syntax.Expr, bool) {
 	return expr, false
 }
 
+// equalityExpr ::= comparisonExpr { ( "~=" | "=" ) comparisonExpr } .
 func (p *parser) equality() (syntax.Expr, bool) {
 	expr, hadError := p.comparison()
 
@@ -341,6 +371,7 @@ func (p *parser) equality() (syntax.Expr, bool) {
 	return expr, false
 }
 
+// logicalNotExpr ::= equalityExpr | ( "not" logicalNotExpr ) .
 func (p *parser) logicalNot() (syntax.Expr, bool) {
 	if p.match(syntax.TokenNot) {
 		operator := p.prev()
@@ -356,6 +387,7 @@ func (p *parser) logicalNot() (syntax.Expr, bool) {
 	return p.equality()
 }
 
+// logicalAndExpr ::= logicalNotExpr { "and" logicalNotExpr } .
 func (p *parser) logicalAnd() (syntax.Expr, bool) {
 	expr, hadError := p.logicalNot()
 
@@ -377,6 +409,7 @@ func (p *parser) logicalAnd() (syntax.Expr, bool) {
 	return expr, false
 }
 
+// logicalOrExpr ::= logicalAndExpr { "or" logicalAndExpr } .
 func (p *parser) logicalOr() (syntax.Expr, bool) {
 	expr, hadError := p.logicalAnd()
 
@@ -398,6 +431,7 @@ func (p *parser) logicalOr() (syntax.Expr, bool) {
 	return expr, false
 }
 
+// assignmentExpr ::= logicalOrExpr [ ":=" assignmentExpr ] .
 func (p *parser) assignment() (syntax.Expr, bool) {
 	expr, hadError := p.logicalOr()
 
@@ -425,10 +459,12 @@ func (p *parser) assignment() (syntax.Expr, bool) {
 	return expr, false
 }
 
+// expr ::= assignmentExpr .
 func (p *parser) expr() (syntax.Expr, bool) {
 	return p.assignment()
 }
 
+// printStmt ::= "print" "(" [ expr ] ")" .
 func (p *parser) printStmt() (syntax.Stmt, bool) {
 	if !p.expect(syntax.TokenParenL) {
 		return nil, true
@@ -451,6 +487,7 @@ func (p *parser) printStmt() (syntax.Stmt, bool) {
 	return syntax.NewPrintStmt(expr), false
 }
 
+// exprStmt ::= expr .
 func (p *parser) exprStmt() (syntax.Stmt, bool) {
 	expr, hadError := p.expr()
 
@@ -461,6 +498,9 @@ func (p *parser) exprStmt() (syntax.Stmt, bool) {
 	return syntax.NewExprStmt(expr), false
 }
 
+// blockStmt ::= "{" { declStmt ";" } "}" .
+//
+// Do note the "{" should be consumed by the calling function.
 func (p *parser) blockStmt() (stmts []syntax.Stmt, hadError bool) {
 	for !p.check(syntax.TokenBraceR) && !p.atEnd() {
 		decl, hadErrorInDecl := p.declaration()
@@ -485,6 +525,7 @@ func (p *parser) blockStmt() (stmts []syntax.Stmt, hadError bool) {
 	return
 }
 
+// ifStmt ::= "if" expr blockStmt { "elif" expr blockStmt } [ "else" blockStmt ] .
 func (p *parser) ifStmt() (stmt syntax.Stmt, hadError bool) {
 	cond, hadError := p.expr()
 
@@ -534,6 +575,7 @@ func (p *parser) ifStmt() (stmt syntax.Stmt, hadError bool) {
 	return
 }
 
+// whileStmt ::= "while" expr blockStmt .
 func (p *parser) whileStmt() (stmt syntax.Stmt, hadError bool) {
 	cond, hadError := p.expr()
 
@@ -556,6 +598,7 @@ func (p *parser) whileStmt() (stmt syntax.Stmt, hadError bool) {
 	return
 }
 
+// forNumStmt ::= "for" ID ":=" expr "," expr [ "," expr ] blockStmt .
 func (p *parser) forStmt() (stmt syntax.Stmt, hadError bool) {
 	line := p.peek().Line()
 
@@ -612,6 +655,7 @@ func (p *parser) forStmt() (stmt syntax.Stmt, hadError bool) {
 	return syntax.NewForNumStmt(varName, start, limit, step, block, line), false
 }
 
+// repeatStmt ::= "repeat" blockStmt [ "until" expr ] .
 func (p *parser) repeatStmt() (stmt syntax.Stmt, hadError bool) {
 	if !p.expect(syntax.TokenBraceL) {
 		hadError = true
@@ -651,6 +695,7 @@ func (p *parser) repeatStmt() (stmt syntax.Stmt, hadError bool) {
 	return
 }
 
+// returnStmt ::= "return" [ expr ] .
 func (p *parser) returnStmt() (stmt syntax.Stmt, hadError bool) {
 	line := p.prev().Line()
 
@@ -670,14 +715,18 @@ func (p *parser) returnStmt() (stmt syntax.Stmt, hadError bool) {
 	return
 }
 
+// breakStmt ::= "break" .
 func (p *parser) breakStmt() (stmt syntax.Stmt, hadError bool) {
 	return syntax.NewBreakStmt(p.prev().Line()), false
 }
 
+// continueStmt ::= "continue" .
 func (p *parser) continueStmt() (stmt syntax.Stmt, hadError bool) {
 	return syntax.NewContinueStmt(p.prev().Line()), false
 }
 
+// stmt ::= printStmt | blockStmt | ifStmt | whileStmt | forNumStmt | repeatStmt
+// | returnStmt | breakStmt | continueStmt | exprStmt .
 func (p *parser) stmt() (syntax.Stmt, bool) {
 	switch {
 	case p.match(syntax.TokenPrint):
@@ -709,6 +758,7 @@ func (p *parser) stmt() (syntax.Stmt, bool) {
 	}
 }
 
+// varDecl ::= "let" ID ID [ ":=" expr ] .
 func (p *parser) varDeclaration() (syntax.Stmt, bool) {
 	varName := p.peek()
 	if !p.expectWithMsg(syntax.TokenID, "Expected variable name.") {
@@ -733,6 +783,7 @@ func (p *parser) varDeclaration() (syntax.Stmt, bool) {
 	return syntax.NewVarStmt(varName, typeName, initializer), false
 }
 
+// functionDecl ::= "function" ID "(" paramsList ")" blockStmt .
 func (p *parser) functionDeclaration() (stmt syntax.Stmt, hadError bool) {
 	if !p.expectWithMsg(syntax.TokenID, "Expected function name.") {
 		hadError = true
@@ -775,6 +826,10 @@ func (p *parser) functionDeclaration() (stmt syntax.Stmt, hadError bool) {
 	return
 }
 
+// declStmt ::= varDecl | functionDecl | stmt .
+//
+// A declaration statement should also have a terminator right after, but this
+// check is done by the function calling 'declaration()'.
 func (p *parser) declaration() (syntax.Stmt, bool) {
 	switch {
 	case p.match(syntax.TokenLet):
