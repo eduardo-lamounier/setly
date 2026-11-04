@@ -165,7 +165,7 @@ func (p *parser) paramsList() (
 // varExpr      ::= ID .
 // literalExpr  ::= "nil" | "false" | "true" | STRING | NUMBER .
 // groupingExpr ::= "(" expr ")" .
-func (p *parser) primary() (syntax.Expr, bool) {
+func (p *parser) primaryExpr() (syntax.Expr, bool) {
 	if p.match(syntax.TokenFunction) {
 		line := p.prev().Line()
 
@@ -228,8 +228,8 @@ func (p *parser) primary() (syntax.Expr, bool) {
 // callExpr ::= primary { "(" argumentsList ")" } .
 //
 // argumentsList ::= [ expr { "," expr } ] .
-func (p *parser) call() (expr syntax.Expr, hadError bool) {
-	expr, hadError = p.primary()
+func (p *parser) callExpr() (expr syntax.Expr, hadError bool) {
+	expr, hadError = p.primaryExpr()
 
 	if hadError {
 		return
@@ -266,10 +266,10 @@ func (p *parser) call() (expr syntax.Expr, hadError bool) {
 }
 
 // unaryExpr ::= callExpr | ( ( "-" | "+" ) unaryExpr ) .
-func (p *parser) unary() (syntax.Expr, bool) {
+func (p *parser) unaryExpr() (syntax.Expr, bool) {
 	if p.match(syntax.TokenMinus, syntax.TokenPlus) {
 		operator := p.prev()
-		right, hadError := p.unary()
+		right, hadError := p.unaryExpr()
 
 		if hadError {
 			return nil, true
@@ -278,12 +278,12 @@ func (p *parser) unary() (syntax.Expr, bool) {
 		return syntax.NewUnaryExpr(operator, right), false
 	}
 
-	return p.call()
+	return p.callExpr()
 }
 
 // factorExpr ::= unaryExpr { ( "*" | "/" ) unaryExpr } .
-func (p *parser) factor() (syntax.Expr, bool) {
-	expr, hadError := p.unary()
+func (p *parser) factorExpr() (syntax.Expr, bool) {
+	expr, hadError := p.unaryExpr()
 
 	if hadError {
 		return nil, true
@@ -291,7 +291,7 @@ func (p *parser) factor() (syntax.Expr, bool) {
 
 	for p.match(syntax.TokenStar, syntax.TokenSlash) {
 		operator := p.prev()
-		right, hadError := p.unary()
+		right, hadError := p.unaryExpr()
 
 		if hadError {
 			return nil, true
@@ -304,8 +304,8 @@ func (p *parser) factor() (syntax.Expr, bool) {
 }
 
 // termExpr ::= factorExpr { ( "+" | "-" ) factorExpr } .
-func (p *parser) term() (syntax.Expr, bool) {
-	expr, hadError := p.factor()
+func (p *parser) termExpr() (syntax.Expr, bool) {
+	expr, hadError := p.factorExpr()
 
 	if hadError {
 		return nil, true
@@ -313,7 +313,7 @@ func (p *parser) term() (syntax.Expr, bool) {
 
 	for p.match(syntax.TokenPlus, syntax.TokenMinus) {
 		operator := p.prev()
-		right, hadError := p.factor()
+		right, hadError := p.factorExpr()
 
 		if hadError {
 			return nil, true
@@ -326,8 +326,8 @@ func (p *parser) term() (syntax.Expr, bool) {
 }
 
 // comparisonExpr ::= termExpr { ( ">" | "<" | ">=" | "<=" ) termExpr } .
-func (p *parser) comparison() (syntax.Expr, bool) {
-	expr, hadError := p.term()
+func (p *parser) comparisonExpr() (syntax.Expr, bool) {
+	expr, hadError := p.termExpr()
 
 	if hadError {
 		return nil, true
@@ -337,7 +337,7 @@ func (p *parser) comparison() (syntax.Expr, bool) {
 		syntax.TokenGreaterEqual, syntax.TokenLessEqual) {
 
 		operator := p.prev()
-		right, hadError := p.term()
+		right, hadError := p.termExpr()
 
 		if hadError {
 			return nil, true
@@ -350,8 +350,8 @@ func (p *parser) comparison() (syntax.Expr, bool) {
 }
 
 // equalityExpr ::= comparisonExpr { ( "~=" | "=" ) comparisonExpr } .
-func (p *parser) equality() (syntax.Expr, bool) {
-	expr, hadError := p.comparison()
+func (p *parser) equalityExpr() (syntax.Expr, bool) {
+	expr, hadError := p.comparisonExpr()
 
 	if hadError {
 		return nil, true
@@ -359,7 +359,7 @@ func (p *parser) equality() (syntax.Expr, bool) {
 
 	for p.match(syntax.TokenTildeEqual, syntax.TokenEqual) {
 		operator := p.prev()
-		right, hadError := p.comparison()
+		right, hadError := p.comparisonExpr()
 
 		if hadError {
 			return nil, true
@@ -372,10 +372,10 @@ func (p *parser) equality() (syntax.Expr, bool) {
 }
 
 // logicalNotExpr ::= equalityExpr | ( "not" logicalNotExpr ) .
-func (p *parser) logicalNot() (syntax.Expr, bool) {
+func (p *parser) logicalNotExpr() (syntax.Expr, bool) {
 	if p.match(syntax.TokenNot) {
 		operator := p.prev()
-		expr, hadError := p.logicalNot()
+		expr, hadError := p.logicalNotExpr()
 
 		if hadError {
 			return nil, true
@@ -384,12 +384,12 @@ func (p *parser) logicalNot() (syntax.Expr, bool) {
 		return syntax.NewUnaryExpr(operator, expr), false
 	}
 
-	return p.equality()
+	return p.equalityExpr()
 }
 
 // logicalAndExpr ::= logicalNotExpr { "and" logicalNotExpr } .
-func (p *parser) logicalAnd() (syntax.Expr, bool) {
-	expr, hadError := p.logicalNot()
+func (p *parser) logicalAndExpr() (syntax.Expr, bool) {
+	expr, hadError := p.logicalNotExpr()
 
 	if hadError {
 		return nil, true
@@ -397,7 +397,7 @@ func (p *parser) logicalAnd() (syntax.Expr, bool) {
 
 	for p.match(syntax.TokenAnd) {
 		operator := p.prev()
-		right, hadError := p.logicalNot()
+		right, hadError := p.logicalNotExpr()
 
 		if hadError {
 			return nil, true
@@ -410,8 +410,8 @@ func (p *parser) logicalAnd() (syntax.Expr, bool) {
 }
 
 // logicalOrExpr ::= logicalAndExpr { "or" logicalAndExpr } .
-func (p *parser) logicalOr() (syntax.Expr, bool) {
-	expr, hadError := p.logicalAnd()
+func (p *parser) logicalOrExpr() (syntax.Expr, bool) {
+	expr, hadError := p.logicalAndExpr()
 
 	if hadError {
 		return nil, true
@@ -419,7 +419,7 @@ func (p *parser) logicalOr() (syntax.Expr, bool) {
 
 	for p.match(syntax.TokenOr) {
 		operator := p.prev()
-		right, hadError := p.logicalAnd()
+		right, hadError := p.logicalAndExpr()
 
 		if hadError {
 			return nil, true
@@ -432,8 +432,8 @@ func (p *parser) logicalOr() (syntax.Expr, bool) {
 }
 
 // assignmentExpr ::= logicalOrExpr [ ":=" assignmentExpr ] .
-func (p *parser) assignment() (syntax.Expr, bool) {
-	expr, hadError := p.logicalOr()
+func (p *parser) assignmentExpr() (syntax.Expr, bool) {
+	expr, hadError := p.logicalOrExpr()
 
 	if hadError {
 		return nil, true
@@ -441,7 +441,7 @@ func (p *parser) assignment() (syntax.Expr, bool) {
 
 	if p.match(syntax.TokenColonEqual) {
 		op := p.prev()
-		value, hadError := p.assignment()
+		value, hadError := p.assignmentExpr()
 
 		if hadError {
 			return nil, true
@@ -461,7 +461,7 @@ func (p *parser) assignment() (syntax.Expr, bool) {
 
 // expr ::= assignmentExpr .
 func (p *parser) expr() (syntax.Expr, bool) {
-	return p.assignment()
+	return p.assignmentExpr()
 }
 
 // printStmt ::= "print" "(" [ expr ] ")" .
