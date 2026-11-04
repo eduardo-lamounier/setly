@@ -86,8 +86,8 @@ func (e AssignExpr) Line() int {
 	return e.Name.Line()
 }
 
-func (s FunctionExpr) Line() int {
-	return s.line
+func (e FunctionExpr) Line() int {
+	return e.line
 }
 
 func (e CallExpr) Line() int {
