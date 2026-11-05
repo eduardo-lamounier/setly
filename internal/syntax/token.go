@@ -6,6 +6,13 @@ import "fmt"
 
 type TokenKind int
 
+/* When adding a new token, you should:
+  - Define a constant of type 'TokenKind' for it right below this comment;
+  - If it isn't a keyword, update the lexer's 'scanToken()'.;
+	- If it is a keyword, update 'KeywordForLexeme' in this file;
+	- Update 'lexemeForTokenKind' and 'tokenKindsToString' in this file.
+*/
+
 const (
 	TokenParenL TokenKind = iota
 	TokenParenR
@@ -72,6 +79,7 @@ type Token struct {
 	col  int
 }
 
+// KeywordForLexeme is used by the lexer to scan keywords.
 var KeywordForLexeme = map[string]TokenKind{
 	"false":    TokenFalse,
 	"true":     TokenTrue,
