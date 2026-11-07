@@ -16,6 +16,8 @@ type TokenKind int
 const (
 	TokenParenL TokenKind = iota
 	TokenParenR
+	TokenBracketL
+	TokenBracketR
 	TokenBraceL
 	TokenBraceR
 
@@ -105,10 +107,12 @@ var KeywordForLexeme = map[string]TokenKind{
 }
 
 var lexemeForTokenKind = map[TokenKind]string{
-	TokenParenL: "(",
-	TokenParenR: ")",
-	TokenBraceL: "{",
-	TokenBraceR: "}",
+	TokenParenL:   "(",
+	TokenParenR:   ")",
+	TokenBracketL: "[",
+	TokenBracketR: "]",
+	TokenBraceL:   "{",
+	TokenBraceR:   "}",
 
 	TokenComma:     ",",
 	TokenDot:       ".",
@@ -159,10 +163,12 @@ var lexemeForTokenKind = map[TokenKind]string{
 }
 
 var tokenKindsToString = map[TokenKind]string{
-	TokenParenL: "LEFT_PAREN",
-	TokenParenR: "RIGHT_PAREN",
-	TokenBraceL: "LEFT_BRACE",
-	TokenBraceR: "RIGHT_BRACE",
+	TokenParenL:   "LEFT_PAREN",
+	TokenParenR:   "RIGHT_PAREN",
+	TokenBracketL: "LEFT_BRACKET",
+	TokenBracketR: "RIGHT_BRACKET",
+	TokenBraceL:   "LEFT_BRACE",
+	TokenBraceR:   "RIGHT_BRACE",
 
 	TokenComma:     "COMMA",
 	TokenDot:       "DOT",
