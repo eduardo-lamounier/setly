@@ -197,6 +197,10 @@ func (l *lexer) scanToken() {
 		l.emitToken(syntax.TokenParenL)
 	case ')':
 		l.emitToken(syntax.TokenParenR)
+	case '[':
+		l.emitToken(syntax.TokenBracketL)
+	case ']':
+		l.emitToken(syntax.TokenBracketR)
 	case '{':
 		l.emitToken(syntax.TokenBraceL)
 	case '}':
