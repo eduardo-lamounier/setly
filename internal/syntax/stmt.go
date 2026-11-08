@@ -61,6 +61,13 @@ type ContinueStmt struct {
 	line int
 }
 
+type TypeStmt struct {
+	line int
+
+	Name  Token
+	Value Expr
+}
+
 func (s ExprStmt) stmt()     {}
 func (s PrintStmt) stmt()    {}
 func (s VarStmt) stmt()      {}
@@ -71,6 +78,7 @@ func (s ReturnStmt) stmt()   {}
 func (s BreakStmt) stmt()    {}
 func (s ContinueStmt) stmt() {}
 func (s ForNumStmt) stmt()   {}
+func (s TypeStmt) stmt()     {}
 
 func (s ExprStmt) Line() int {
 	return s.Expr.Line()
@@ -109,6 +117,10 @@ func (s ContinueStmt) Line() int {
 }
 
 func (s ForNumStmt) Line() int {
+	return s.line
+}
+
+func (s TypeStmt) Line() int {
 	return s.line
 }
 
@@ -185,5 +197,14 @@ func NewForNumStmt(
 		Limit: limit,
 		Step:  step,
 		Block: block,
+	}
+}
+
+func NewTypeStmt(name Token, value Expr, line int) TypeStmt {
+	return TypeStmt{
+		line: line,
+
+		Name:  name,
+		Value: value,
 	}
 }
