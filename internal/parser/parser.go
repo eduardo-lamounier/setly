@@ -503,10 +503,16 @@ func (p *parser) exprStmt() (syntax.Stmt, bool) {
 // Do note the "{" should be consumed by the calling function.
 func (p *parser) blockStmt() (stmts []syntax.Stmt, hadError bool) {
 	for !p.check(syntax.TokenBraceR) && !p.atEnd() {
+		pos := p.Pos
 		decl, hadErrorInDecl := p.declaration()
 
 		if hadErrorInDecl {
 			hadError = true
+
+			// Ensures the parser moved forward
+			if pos == p.Pos {
+				p.advance()
+			}
 			continue
 		}
 
@@ -900,9 +906,15 @@ func Parse(source string, tokens []syntax.Token) (
 	// The rest of the newline tokens are skipped by 'p.advance()'
 
 	for !p.atEnd() {
+		pos := p.Pos
 		stmt, hadError := p.declaration()
 
 		if hadError {
+			// Ensures the parser moved forward
+			if pos == p.Pos {
+				p.advance()
+			}
+
 			continue
 		}
 
