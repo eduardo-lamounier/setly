@@ -34,6 +34,7 @@ const (
 	TokenSlash
 	TokenSlashSlash
 
+	TokenPipe
 	TokenColonEqual
 	TokenEqual
 	TokenTildeEqual
@@ -127,6 +128,7 @@ var lexemeForTokenKind = map[TokenKind]string{
 	TokenSlash:      "/",
 	TokenSlashSlash: "//",
 
+	TokenPipe:         "|",
 	TokenColonEqual:   ":=",
 	TokenEqual:        "=",
 	TokenTildeEqual:   "~=",
@@ -183,6 +185,7 @@ var tokenKindsToString = map[TokenKind]string{
 	TokenSlash:      "SLASH",
 	TokenSlashSlash: "SLASH_SLASH",
 
+	TokenPipe:         "PIPE",
 	TokenColonEqual:   "COLON_EQUAL",
 	TokenEqual:        "EQUAL",
 	TokenTildeEqual:   "TILDE_EQUAL",
