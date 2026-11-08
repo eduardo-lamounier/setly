@@ -209,6 +209,8 @@ func (l *lexer) scanToken() {
 		l.emitToken(syntax.TokenComma)
 	case '.':
 		l.emitToken(syntax.TokenDot)
+	case '|':
+		l.emitToken(syntax.TokenPipe)
 	case ':':
 		if l.match('=') {
 			l.emitToken(syntax.TokenColonEqual)
