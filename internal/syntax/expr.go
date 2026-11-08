@@ -53,14 +53,34 @@ type CallExpr struct {
 	Arguments []Expr
 }
 
-func (e UnaryExpr) expr()    {}
-func (e BinaryExpr) expr()   {}
-func (e GroupingExpr) expr() {}
-func (e LiteralExpr) expr()  {}
-func (e VarExpr) expr()      {}
-func (e AssignExpr) expr()   {}
-func (e FunctionExpr) expr() {}
-func (e CallExpr) expr()     {}
+type VariantTypeExpr struct {
+	Types []Expr
+}
+
+type NamedTypeExpr struct {
+	Name Token
+}
+
+type FunctionTypeExpr struct {
+	line int
+
+	teste func() int
+
+	ParamsType []Expr
+	ReturnType Expr
+}
+
+func (e UnaryExpr) expr()        {}
+func (e BinaryExpr) expr()       {}
+func (e GroupingExpr) expr()     {}
+func (e LiteralExpr) expr()      {}
+func (e VarExpr) expr()          {}
+func (e AssignExpr) expr()       {}
+func (e FunctionExpr) expr()     {}
+func (e CallExpr) expr()         {}
+func (e VariantTypeExpr) expr()  {}
+func (e NamedTypeExpr) expr()    {}
+func (e FunctionTypeExpr) expr() {}
 
 func (e UnaryExpr) Line() int {
 	return e.Operator.Line()
@@ -92,6 +112,18 @@ func (e FunctionExpr) Line() int {
 
 func (e CallExpr) Line() int {
 	return e.Callee.Line()
+}
+
+func (e VariantTypeExpr) Line() int {
+	return e.Types[0].Line()
+}
+
+func (e NamedTypeExpr) Line() int {
+	return e.Name.Line()
+}
+
+func (e FunctionTypeExpr) Line() int {
+	return e.line
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -178,5 +210,30 @@ func NewCallExpr(callee Expr, arguments []Expr) CallExpr {
 	return CallExpr{
 		Callee:    callee,
 		Arguments: arguments,
+	}
+}
+
+func NewVariantTypeExpr(types []Expr) VariantTypeExpr {
+	return VariantTypeExpr{
+		Types: types,
+	}
+}
+
+func NewNamedTypeExpr(name Token) NamedTypeExpr {
+	return NamedTypeExpr{
+		Name: name,
+	}
+}
+
+func NewFunctionTypeExpr(
+	paramsType []Expr,
+	returnType Expr,
+	line int,
+) FunctionTypeExpr {
+	return FunctionTypeExpr{
+		line: line,
+
+		ParamsType: paramsType,
+		ReturnType: returnType,
 	}
 }
