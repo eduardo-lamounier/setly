@@ -190,8 +190,8 @@ func (p *parser) primaryTypeExpr() (expr syntax.Expr, hadError bool) {
 	return
 }
 
-// variantTypeExpr ::= primaryTypeExpr { "|" primaryTypeExpr } .
-func (p *parser) variantTypeExpr() (expr syntax.Expr, hadError bool) {
+// unionTypeExpr ::= primaryTypeExpr { "|" primaryTypeExpr } .
+func (p *parser) unionTypeExpr() (expr syntax.Expr, hadError bool) {
 	expr, hadError = p.primaryTypeExpr()
 
 	if hadError {
@@ -218,9 +218,9 @@ func (p *parser) variantTypeExpr() (expr syntax.Expr, hadError bool) {
 	return
 }
 
-// typeExpr ::= variantType .
+// typeExpr ::= unionTypeExpr .
 func (p *parser) typeExpr() (syntax.Expr, bool) {
-	return p.variantTypeExpr()
+	return p.unionTypeExpr()
 }
 
 // paramsList ::= [ parameter { "," parameter } ] .
