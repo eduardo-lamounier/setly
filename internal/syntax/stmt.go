@@ -16,7 +16,7 @@ type PrintStmt struct {
 
 type VarStmt struct {
 	Name        Token
-	Type        Token
+	Type        Expr
 	Initializer Expr
 }
 
@@ -138,7 +138,7 @@ func NewPrintStmt(expr Expr) PrintStmt {
 	}
 }
 
-func NewVarStmt(name Token, valueType Token, initializer Expr) VarStmt {
+func NewVarStmt(name Token, valueType Expr, initializer Expr) VarStmt {
 	return VarStmt{
 		Name:        name,
 		Type:        valueType,
