@@ -41,11 +41,13 @@ type AssignExpr struct {
 type FunctionExpr struct {
 	line int
 
+	Name       *Token
 	Parameters []struct {
 		Name Token
-		Type Token
+		Type Expr
 	}
-	Body []Stmt
+	ReturnType Expr
+	Body       []Stmt
 }
 
 type CallExpr struct {
@@ -191,17 +193,21 @@ func NewAssignExpr(name Token, value Expr) AssignExpr {
 }
 
 func NewFunctionExpr(
+	name *Token,
 	parameters []struct {
 		Name Token
-		Type Token
+		Type Expr
 	},
+	returnType Expr,
 	body []Stmt,
 	line int,
 ) FunctionExpr {
 	return FunctionExpr{
 		line: line,
 
+		Name:       name,
 		Parameters: parameters,
+		ReturnType: returnType,
 		Body:       body,
 	}
 }
