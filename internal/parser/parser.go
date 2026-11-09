@@ -884,15 +884,20 @@ func (p *parser) stmt() (syntax.Stmt, bool) {
 	}
 }
 
-// varDecl ::= "let" ID ID [ ":=" expr ] .
+// varDecl ::= "let" ID ":" typeExpr [ ":=" expr ] .
 func (p *parser) varDeclaration() (syntax.Stmt, bool) {
 	varName := p.peek()
 	if !p.expectWithMsg(syntax.TokenID, "Expected variable name.") {
 		return nil, true
 	}
 
-	typeName := p.peek()
-	if !p.expectWithMsg(syntax.TokenID, "Expected the variable's type.") {
+	if !p.expect(syntax.TokenColon) {
+		return nil, true
+	}
+
+	typeName, hadError := p.typeExpr()
+
+	if hadError {
 		return nil, true
 	}
 
