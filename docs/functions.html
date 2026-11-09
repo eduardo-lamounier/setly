@@ -45,6 +45,28 @@
       <pre><code>greet(<span class="string">&quot;Eduardo&quot;</span>) <span class="comment">@ Will print &quot;Hello, Eduardo!&quot;</span>
 <span class="keyword">let</span> n: <span class="type">number</span> := add(<span class="literal">1</span>, <span class="literal">2</span>) <span class="comment">@ Here, n will hold 3</span></code></pre>
     </section>
+    <section class="example">
+      <div class="explanation">
+        <h2>Anonymous functions</h2>
+        <p>You can define functions that have no name, and pass them as parameter to another functions.</p>
+        <p>Here, <code>apply</code> receives an anonymous function that adds two numbers. The code then prints "3".</p>
+      </div>   
+      <pre><code><span class="keyword">function</span> apply(
+  f: <span class="keyword">function</span>(a: <span class="type">number</span>, b: <span class="type">number</span>): <span class="type">number</span>,
+  a: <span class="type">number</span>,
+  b: <span class="type">number</span>,
+): <span class="type">number</span> {
+  <span class="keyword">return</span> f(a, b)
+}
+
+<span class="keyword">print</span>(apply(
+  <span class="keyword">function</span>(a: <span class="type">number</span>, b: <span class="type">number</span>): <span class="type">number</span> {
+    <span class="keyword">return</span> a + b
+  },
+  <span class="literal">1</span>,
+  <span class="literal">2</span>,
+))</code></pre>
+    </section>
     <nav class="chapter-nav" aria-label="Chapter navigation">
       <a href="loops.html">← Loops</a>
       <a href="tuples.html">Tuples →</a>
