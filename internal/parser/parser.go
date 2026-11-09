@@ -122,7 +122,7 @@ The grammar uses a variation of EBNF notation.
 
 // functionTypeExpr ::= "function" "(" paramsTypeList ")" [ ":" typeExpr ] .
 //
-// paramsTypeList ::= [ typeExpr { "," typeExpr } ] .
+// paramsTypeList ::= [ typeExpr { "," typeExpr } [ "," ] ] .
 func (p *parser) functionTypeExpr() (expr syntax.Expr, err *parsingError) {
 	line := p.peek().Line()
 
@@ -142,7 +142,8 @@ func (p *parser) functionTypeExpr() (expr syntax.Expr, err *parsingError) {
 
 			paramsType = append(paramsType, paramType)
 
-			if !p.match(syntax.TokenComma) {
+			// A comma after the last parameter is optional:
+			if !p.match(syntax.TokenComma) || p.check(syntax.TokenParenR) {
 				break
 			}
 		}
@@ -222,7 +223,7 @@ func (p *parser) typeExpr() (syntax.Expr, *parsingError) {
 	return p.unionTypeExpr()
 }
 
-// paramsList ::= [ parameter { "," parameter } ] .
+// paramsList ::= [ parameter { "," parameter } [ "," ] ] .
 //
 // parameter ::= ID ":" typeExpr .
 func (p *parser) paramsList() (
@@ -258,7 +259,8 @@ func (p *parser) paramsList() (
 
 			parameters = append(parameters, parameter)
 
-			if !p.match(syntax.TokenComma) {
+			// A comma after the last parameter is optional:
+			if !p.match(syntax.TokenComma) || p.check(syntax.TokenParenR) {
 				break
 			}
 		}
@@ -354,7 +356,7 @@ func (p *parser) primaryExpr() (expr syntax.Expr, err *parsingError) {
 
 // callExpr ::= primary { "(" argumentsList ")" } .
 //
-// argumentsList ::= [ expr { "," expr } ] .
+// argumentsList ::= [ expr { "," expr } [ "," ] ] .
 func (p *parser) callExpr() (expr syntax.Expr, err *parsingError) {
 	expr, err = p.primaryExpr()
 	if err != nil {
@@ -373,7 +375,8 @@ func (p *parser) callExpr() (expr syntax.Expr, err *parsingError) {
 
 				arguments = append(arguments, e)
 
-				if !p.match(syntax.TokenComma) {
+				// A comma after the last parameter is optional:
+				if !p.match(syntax.TokenComma) || p.check(syntax.TokenParenR) {
 					break
 				}
 			}
