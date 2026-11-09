@@ -343,9 +343,11 @@ func (l *lexer) insertSemicolons() {
 		switch tok.Kind {
 		case syntax.TokenNewline:
 			l.Tokens[i].Kind = syntax.TokenSemicolon
+			l.Tokens[i].Lexeme = ";"
 		case syntax.TokenEOF:
 			newTok := l.Tokens[i]
 			newTok.Kind = syntax.TokenSemicolon
+			newTok.Lexeme = ";"
 
 			l.Tokens = slices.Insert(l.Tokens, i, newTok)
 		}
