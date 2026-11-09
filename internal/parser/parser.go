@@ -938,6 +938,32 @@ func (p *parser) functionDeclaration() (stmt syntax.Stmt, hadError bool) {
 	return
 }
 
+// typeDecl ::= "type" ID ":=" typeExpr .
+func (p *parser) typeDeclaration() (stmt syntax.Stmt, hadError bool) {
+	line := p.peek().Line()
+
+	if !p.expectWithMsg(syntax.TokenID, "Expected the type's name.") {
+		hadError = true
+		return
+	}
+
+	name := p.prev()
+
+	if !p.expect(syntax.TokenColonEqual) {
+		hadError = true
+		return
+	}
+
+	expr, hadError := p.typeExpr()
+
+	if hadError {
+		return
+	}
+
+	stmt = syntax.NewTypeStmt(name, expr, line)
+	return
+}
+
 // declStmt ::= varDecl | functionDecl | stmt .
 //
 // A declaration statement should also have a terminator right after, but this
@@ -959,6 +985,15 @@ func (p *parser) declaration() (syntax.Stmt, bool) {
 		if hadError {
 			p.synchronize()
 			return nil, true
+		}
+
+		return stmt, false
+	case p.match(syntax.TokenType):
+		stmt, hadError := p.typeDeclaration()
+
+		if hadError {
+			p.synchronize()
+			return nil, false
 		}
 
 		return stmt, false
