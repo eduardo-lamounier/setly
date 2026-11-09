@@ -909,8 +909,10 @@ func (p *parser) varDeclaration() (syntax.Stmt, bool) {
 	return syntax.NewVarStmt(varName, typeName, initializer), false
 }
 
-// functionDecl ::= "function" ID "(" paramsList ")" blockStmt .
+// functionDecl ::= "function" ID "(" paramsList ")" [ ":" typeExpr ] blockStmt .
 func (p *parser) functionDeclaration() (stmt syntax.Stmt, hadError bool) {
+	line := p.peek().Line()
+
 	if !p.expectWithMsg(syntax.TokenID, "Expected function name.") {
 		hadError = true
 		return
@@ -931,6 +933,17 @@ func (p *parser) functionDeclaration() (stmt syntax.Stmt, hadError bool) {
 
 	if !p.expect(syntax.TokenParenR) {
 		hadError = true
+		return
+	}
+
+	var returnType syntax.Expr = nil
+
+	if p.match(syntax.TokenColon) {
+		returnType, hadError = p.typeExpr()
+
+		if hadError {
+			return
+		}
 	}
 
 	if !p.expectWithMsg(syntax.TokenBraceL, "Expected '{' before function body.") {
@@ -944,10 +957,15 @@ func (p *parser) functionDeclaration() (stmt syntax.Stmt, hadError bool) {
 		return
 	}
 
+	parametersType := []syntax.Expr{}
+	for _, param := range parameters {
+		parametersType = append(parametersType, param.Type)
+	}
+
 	stmt = syntax.NewVarStmt(
 		name,
-		syntax.Token{Lexeme: "number"},
-		syntax.NewFunctionExpr(parameters, body, name.Line()),
+		syntax.NewFunctionTypeExpr(parametersType, returnType, line),
+		syntax.NewFunctionExpr(&name, parameters, returnType, body, line),
 	)
 	return
 }
