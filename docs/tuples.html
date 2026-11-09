@@ -20,7 +20,7 @@
         <p>You write a tuple literal by putting the values in parentheses and separated by commas.</p>
         <p>You write a tuple type by putting the types of each position also in parentheses and separated by commas.</p>
       </div>
-      <pre><code><span class="keyword">let</span> values (<span class="type">number</span>, <span class="type">string</span>) := (<span class="literal">10</span>, <span class="string">&quot;abc&quot;</span>)</code></pre>
+      <pre><code><span class="keyword">let</span> values: (<span class="type">number</span>, <span class="type">string</span>) := (<span class="literal">10</span>, <span class="string">&quot;abc&quot;</span>)</code></pre>
     </section>
     <section class="example">
       <div class="explanation">
@@ -37,7 +37,7 @@ values[<span class="literal">1</span>] := <span class="string">&quot;def&quot;</
         <p>You function can return a tuple containing multiple values.</p>
         <p>Notice there's no need to use parentheses when returning them.</p>
       </div>
-      <pre><code><span class="keyword">function</span> div(a <span class="type">number</span>, b <span class="type">number</span>) (<span class="type">number</span>, <span class="type">number</span>) {
+      <pre><code><span class="keyword">function</span> div(a: <span class="type">number</span>, b: <span class="type">number</span>): (<span class="type">number</span>, <span class="type">number</span>) {
   <span class="keyword">return</span> a/b, a%b
 }</code></pre>
     </section>
@@ -50,8 +50,8 @@ values[<span class="literal">1</span>] := <span class="string">&quot;def&quot;</
       <pre><code><span class="keyword">let</span> x, y := div(<span class="literal">10</span>, <span class="literal">3</span>)
 
 <span class="comment">@ You could also do:</span>
-<span class="keyword">let</span> values (<span class="type">number</span>, <span class="type">number</span>) := div(<span class="literal">10</span>, <span class="literal">3</span>)
-<span class="keyword">let</span> a <span class="type">number</span>, b <span class="type">number</span> := values...</code></pre>
+<span class="keyword">let</span> values: (<span class="type">number</span>, <span class="type">number</span>) := div(<span class="literal">10</span>, <span class="literal">3</span>)
+<span class="keyword">let</span> a: <span class="type">number</span>, b: <span class="type">number</span> := values...</code></pre>
     </section>
     <nav class="chapter-nav" aria-label="Chapter navigation">
       <a href="functions.html">← Functions</a>
