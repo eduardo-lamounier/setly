@@ -24,7 +24,6 @@ type Boolean bool
 type Nil struct{}
 
 type Function struct {
-	Name        syntax.Token
 	Declaration syntax.FunctionExpr
 	Closure     *Environment
 }
@@ -55,10 +54,16 @@ func (f Function) String() string {
 	params := make([]string, f.Arity())
 
 	for i, parameter := range f.Declaration.Parameters {
-		params[i] = fmt.Sprintf("%s %s", parameter.Name.Lexeme, parameter.Type.Lexeme)
+		params[i] = fmt.Sprintf(
+			"%s %s",
+			parameter.Name.Lexeme, typeExprToString(parameter.Type),
+		)
 	}
 
-	return fmt.Sprintf("function(%s)", strings.Join(params, ","))
+	return fmt.Sprintf(
+		"function(%s) %s",
+		strings.Join(params, ","), typeExprToString(f.Declaration.ReturnType),
+	)
 }
 
 func (n Number) Stringify() string {
@@ -82,7 +87,11 @@ func (n Nil) Stringify() string {
 }
 
 func (f Function) Stringify() string {
-	return fmt.Sprintf("<function %s>", f.Name.Lexeme)
+	if f.Declaration.Name != nil {
+		return "<function " + f.Declaration.Name.Lexeme + ">"
+	}
+
+	return "<function>"
 }
 
 func ValueFromLiteral(literal any) Value {
@@ -95,7 +104,6 @@ func ValueFromLiteral(literal any) Value {
 		return Boolean(value)
 	case nil:
 		return Nil{}
-		// TODO: Add case for a function
 	}
 
 	panic("Invalid literal type to convert into a supported value.")
@@ -105,4 +113,26 @@ func ValueFromLiteral(literal any) Value {
 
 func (f Function) Arity() int {
 	return len(f.Declaration.Parameters)
+}
+
+func typeExprToString(typeExpr syntax.Expr) string {
+	switch typeExpr := typeExpr.(type) {
+	case syntax.VariantTypeExpr:
+		var types []string
+		for _, _type := range typeExpr.Types {
+			types = append(types, typeExprToString(_type))
+		}
+		return strings.Join(types, " | ")
+	case syntax.NamedTypeExpr:
+		return typeExpr.Name.Lexeme
+	case syntax.FunctionTypeExpr:
+		var params []string
+		for _, param := range typeExpr.ParamsType {
+			params = append(params, typeExprToString(param))
+		}
+
+		return fmt.Sprintf("function(%s) %s", strings.Join(params, ", "), typeExprToString(typeExpr.ReturnType))
+	default:
+		panic("Not implemented type expression to print.")
+	}
 }
