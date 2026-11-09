@@ -40,6 +40,14 @@ x := x+<span class="literal">1</span> <span class="comment">@ Increments 'x' by 
     </section>
     <section class="example">
       <div class="explanation">
+        <h2>Type infeering</h2>
+        <p>You can also omit the type in a variable declaration. The variable STILL have a type, but it's infeered so you don't need to specify.</p>
+        <p>In the following example, <code>num</code> is of type <code>number</code>.</p>
+      </div>
+      <pre><code><span class="keyword">let</span> num ::= <span class="literal">10</span></code></pre>
+    </section>
+    <section class="example">
+      <div class="explanation">
         <h2>Union types</h2>
         <p>Unions let you define multiple possible types of values for a variable. <code>y</code> can hold a value of type <code>number</code>, but it can also be <code>nil</code>.</p>
         <p>When a variable does not receive an initial value, it defaults to <code>nil</code>. Because of this, if the variable can't be <code>nil</code>, you are required to give it a value.</p>
