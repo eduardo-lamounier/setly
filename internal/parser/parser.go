@@ -20,6 +20,8 @@ type parser struct {
 	Stmts       []syntax.Stmt
 }
 
+type parsingError struct{}
+
 func (p parser) atEnd() bool {
 	return p.Tokens[p.Pos].Kind == syntax.TokenEOF
 }
@@ -78,17 +80,18 @@ func (p *parser) match(expected ...syntax.TokenKind) bool {
 	return true
 }
 
-func (p *parser) expect(expected syntax.TokenKind) bool {
+func (p *parser) expect(expected syntax.TokenKind) *syntax.Token {
 	if expected == syntax.TokenID || expected == syntax.TokenString || expected == syntax.TokenNumber {
 		panic("Could not expect a literal token.")
 	}
 
 	if p.match(expected) {
-		return true
+		tok := p.prev()
+		return &tok
 	}
 
 	p.report(fmt.Sprintf("Expected '%s', got '%s'.", expected.GetLexeme(), p.peek().Lexeme))
-	return false
+	return nil
 }
 
 func (p *parser) expectWithMsg(expected syntax.TokenKind, message string) bool {
@@ -120,11 +123,11 @@ The grammar uses a variation of EBNF notation.
 // functionTypeExpr ::= "function" "(" paramsTypeList ")" [ ":" typeExpr ] .
 //
 // paramsTypeList ::= [ typeExpr { "," typeExpr } ] .
-func (p *parser) functionTypeExpr() (expr syntax.Expr, hadError bool) {
+func (p *parser) functionTypeExpr() (expr syntax.Expr, err *parsingError) {
 	line := p.peek().Line()
 
-	if !p.expect(syntax.TokenParenL) {
-		hadError = true
+	if p.expect(syntax.TokenParenL) == nil {
+		err = &parsingError{}
 		return
 	}
 
@@ -132,9 +135,8 @@ func (p *parser) functionTypeExpr() (expr syntax.Expr, hadError bool) {
 	if !p.check(syntax.TokenParenR) {
 		for {
 			var paramType syntax.Expr
-			paramType, hadError = p.typeExpr()
-
-			if hadError {
+			paramType, err = p.typeExpr()
+			if err != nil {
 				return
 			}
 
@@ -146,16 +148,15 @@ func (p *parser) functionTypeExpr() (expr syntax.Expr, hadError bool) {
 		}
 	}
 
-	if !p.expect(syntax.TokenParenR) {
-		hadError = true
+	if p.expect(syntax.TokenParenR) == nil {
+		err = &parsingError{}
 		return
 	}
 
 	var returnType syntax.Expr = nil
 	if p.match(syntax.TokenColon) {
-		returnType, hadError = p.typeExpr()
-
-		if hadError {
+		returnType, err = p.typeExpr()
+		if err != nil {
 			return
 		}
 	}
@@ -165,13 +166,13 @@ func (p *parser) functionTypeExpr() (expr syntax.Expr, hadError bool) {
 }
 
 // literalTypeExpr ::= functionTypeExpr
-func (p *parser) literalTypeExpr() (expr syntax.Expr, hadError bool) {
+func (p *parser) literalTypeExpr() (expr syntax.Expr, err *parsingError) {
 	switch {
 	case p.match(syntax.TokenFunction):
 		return p.functionTypeExpr()
 	default:
 		p.report("Expected a type.")
-		hadError = true
+		err = &parsingError{}
 		return
 	}
 }
@@ -179,7 +180,7 @@ func (p *parser) literalTypeExpr() (expr syntax.Expr, hadError bool) {
 // primaryTypeExpr ::= literalTypeExpr | namedTypeExpr .
 //
 // namedTypeExpr ::= ID | NIL .
-func (p *parser) primaryTypeExpr() (expr syntax.Expr, hadError bool) {
+func (p *parser) primaryTypeExpr() (expr syntax.Expr, err *parsingError) {
 	switch {
 	case p.match(syntax.TokenID, syntax.TokenNil):
 		expr = syntax.NewNamedTypeExpr(p.prev())
@@ -191,10 +192,9 @@ func (p *parser) primaryTypeExpr() (expr syntax.Expr, hadError bool) {
 }
 
 // unionTypeExpr ::= primaryTypeExpr { "|" primaryTypeExpr } .
-func (p *parser) unionTypeExpr() (expr syntax.Expr, hadError bool) {
-	expr, hadError = p.primaryTypeExpr()
-
-	if hadError {
+func (p *parser) unionTypeExpr() (expr syntax.Expr, err *parsingError) {
+	expr, err = p.primaryTypeExpr()
+	if err != nil {
 		return
 	}
 
@@ -203,9 +203,8 @@ func (p *parser) unionTypeExpr() (expr syntax.Expr, hadError bool) {
 
 		for p.match(syntax.TokenPipe) {
 			var type_ syntax.Expr
-			type_, hadError = p.primaryTypeExpr()
-
-			if hadError {
+			type_, err = p.primaryTypeExpr()
+			if err != nil {
 				return
 			}
 
@@ -219,7 +218,7 @@ func (p *parser) unionTypeExpr() (expr syntax.Expr, hadError bool) {
 }
 
 // typeExpr ::= unionTypeExpr .
-func (p *parser) typeExpr() (syntax.Expr, bool) {
+func (p *parser) typeExpr() (syntax.Expr, *parsingError) {
 	return p.unionTypeExpr()
 }
 
@@ -231,7 +230,7 @@ func (p *parser) paramsList() (
 		Name syntax.Token
 		Type syntax.Expr
 	},
-	hadError bool,
+	err *parsingError,
 ) {
 	if !p.check(syntax.TokenParenR) {
 		for {
@@ -241,20 +240,19 @@ func (p *parser) paramsList() (
 			}
 
 			if !p.expectWithMsg(syntax.TokenID, "Expected parameter name.") {
-				hadError = true
+				err = &parsingError{}
 				return
 			}
 
 			parameter.Name = p.prev()
 
-			if !p.expect(syntax.TokenColon) {
-				hadError = true
+			if p.expect(syntax.TokenColon) == nil {
+				err = &parsingError{}
 				return
 			}
 
-			parameter.Type, hadError = p.typeExpr()
-
-			if hadError {
+			parameter.Type, err = p.typeExpr()
+			if err != nil {
 				return
 			}
 
@@ -275,83 +273,91 @@ func (p *parser) paramsList() (
 // varExpr      ::= ID .
 // literalExpr  ::= "nil" | "false" | "true" | STRING | NUMBER .
 // groupingExpr ::= "(" expr ")" .
-func (p *parser) primaryExpr() (syntax.Expr, bool) {
+func (p *parser) primaryExpr() (expr syntax.Expr, err *parsingError) {
 	if p.match(syntax.TokenFunction) {
 		line := p.prev().Line()
 
-		if !p.expect(syntax.TokenParenL) {
-			return nil, true
+		if p.expect(syntax.TokenParenL) == nil {
+			err = &parsingError{}
+			return
 		}
 
-		parameters, hadError := p.paramsList()
-
-		if hadError {
-			return nil, true
+		var parameters []struct {
+			Name syntax.Token
+			Type syntax.Expr
+		}
+		parameters, err = p.paramsList()
+		if err != nil {
+			return
 		}
 
-		if !p.expect(syntax.TokenParenR) {
-			hadError = true
+		if p.expect(syntax.TokenParenR) == nil {
+			err = &parsingError{}
 		}
 
 		var returnType syntax.Expr = nil
 
 		if p.match(syntax.TokenColon) {
-			returnType, hadError = p.typeExpr()
-
-			if hadError {
-				return nil, true
+			returnType, err = p.typeExpr()
+			if err != nil {
+				return
 			}
 		}
 
 		if !p.expectWithMsg(syntax.TokenBraceL, "Expected '{' before function body.") {
-			return nil, true
+			err = &parsingError{}
+			return
 		}
 
-		body, hadError := p.blockStmt()
-
-		if hadError {
-			return nil, true
+		var body []syntax.Stmt
+		body, err = p.blockStmt()
+		if err != nil {
+			return
 		}
 
-		return syntax.NewFunctionExpr(nil, parameters, returnType, body, line), false
+		expr = syntax.NewFunctionExpr(nil, parameters, returnType, body, line)
+		return
 	}
 
 	if p.match(syntax.TokenNil, syntax.TokenFalse, syntax.TokenTrue,
 		syntax.TokenNumber, syntax.TokenString) {
 
-		return syntax.NewLiteralExprFromToken(p.prev()), false
+		expr = syntax.NewLiteralExprFromToken(p.prev())
+		return
 	}
 
 	if p.match(syntax.TokenParenL) {
-		expr, hadError := p.expr()
-
-		if hadError {
-			return nil, true
+		expr, err = p.expr()
+		if err != nil {
+			return
 		}
 
 		if !p.match(syntax.TokenParenR) {
 			p.report("Expected ')', got '%s'.")
-			return nil, true
+			err = &parsingError{}
+			return
 		}
 
-		return syntax.NewGroupingExpr(expr), false
+		expr = syntax.NewGroupingExpr(expr)
+		return
 	}
 
 	if p.match(syntax.TokenID) {
-		return syntax.NewVarExpr(p.prev()), false
+		expr = syntax.NewVarExpr(p.prev())
+		return
 	}
 
 	p.report("Expected expression.")
-	return nil, true
+	err = &parsingError{}
+	return
 }
 
 // callExpr ::= primary { "(" argumentsList ")" } .
 //
 // argumentsList ::= [ expr { "," expr } ] .
-func (p *parser) callExpr() (expr syntax.Expr, hadError bool) {
-	expr, hadError = p.primaryExpr()
-
-	if hadError {
+func (p *parser) callExpr() (expr syntax.Expr, err *parsingError) {
+	expr, err = p.primaryExpr()
+	if err != nil {
 		return
 	}
 
@@ -360,9 +366,8 @@ func (p *parser) callExpr() (expr syntax.Expr, hadError bool) {
 		if !p.check(syntax.TokenParenR) {
 			for {
 				var e syntax.Expr
-				e, hadError = p.expr()
-
-				if hadError {
+				e, err = p.expr()
+				if err != nil {
 					return
 				}
 
@@ -374,8 +379,8 @@ func (p *parser) callExpr() (expr syntax.Expr, hadError bool) {
 			}
 		}
 
-		if !p.expect(syntax.TokenParenR) {
-			hadError = true
+		if p.expect(syntax.TokenParenR) == nil {
+			err = &parsingError{}
 			return
 		}
 
@@ -386,248 +391,258 @@ func (p *parser) callExpr() (expr syntax.Expr, hadError bool) {
 }
 
 // unaryExpr ::= callExpr | ( ( "-" | "+" ) unaryExpr ) .
-func (p *parser) unaryExpr() (syntax.Expr, bool) {
+func (p *parser) unaryExpr() (expr syntax.Expr, err *parsingError) {
 	if p.match(syntax.TokenMinus, syntax.TokenPlus) {
 		operator := p.prev()
-		right, hadError := p.unaryExpr()
 
-		if hadError {
-			return nil, true
+		var right syntax.Expr
+		right, err = p.unaryExpr()
+		if err != nil {
+			return
 		}
 
-		return syntax.NewUnaryExpr(operator, right), false
+		expr = syntax.NewUnaryExpr(operator, right)
+		return
 	}
 
 	return p.callExpr()
 }
 
 // factorExpr ::= unaryExpr { ( "*" | "/" ) unaryExpr } .
-func (p *parser) factorExpr() (syntax.Expr, bool) {
-	expr, hadError := p.unaryExpr()
-
-	if hadError {
-		return nil, true
+func (p *parser) factorExpr() (expr syntax.Expr, err *parsingError) {
+	expr, err = p.unaryExpr()
+	if err != nil {
+		return
 	}
 
 	for p.match(syntax.TokenStar, syntax.TokenSlash) {
 		operator := p.prev()
-		right, hadError := p.unaryExpr()
 
-		if hadError {
-			return nil, true
+		var right syntax.Expr
+		right, err = p.unaryExpr()
+		if err != nil {
+			return
 		}
 
 		expr = syntax.NewBinaryExpr(operator, expr, right)
 	}
 
-	return expr, false
+	return
 }
 
 // termExpr ::= factorExpr { ( "+" | "-" ) factorExpr } .
-func (p *parser) termExpr() (syntax.Expr, bool) {
-	expr, hadError := p.factorExpr()
-
-	if hadError {
-		return nil, true
+func (p *parser) termExpr() (expr syntax.Expr, err *parsingError) {
+	expr, err = p.factorExpr()
+	if err != nil {
+		return
 	}
 
 	for p.match(syntax.TokenPlus, syntax.TokenMinus) {
 		operator := p.prev()
-		right, hadError := p.factorExpr()
 
-		if hadError {
-			return nil, true
+		var right syntax.Expr
+		right, err = p.factorExpr()
+		if err != nil {
+			return
 		}
 
 		expr = syntax.NewBinaryExpr(operator, expr, right)
 	}
 
-	return expr, false
+	return
 }
 
 // comparisonExpr ::= termExpr { ( ">" | "<" | ">=" | "<=" ) termExpr } .
-func (p *parser) comparisonExpr() (syntax.Expr, bool) {
-	expr, hadError := p.termExpr()
-
-	if hadError {
-		return nil, true
+func (p *parser) comparisonExpr() (expr syntax.Expr, err *parsingError) {
+	expr, err = p.termExpr()
+	if err != nil {
+		return
 	}
 
 	for p.match(syntax.TokenGreater, syntax.TokenLess,
 		syntax.TokenGreaterEqual, syntax.TokenLessEqual) {
 
 		operator := p.prev()
-		right, hadError := p.termExpr()
 
-		if hadError {
-			return nil, true
+		var right syntax.Expr
+		right, err = p.termExpr()
+		if err != nil {
+			return
 		}
 
 		expr = syntax.NewBinaryExpr(operator, expr, right)
 	}
 
-	return expr, false
+	return
 }
 
 // equalityExpr ::= comparisonExpr { ( "~=" | "=" ) comparisonExpr } .
-func (p *parser) equalityExpr() (syntax.Expr, bool) {
-	expr, hadError := p.comparisonExpr()
-
-	if hadError {
-		return nil, true
+func (p *parser) equalityExpr() (expr syntax.Expr, err *parsingError) {
+	expr, err = p.comparisonExpr()
+	if err != nil {
+		return
 	}
 
 	for p.match(syntax.TokenTildeEqual, syntax.TokenEqual) {
 		operator := p.prev()
-		right, hadError := p.comparisonExpr()
 
-		if hadError {
-			return nil, true
+		var right syntax.Expr
+		right, err = p.comparisonExpr()
+		if err != nil {
+			return
 		}
 
 		expr = syntax.NewBinaryExpr(operator, expr, right)
 	}
 
-	return expr, false
+	return
 }
 
 // logicalNotExpr ::= equalityExpr | ( "not" logicalNotExpr ) .
-func (p *parser) logicalNotExpr() (syntax.Expr, bool) {
+func (p *parser) logicalNotExpr() (expr syntax.Expr, err *parsingError) {
 	if p.match(syntax.TokenNot) {
 		operator := p.prev()
-		expr, hadError := p.logicalNotExpr()
-
-		if hadError {
-			return nil, true
+		expr, err = p.logicalNotExpr()
+		if err != nil {
+			return
 		}
 
-		return syntax.NewUnaryExpr(operator, expr), false
+		expr = syntax.NewUnaryExpr(operator, expr)
+		return
 	}
 
 	return p.equalityExpr()
 }
 
 // logicalAndExpr ::= logicalNotExpr { "and" logicalNotExpr } .
-func (p *parser) logicalAndExpr() (syntax.Expr, bool) {
-	expr, hadError := p.logicalNotExpr()
+func (p *parser) logicalAndExpr() (expr syntax.Expr, err *parsingError) {
+	expr, err = p.logicalNotExpr()
 
-	if hadError {
-		return nil, true
+	if expr != nil {
+		return
 	}
 
 	for p.match(syntax.TokenAnd) {
 		operator := p.prev()
-		right, hadError := p.logicalNotExpr()
 
-		if hadError {
-			return nil, true
+		var right syntax.Expr
+		right, err = p.logicalNotExpr()
+		if err != nil {
+			return
 		}
 
 		expr = syntax.NewBinaryExpr(operator, expr, right)
 	}
 
-	return expr, false
+	return
 }
 
 // logicalOrExpr ::= logicalAndExpr { "or" logicalAndExpr } .
-func (p *parser) logicalOrExpr() (syntax.Expr, bool) {
-	expr, hadError := p.logicalAndExpr()
-
-	if hadError {
-		return nil, true
+func (p *parser) logicalOrExpr() (expr syntax.Expr, err *parsingError) {
+	expr, err = p.logicalAndExpr()
+	if err != nil {
+		return
 	}
 
 	for p.match(syntax.TokenOr) {
 		operator := p.prev()
-		right, hadError := p.logicalAndExpr()
 
-		if hadError {
-			return nil, true
+		var right syntax.Expr
+		right, err = p.logicalAndExpr()
+		if err != nil {
+			return
 		}
 
 		expr = syntax.NewBinaryExpr(operator, expr, right)
 	}
 
-	return expr, false
+	return
 }
 
 // assignmentExpr ::= logicalOrExpr [ ":=" assignmentExpr ] .
-func (p *parser) assignmentExpr() (syntax.Expr, bool) {
-	expr, hadError := p.logicalOrExpr()
-
-	if hadError {
-		return nil, true
+func (p *parser) assignmentExpr() (expr syntax.Expr, err *parsingError) {
+	expr, err = p.logicalOrExpr()
+	if err != nil {
+		return
 	}
 
 	if p.match(syntax.TokenColonEqual) {
 		op := p.prev()
-		value, hadError := p.assignmentExpr()
 
-		if hadError {
-			return nil, true
+		var value syntax.Expr
+		value, err = p.assignmentExpr()
+		if err != nil {
+			return
 		}
 
-		switch expr := expr.(type) {
+		switch e := expr.(type) {
 		case syntax.VarExpr:
-			return syntax.NewAssignExpr(expr.Name, value), false
+			expr = syntax.NewAssignExpr(e.Name, value)
 		default:
 			p.reportAt(op, "Invalid target to assign a value to.")
-			return nil, true
+			err = &parsingError{}
+			return
 		}
 	}
 
-	return expr, false
+	return
 }
 
 // expr ::= assignmentExpr .
-func (p *parser) expr() (syntax.Expr, bool) {
+func (p *parser) expr() (expr syntax.Expr, err *parsingError) {
 	return p.assignmentExpr()
 }
 
 // printStmt ::= "print" "(" [ expr ] ")" .
-func (p *parser) printStmt() (syntax.Stmt, bool) {
-	if !p.expect(syntax.TokenParenL) {
-		return nil, true
+func (p *parser) printStmt() (stmt syntax.Stmt, err *parsingError) {
+	if p.expect(syntax.TokenParenL) == nil {
+		err = &parsingError{}
+		return
 	}
 
 	if p.match(syntax.TokenParenR) {
-		return syntax.NewPrintStmt(nil), false
+		stmt = syntax.NewPrintStmt(nil)
+		return
 	}
 
-	expr, hadError := p.expr()
-
-	if hadError {
-		return nil, true
+	var expr syntax.Expr
+	expr, err = p.expr()
+	if err != nil {
+		return
 	}
 
-	if !p.expect(syntax.TokenParenR) {
-		return nil, true
+	if p.expect(syntax.TokenParenR) == nil {
+		err = &parsingError{}
+		return
 	}
 
-	return syntax.NewPrintStmt(expr), false
+	stmt = syntax.NewPrintStmt(expr)
+	return
 }
 
 // exprStmt ::= expr .
-func (p *parser) exprStmt() (syntax.Stmt, bool) {
-	expr, hadError := p.expr()
-
-	if hadError {
-		return nil, true
+func (p *parser) exprStmt() (stmt syntax.Stmt, err *parsingError) {
+	var expr syntax.Expr
+	expr, err = p.expr()
+	if err != nil {
+		return
 	}
 
-	return syntax.NewExprStmt(expr), false
+	stmt = syntax.NewExprStmt(expr)
+	return
 }
 
 // blockStmt ::= "{" { declStmt ";" } "}" .
 //
 // Do note the "{" should be consumed by the calling function.
-func (p *parser) blockStmt() (stmts []syntax.Stmt, hadError bool) {
+func (p *parser) blockStmt() (stmts []syntax.Stmt, err *parsingError) {
 	for !p.check(syntax.TokenBraceR) && !p.atEnd() {
 		pos := p.Pos
-		decl, hadErrorInDecl := p.declaration()
+		var errInDecl *parsingError
+		decl, errInDecl := p.declaration()
 
-		if hadErrorInDecl {
-			hadError = true
+		if errInDecl != nil {
+			err = &parsingError{}
 
 			// Ensures the parser moved forward
 			if pos == p.Pos {
@@ -638,35 +653,36 @@ func (p *parser) blockStmt() (stmts []syntax.Stmt, hadError bool) {
 
 		stmts = append(stmts, decl)
 
-		if !p.expect(syntax.TokenSemicolon) {
-			hadError = true
+		if p.expect(syntax.TokenSemicolon) == nil {
+			err = &parsingError{}
 			continue
 		}
 	}
 
-	if !p.expect(syntax.TokenBraceR) {
-		hadError = true
+	if p.expect(syntax.TokenBraceR) == nil {
+		err = &parsingError{}
+		return
 	}
 
 	return
 }
 
 // ifStmt ::= "if" expr blockStmt { "elif" expr blockStmt } [ "else" blockStmt ] .
-func (p *parser) ifStmt() (stmt syntax.Stmt, hadError bool) {
-	cond, hadError := p.expr()
-
-	if hadError {
+func (p *parser) ifStmt() (stmt syntax.Stmt, err *parsingError) {
+	var cond syntax.Expr
+	cond, err = p.expr()
+	if err != nil {
 		return
 	}
 
-	if !p.expect(syntax.TokenBraceL) {
-		hadError = true
+	if p.expect(syntax.TokenBraceL) == nil {
+		err = &parsingError{}
 		return
 	}
 
-	thenBranch, hadError := p.blockStmt()
-
-	if hadError {
+	var thenBranch []syntax.Stmt
+	thenBranch, err = p.blockStmt()
+	if err != nil {
 		return
 	}
 
@@ -674,9 +690,8 @@ func (p *parser) ifStmt() (stmt syntax.Stmt, hadError bool) {
 
 	if p.match(syntax.TokenElif) {
 		var elif syntax.Stmt
-		elif, hadError = p.ifStmt()
-
-		if hadError {
+		elif, err = p.ifStmt()
+		if err != nil {
 			return
 		}
 
@@ -685,14 +700,13 @@ func (p *parser) ifStmt() (stmt syntax.Stmt, hadError bool) {
 	}
 
 	if p.match(syntax.TokenElse) {
-		if !p.expect(syntax.TokenBraceL) {
-			hadError = true
+		if p.expect(syntax.TokenBraceL) == nil {
+			err = &parsingError{}
 			return
 		}
 
-		elseBranch, hadError = p.blockStmt()
-
-		if hadError {
+		elseBranch, err = p.blockStmt()
+		if err != nil {
 			return
 		}
 	}
@@ -702,21 +716,21 @@ func (p *parser) ifStmt() (stmt syntax.Stmt, hadError bool) {
 }
 
 // whileStmt ::= "while" expr blockStmt .
-func (p *parser) whileStmt() (stmt syntax.Stmt, hadError bool) {
-	cond, hadError := p.expr()
-
-	if hadError {
+func (p *parser) whileStmt() (stmt syntax.Stmt, err *parsingError) {
+	var cond syntax.Expr
+	cond, err = p.expr()
+	if err != nil {
 		return
 	}
 
-	if !p.expect(syntax.TokenBraceL) {
-		hadError = true
+	if p.expect(syntax.TokenBraceL) == nil {
+		err = &parsingError{}
 		return
 	}
 
-	block, hadError := p.blockStmt()
-
-	if hadError {
+	var block []syntax.Stmt
+	block, err = p.blockStmt()
+	if err != nil {
 		return
 	}
 
@@ -725,72 +739,72 @@ func (p *parser) whileStmt() (stmt syntax.Stmt, hadError bool) {
 }
 
 // forNumStmt ::= "for" ID ":=" expr "," expr [ "," expr ] blockStmt .
-func (p *parser) forStmt() (stmt syntax.Stmt, hadError bool) {
+func (p *parser) forStmt() (stmt syntax.Stmt, err *parsingError) {
 	line := p.peek().Line()
 
 	if !p.expectWithMsg(syntax.TokenID, "Expected variable name.") {
-		hadError = true
+		err = &parsingError{}
 		return
 	}
 
 	varName := p.prev()
 
-	if !p.expect(syntax.TokenColonEqual) {
-		hadError = true
+	if p.expect(syntax.TokenColonEqual) == nil {
+		err = &parsingError{}
 		return
 	}
 
-	start, hadError := p.expr()
-
-	if hadError {
+	var start syntax.Expr
+	start, err = p.expr()
+	if err != nil {
 		return
 	}
 
 	if !p.expectWithMsg(syntax.TokenComma, "Expected limit value.") {
-		hadError = true
+		err = &parsingError{}
 		return
 	}
 
-	limit, hadError := p.expr()
-
-	if hadError {
+	var limit syntax.Expr
+	limit, err = p.expr()
+	if err != nil {
 		return
 	}
 
 	var step syntax.Expr = syntax.NewLiteralExprAt(float64(1), line)
 
 	if p.match(syntax.TokenComma) {
-		step, hadError = p.expr()
-
-		if hadError {
+		step, err = p.expr()
+		if err != nil {
 			return
 		}
 	}
 
-	if !p.expect(syntax.TokenBraceL) {
-		hadError = true
+	if p.expect(syntax.TokenBraceL) == nil {
+		err = &parsingError{}
 		return
 	}
 
-	block, hadError := p.blockStmt()
-
-	if hadError {
+	var block []syntax.Stmt
+	block, err = p.blockStmt()
+	if err != nil {
 		return
 	}
 
-	return syntax.NewForNumStmt(varName, start, limit, step, block, line), false
+	stmt = syntax.NewForNumStmt(varName, start, limit, step, block, line)
+	return
 }
 
 // repeatStmt ::= "repeat" blockStmt [ "until" expr ] .
-func (p *parser) repeatStmt() (stmt syntax.Stmt, hadError bool) {
-	if !p.expect(syntax.TokenBraceL) {
-		hadError = true
+func (p *parser) repeatStmt() (stmt syntax.Stmt, err *parsingError) {
+	if p.expect(syntax.TokenBraceL) == nil {
+		err = &parsingError{}
 		return
 	}
 
-	block, hadError := p.blockStmt()
-
-	if hadError {
+	var block []syntax.Stmt
+	block, err = p.blockStmt()
+	if err != nil {
 		return
 	}
 
@@ -799,9 +813,8 @@ func (p *parser) repeatStmt() (stmt syntax.Stmt, hadError bool) {
 	var cond syntax.Expr = syntax.NewLiteralExprAt(false, line)
 
 	if p.match(syntax.TokenUntil) {
-		cond, hadError = p.expr()
-
-		if hadError {
+		cond, err = p.expr()
+		if err != nil {
 			return
 		}
 	}
@@ -822,7 +835,7 @@ func (p *parser) repeatStmt() (stmt syntax.Stmt, hadError bool) {
 }
 
 // returnStmt ::= "return" [ expr ] .
-func (p *parser) returnStmt() (stmt syntax.Stmt, hadError bool) {
+func (p *parser) returnStmt() (stmt syntax.Stmt, err *parsingError) {
 	line := p.prev().Line()
 
 	if p.check(syntax.TokenSemicolon) {
@@ -831,9 +844,8 @@ func (p *parser) returnStmt() (stmt syntax.Stmt, hadError bool) {
 	}
 
 	var value syntax.Expr
-	value, hadError = p.expr()
-
-	if hadError {
+	value, err = p.expr()
+	if err != nil {
 		return
 	}
 
@@ -842,29 +854,31 @@ func (p *parser) returnStmt() (stmt syntax.Stmt, hadError bool) {
 }
 
 // breakStmt ::= "break" .
-func (p *parser) breakStmt() (stmt syntax.Stmt, hadError bool) {
-	return syntax.NewBreakStmt(p.prev().Line()), false
+func (p *parser) breakStmt() (stmt syntax.Stmt, err *parsingError) {
+	stmt = syntax.NewBreakStmt(p.prev().Line())
+	return
 }
 
 // continueStmt ::= "continue" .
-func (p *parser) continueStmt() (stmt syntax.Stmt, hadError bool) {
-	return syntax.NewContinueStmt(p.prev().Line()), false
+func (p *parser) continueStmt() (stmt syntax.Stmt, err *parsingError) {
+	stmt = syntax.NewContinueStmt(p.prev().Line())
+	return
 }
 
 // stmt ::= printStmt | blockStmt | ifStmt | whileStmt | forNumStmt | repeatStmt
 // | returnStmt | breakStmt | continueStmt | exprStmt .
-func (p *parser) stmt() (syntax.Stmt, bool) {
+func (p *parser) stmt() (stmt syntax.Stmt, err *parsingError) {
 	switch {
 	case p.match(syntax.TokenPrint):
 		return p.printStmt()
 	case p.match(syntax.TokenBraceL):
-		stmts, hadError := p.blockStmt()
-
-		if hadError {
-			return nil, true
+		var stmts []syntax.Stmt
+		stmts, err = p.blockStmt()
+		if err != nil {
+			return
 		}
 
-		return syntax.NewBlockStmt(stmts), false
+		stmt = syntax.NewBlockStmt(stmts)
 	case p.match(syntax.TokenIf):
 		return p.ifStmt()
 	case p.match(syntax.TokenWhile):
@@ -882,83 +896,88 @@ func (p *parser) stmt() (syntax.Stmt, bool) {
 	default:
 		return p.exprStmt()
 	}
+
+	return
 }
 
 // varDecl ::= "let" ID ":" typeExpr [ ":=" expr ] .
-func (p *parser) varDeclaration() (syntax.Stmt, bool) {
+func (p *parser) varDeclaration() (stmt syntax.Stmt, err *parsingError) {
 	varName := p.peek()
 	if !p.expectWithMsg(syntax.TokenID, "Expected variable name.") {
-		return nil, true
+		err = &parsingError{}
+		return
 	}
 
-	if !p.expect(syntax.TokenColon) {
-		return nil, true
+	if p.expect(syntax.TokenColon) == nil {
+		err = &parsingError{}
+		return
 	}
 
-	typeName, hadError := p.typeExpr()
-
-	if hadError {
-		return nil, true
+	var typeName syntax.Expr
+	typeName, err = p.typeExpr()
+	if err != nil {
+		return
 	}
 
 	var initializer syntax.Expr = nil
 	if p.match(syntax.TokenColonEqual) {
-		var hadError bool
-		initializer, hadError = p.expr()
-
-		if hadError {
-			return nil, true
+		initializer, err = p.expr()
+		if err != nil {
+			return
 		}
 	}
 
-	return syntax.NewVarStmt(varName, typeName, initializer), false
+	stmt = syntax.NewVarStmt(varName, typeName, initializer)
+	return
 }
 
 // functionDecl ::= "function" ID "(" paramsList ")" [ ":" typeExpr ] blockStmt .
-func (p *parser) functionDeclaration() (stmt syntax.Stmt, hadError bool) {
+func (p *parser) functionDeclaration() (stmt syntax.Stmt, err *parsingError) {
 	line := p.peek().Line()
 
 	if !p.expectWithMsg(syntax.TokenID, "Expected function name.") {
-		hadError = true
+		err = &parsingError{}
 		return
 	}
 
 	name := p.prev()
 
-	if !p.expect(syntax.TokenParenL) {
-		hadError = true
+	if p.expect(syntax.TokenParenL) == nil {
+		err = &parsingError{}
 		return
 	}
 
-	parameters, hadError := p.paramsList()
-
-	if hadError {
+	var parameters []struct {
+		Name syntax.Token
+		Type syntax.Expr
+	}
+	parameters, err = p.paramsList()
+	if err != nil {
 		return
 	}
 
-	if !p.expect(syntax.TokenParenR) {
-		hadError = true
+	if p.expect(syntax.TokenParenR) == nil {
+		err = &parsingError{}
 		return
 	}
 
 	var returnType syntax.Expr = nil
 
 	if p.match(syntax.TokenColon) {
-		returnType, hadError = p.typeExpr()
-
-		if hadError {
+		returnType, err = p.typeExpr()
+		if err != nil {
 			return
 		}
 	}
 
 	if !p.expectWithMsg(syntax.TokenBraceL, "Expected '{' before function body.") {
-		hadError = true
+		err = &parsingError{}
 		return
 	}
 
-	body, hadError := p.blockStmt()
-
-	if hadError {
+	var body []syntax.Stmt
+	body, err = p.blockStmt()
+	if err != nil {
 		return
 	}
 
@@ -976,28 +995,28 @@ func (p *parser) functionDeclaration() (stmt syntax.Stmt, hadError bool) {
 }
 
 // typeDecl ::= "type" ID ":=" typeExpr .
-func (p *parser) typeDeclaration() (stmt syntax.Stmt, hadError bool) {
+func (p *parser) typeDeclaration() (stmt syntax.Stmt, err *parsingError) {
 	line := p.peek().Line()
 
 	if !p.expectWithMsg(syntax.TokenID, "Expected the type's name.") {
-		hadError = true
+		err = &parsingError{}
 		return
 	}
 
 	name := p.prev()
 
-	if !p.expect(syntax.TokenColonEqual) {
-		hadError = true
+	if p.expect(syntax.TokenColonEqual) == nil {
+		err = &parsingError{}
 		return
 	}
 
-	expr, hadError := p.typeExpr()
-
-	if hadError {
+	var typeExpr syntax.Expr
+	typeExpr, err = p.typeExpr()
+	if err != nil {
 		return
 	}
 
-	stmt = syntax.NewTypeStmt(name, expr, line)
+	stmt = syntax.NewTypeStmt(name, typeExpr, line)
 	return
 }
 
@@ -1005,44 +1024,40 @@ func (p *parser) typeDeclaration() (stmt syntax.Stmt, hadError bool) {
 //
 // A declaration statement should also have a terminator right after, but this
 // check is done by the function calling 'declaration()'.
-func (p *parser) declaration() (syntax.Stmt, bool) {
+func (p *parser) declaration() (stmt syntax.Stmt, err *parsingError) {
 	switch {
 	case p.match(syntax.TokenLet):
-		stmt, hadError := p.varDeclaration()
-
-		if hadError {
+		stmt, err = p.varDeclaration()
+		if err != nil {
 			p.synchronize()
-			return nil, true
+			return
 		}
 
-		return stmt, false
+		return
 	case p.match(syntax.TokenFunction):
-		stmt, hadError := p.functionDeclaration()
-
-		if hadError {
+		stmt, err = p.functionDeclaration()
+		if err != nil {
 			p.synchronize()
-			return nil, true
+			return
 		}
 
-		return stmt, false
+		return
 	case p.match(syntax.TokenType):
-		stmt, hadError := p.typeDeclaration()
-
-		if hadError {
+		stmt, err = p.typeDeclaration()
+		if err != nil {
 			p.synchronize()
-			return nil, false
+			return
 		}
 
-		return stmt, false
+		return
 	default:
-		stmt, hadError := p.stmt()
-
-		if hadError {
+		stmt, err = p.stmt()
+		if err != nil {
 			p.synchronize()
-			return nil, true
+			return
 		}
 
-		return stmt, false
+		return
 	}
 }
 
@@ -1085,9 +1100,8 @@ func Parse(source string, tokens []syntax.Token) (
 
 	for !p.atEnd() {
 		pos := p.Pos
-		stmt, hadError := p.declaration()
-
-		if hadError {
+		stmt, err := p.declaration()
+		if err != nil {
 			// Ensures the parser moved forward
 			if pos == p.Pos {
 				p.advance()
@@ -1100,7 +1114,7 @@ func Parse(source string, tokens []syntax.Token) (
 			p.emitStmt(stmt)
 		}
 
-		if !p.expect(syntax.TokenSemicolon) {
+		if p.expect(syntax.TokenSemicolon) == nil {
 			p.synchronize()
 		}
 	}
