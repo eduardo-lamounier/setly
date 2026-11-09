@@ -178,10 +178,10 @@ func (p *parser) literalTypeExpr() (expr syntax.Expr, hadError bool) {
 
 // primaryTypeExpr ::= literalTypeExpr | namedTypeExpr .
 //
-// namedTypeExpr ::= ID .
+// namedTypeExpr ::= ID | NIL .
 func (p *parser) primaryTypeExpr() (expr syntax.Expr, hadError bool) {
 	switch {
-	case p.match(syntax.TokenID):
+	case p.match(syntax.TokenID, syntax.TokenNil):
 		expr = syntax.NewNamedTypeExpr(p.prev())
 	default:
 		return p.literalTypeExpr()
