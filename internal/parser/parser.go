@@ -225,11 +225,11 @@ func (p *parser) typeExpr() (syntax.Expr, bool) {
 
 // paramsList ::= [ parameter { "," parameter } ] .
 //
-// parameter ::= ID ID .
+// parameter ::= ID ":" typeExpr .
 func (p *parser) paramsList() (
 	parameters []struct {
 		Name syntax.Token
-		Type syntax.Token
+		Type syntax.Expr
 	},
 	hadError bool,
 ) {
@@ -237,7 +237,7 @@ func (p *parser) paramsList() (
 		for {
 			var parameter struct {
 				Name syntax.Token
-				Type syntax.Token
+				Type syntax.Expr
 			}
 
 			if !p.expectWithMsg(syntax.TokenID, "Expected parameter name.") {
@@ -247,12 +247,16 @@ func (p *parser) paramsList() (
 
 			parameter.Name = p.prev()
 
-			if !p.expectWithMsg(syntax.TokenID, "Expected parameter type.") {
+			if !p.expect(syntax.TokenColon) {
 				hadError = true
 				return
 			}
 
-			parameter.Type = p.prev()
+			parameter.Type, hadError = p.typeExpr()
+
+			if hadError {
+				return
+			}
 
 			parameters = append(parameters, parameter)
 
@@ -267,7 +271,7 @@ func (p *parser) paramsList() (
 
 // primaryExpr ::= functionExpr | varExpr | literalExpr | groupingExpr .
 //
-// functionExpr ::= "function" "(" paramsList ")" blockStmt .
+// functionExpr ::= "function" "(" paramsList ")" [ ":" typeExpr ] blockStmt .
 // varExpr      ::= ID .
 // literalExpr  ::= "nil" | "false" | "true" | STRING | NUMBER .
 // groupingExpr ::= "(" expr ")" .
@@ -289,6 +293,16 @@ func (p *parser) primaryExpr() (syntax.Expr, bool) {
 			hadError = true
 		}
 
+		var returnType syntax.Expr = nil
+
+		if p.match(syntax.TokenColon) {
+			returnType, hadError = p.typeExpr()
+
+			if hadError {
+				return nil, true
+			}
+		}
+
 		if !p.expectWithMsg(syntax.TokenBraceL, "Expected '{' before function body.") {
 			return nil, true
 		}
@@ -299,7 +313,7 @@ func (p *parser) primaryExpr() (syntax.Expr, bool) {
 			return nil, true
 		}
 
-		return syntax.NewFunctionExpr(parameters, body, line), false
+		return syntax.NewFunctionExpr(nil, parameters, returnType, body, line), false
 	}
 
 	if p.match(syntax.TokenNil, syntax.TokenFalse, syntax.TokenTrue,
