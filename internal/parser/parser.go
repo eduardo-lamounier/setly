@@ -117,6 +117,112 @@ The grammar uses a variation of EBNF notation.
 - `.` terminates a production.
 *******************************************************************************/
 
+// functionTypeExpr ::= "function" "(" paramsTypeList ")" [ ":" typeExpr ] .
+//
+// paramsTypeList ::= [ typeExpr { "," typeExpr } ] .
+func (p *parser) functionTypeExpr() (expr syntax.Expr, hadError bool) {
+	line := p.peek().Line()
+
+	if !p.expect(syntax.TokenParenL) {
+		hadError = true
+		return
+	}
+
+	paramsType := []syntax.Expr{}
+	if !p.check(syntax.TokenParenR) {
+		for {
+			var paramType syntax.Expr
+			paramType, hadError = p.typeExpr()
+
+			if hadError {
+				return
+			}
+
+			paramsType = append(paramsType, paramType)
+
+			if !p.match(syntax.TokenComma) {
+				break
+			}
+		}
+	}
+
+	if !p.expect(syntax.TokenParenR) {
+		hadError = true
+		return
+	}
+
+	var returnType syntax.Expr = nil
+	if p.match(syntax.TokenColon) {
+		returnType, hadError = p.typeExpr()
+
+		if hadError {
+			return
+		}
+	}
+
+	expr = syntax.NewFunctionTypeExpr(paramsType, returnType, line)
+	return
+}
+
+// literalTypeExpr ::= functionTypeExpr
+func (p *parser) literalTypeExpr() (expr syntax.Expr, hadError bool) {
+	switch {
+	case p.match(syntax.TokenFunction):
+		return p.functionTypeExpr()
+	default:
+		p.report("Expected a type.")
+		hadError = true
+		return
+	}
+}
+
+// primaryTypeExpr ::= literalTypeExpr | namedTypeExpr .
+//
+// namedTypeExpr ::= ID .
+func (p *parser) primaryTypeExpr() (expr syntax.Expr, hadError bool) {
+	switch {
+	case p.match(syntax.TokenID):
+		expr = syntax.NewNamedTypeExpr(p.prev())
+	default:
+		return p.literalTypeExpr()
+	}
+
+	return
+}
+
+// variantTypeExpr ::= primaryTypeExpr { "|" primaryTypeExpr } .
+func (p *parser) variantTypeExpr() (expr syntax.Expr, hadError bool) {
+	expr, hadError = p.primaryTypeExpr()
+
+	if hadError {
+		return
+	}
+
+	if p.check(syntax.TokenPipe) {
+		types := []syntax.Expr{expr}
+
+		for p.match(syntax.TokenPipe) {
+			var type_ syntax.Expr
+			type_, hadError = p.primaryTypeExpr()
+
+			if hadError {
+				return
+			}
+
+			types = append(types, type_)
+		}
+
+		expr = syntax.NewVariantTypeExpr(types)
+	}
+
+	return
+}
+
+// typeExpr ::= variantType .
+func (p *parser) typeExpr() (syntax.Expr, bool) {
+	return p.variantTypeExpr()
+}
+
 // paramsList ::= [ parameter { "," parameter } ] .
 //
 // parameter ::= ID ID .
