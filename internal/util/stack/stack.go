@@ -55,20 +55,20 @@ func (s Stack[T]) Top() (v T) {
 	return s.data[len(s.data)-1]
 }
 
-func (s Stack[T]) BottomToTop() iter.Seq[T] {
-	return func(yield func(T) bool) {
-		for _, item := range s.data {
-			if !yield(item) {
+func (s Stack[T]) BottomToTop() iter.Seq2[int, T] {
+	return func(yield func(int, T) bool) {
+		for i, v := range s.data {
+			if !yield(i, v) {
 				return
 			}
 		}
 	}
 }
 
-func (s Stack[T]) TopToBottom() iter.Seq[T] {
-	return func(yield func(T) bool) {
-		for _, v := range slices.Backward(s.data) {
-			if !yield(v) {
+func (s Stack[T]) TopToBottom() iter.Seq2[int, T] {
+	return func(yield func(int, T) bool) {
+		for i, v := range slices.Backward(s.data) {
+			if !yield(i, v) {
 				return
 			}
 		}

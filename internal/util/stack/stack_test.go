@@ -1,7 +1,6 @@
 package stack
 
 import (
-	"slices"
 	"testing"
 )
 
@@ -79,7 +78,11 @@ func TestStackCount(t *testing.T) {
 func TestStackIteration(t *testing.T) {
 	s := New(10, 20, 30, 40, 50)
 
-	got1 := slices.Collect(s.BottomToTop())
+	got1 := []int{}
+
+	for _, v := range s.BottomToTop() {
+		got1 = append(got1, v)
+	}
 
 	if got1[0] != 10 || got1[1] != 20 || got1[2] != 30 ||
 		got1[3] != 40 || got1[4] != 50 {
@@ -90,7 +93,11 @@ func TestStackIteration(t *testing.T) {
 		)
 	}
 
-	got2 := slices.Collect(s.TopToBottom())
+	got2 := []int{}
+
+	for _, v := range s.TopToBottom() {
+		got2 = append(got2, v)
+	}
 
 	if got2[0] != 50 || got2[1] != 40 || got2[2] != 30 ||
 		got2[3] != 20 || got2[4] != 10 {
