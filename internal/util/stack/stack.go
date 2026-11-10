@@ -2,6 +2,11 @@
 // data structure.
 package stack
 
+import (
+	"iter"
+	"slices"
+)
+
 type Stack[T any] struct {
 	data []T
 }
@@ -48,4 +53,24 @@ func (s Stack[T]) Top() (v T) {
 	}
 
 	return s.data[len(s.data)-1]
+}
+
+func (s Stack[T]) BottomToTop() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for _, item := range s.data {
+			if !yield(item) {
+				return
+			}
+		}
+	}
+}
+
+func (s Stack[T]) TopToBottom() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for _, v := range slices.Backward(s.data) {
+			if !yield(v) {
+				return
+			}
+		}
+	}
 }

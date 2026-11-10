@@ -1,6 +1,7 @@
 package stack
 
 import (
+	"slices"
 	"testing"
 )
 
@@ -72,5 +73,31 @@ func TestStackCount(t *testing.T) {
 
 	if got != want {
 		t.Errorf("Expected s.Count() to return %d, but got %d.", want, got)
+	}
+}
+
+func TestStackIteration(t *testing.T) {
+	s := New(10, 20, 30, 40, 50)
+
+	got1 := slices.Collect(s.BottomToTop())
+
+	if got1[0] != 10 || got1[1] != 20 || got1[2] != 30 ||
+		got1[3] != 40 || got1[4] != 50 {
+
+		t.Errorf(
+			"Expected iteration with s.TopToBottom() to "+
+				"be through [10, 20, 30, 40, 50], got %v", got1,
+		)
+	}
+
+	got2 := slices.Collect(s.TopToBottom())
+
+	if got2[0] != 50 || got2[1] != 40 || got2[2] != 30 ||
+		got2[3] != 20 || got2[4] != 10 {
+
+		t.Errorf(
+			"Expected iteration with s.BottomToTop() to "+
+				"be through [50, 40, 30, 20, 10], got %v", got2,
+		)
 	}
 }
