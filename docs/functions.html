@@ -30,7 +30,7 @@
         <p>We can also return values. "Returning" means the function produces a result which may be useful to the caller.</p> 
         <p>In this code, the function <code>add</code> adds two numbers and returns the result of the addition. A function that returns something must define the return value's type after the closing brackets of the parameters list.</p>
       </div>
-      <pre><code><span class="keyword">function</span> add(x: <span class="type">number</span>, y: <span class="type">number</span>): <span class="type">number</span> {
+      <pre><code><span class="keyword">function</span> add(x: <span class="type">number</span>, y: <span class="type">number</span>) -&gt; <span class="type">number</span> {
   <span class="keyword">return</span> x+y <span class="comment">@ Must be 'number'</span>
 }</code></pre>
       <div class="explanation">
@@ -52,10 +52,10 @@
         <p>Here, <code>apply</code> receives an anonymous function - which has its parameters and return types infeered - that adds two numbers. The code then prints "3".</p>
       </div>   
       <pre><code><span class="keyword">function</span> apply(
-  f: <span class="keyword">function</span>(a: <span class="type">number</span>, b: <span class="type">number</span>): <span class="type">number</span>,
+  f: <span class="keyword">function</span>(a: <span class="type">number</span>, b: <span class="type">number</span>) -&gt; <span class="type">number</span>,
   a: <span class="type">number</span>,
   b: <span class="type">number</span>,
-): <span class="type">number</span> {
+) -&gt; <span class="type">number</span> {
   <span class="keyword">return</span> f(a, b)
 }
 
