@@ -3,7 +3,6 @@
 package resolver
 
 import (
-	"github.com/eduardo-lamounier/setly/internal/interpreter"
 	"github.com/eduardo-lamounier/setly/internal/syntax"
 	"github.com/eduardo-lamounier/setly/internal/util/stack"
 )
@@ -11,6 +10,7 @@ import (
 type resolver struct {
 	Source string
 	Scopes stack.Stack[map[string]struct{}]
+	Locals map[syntax.Expr]int
 }
 
 func (r *resolver) beginScope() {
@@ -31,7 +31,7 @@ func (r *resolver) declare(name syntax.Token) {
 func (r *resolver) resolveLocal(expr syntax.Expr, name syntax.Token) {
 	for i, scope := range r.Scopes.TopToBottom() {
 		if _, ok := scope[name.Lexeme]; ok {
-			interpreter.Resolve(expr, r.Scopes.Count()-i)
+			r.Locals[expr] = r.Scopes.Count() - i
 			return
 		}
 	}
@@ -129,10 +129,13 @@ func (r *resolver) resolveAll(stmts []syntax.Stmt) {
 	}
 }
 
-func Resolve(source string, stmts []syntax.Stmt) {
+func Resolve(source string, stmts []syntax.Stmt) (locals map[syntax.Expr]int) {
 	r := resolver{
 		Scopes: stack.New[map[string]struct{}](),
+		Locals: make(map[syntax.Expr]int),
 	}
 
 	r.resolveAll(stmts)
+	locals = r.Locals
+	return
 }

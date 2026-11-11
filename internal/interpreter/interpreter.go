@@ -11,6 +11,7 @@ import (
 
 type interpreter struct {
 	Environment *runtime.Environment
+	Locals      map[syntax.Expr]int
 	Stmts       []syntax.Stmt
 	Opts        Options
 }
@@ -398,13 +399,14 @@ func (i *interpreter) execute(
 	return nil, normalCompletion{}
 }
 
-// TODO: Implement
-func Resolve(expr syntax.Expr, depth int) {
-}
-
-func Interpret(stmts []syntax.Stmt, opts Options) *runtime.Error {
+func Interpret(
+	stmts []syntax.Stmt,
+	locals map[syntax.Expr]int,
+	opts Options,
+) *runtime.Error {
 	i := interpreter{
 		Environment: runtime.GlobalEnvironment(),
+		Locals:      locals,
 		Stmts:       stmts,
 		Opts:        opts,
 	}
