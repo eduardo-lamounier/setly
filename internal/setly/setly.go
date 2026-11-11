@@ -8,6 +8,7 @@ import (
 	"github.com/eduardo-lamounier/setly/internal/interpreter"
 	"github.com/eduardo-lamounier/setly/internal/lexer"
 	"github.com/eduardo-lamounier/setly/internal/parser"
+	"github.com/eduardo-lamounier/setly/internal/resolver"
 )
 
 func Run(source string, opts interpreter.Options) error {
@@ -25,7 +26,9 @@ func Run(source string, opts interpreter.Options) error {
 		return fmt.Errorf("errors were found in the source code")
 	}
 
-	if err := interpreter.Interpret(stmts, opts); err != nil {
+	locals := resolver.Resolve(source, stmts)
+
+	if err := interpreter.Interpret(stmts, locals, opts); err != nil {
 		return err
 	}
 
