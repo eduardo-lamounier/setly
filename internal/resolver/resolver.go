@@ -123,3 +123,16 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) {
 	}
 }
 
+func (r *resolver) resolveAll(stmts []syntax.Stmt) {
+	for _, stmt := range stmts {
+		r.resolveStmt(stmt)
+	}
+}
+
+func Resolve(source string, stmts []syntax.Stmt) {
+	r := resolver{
+		Scopes: stack.New[map[string]struct{}](),
+	}
+
+	r.resolveAll(stmts)
+}
