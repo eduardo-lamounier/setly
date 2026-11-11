@@ -398,6 +398,10 @@ func (i *interpreter) execute(
 	return nil, normalCompletion{}
 }
 
+// TODO: Implement
+func Resolve(expr syntax.Expr, depth int) {
+}
+
 func Interpret(stmts []syntax.Stmt, opts Options) *runtime.Error {
 	i := interpreter{
 		Environment: runtime.GlobalEnvironment(),
