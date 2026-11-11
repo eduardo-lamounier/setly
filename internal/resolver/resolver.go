@@ -73,3 +73,53 @@ func (r *resolver) resolveExpr(expr syntax.Expr) {
 	}
 }
 
+func (r *resolver) resolveStmt(stmt syntax.Stmt) {
+	switch stmt := stmt.(type) {
+	case syntax.BlockStmt:
+		r.beginScope()
+		defer r.endScope()
+
+		r.resolveAll(stmt.Stmts)
+	case syntax.VarStmt:
+		if stmt.Initializer == nil {
+			r.declare(stmt.Name)
+			break
+		}
+
+		// A function should be able to reference itself to achieve recursion,
+		// so it is declared before resolving its body:
+		switch expr := stmt.Initializer.(type) {
+		case syntax.FunctionExpr:
+			r.declare(stmt.Name)
+			r.resolveExpr(expr)
+		default:
+			r.resolveExpr(expr)
+			r.declare(stmt.Name)
+		}
+	case syntax.ExprStmt:
+		r.resolveExpr(stmt.Expr)
+	case syntax.IfStmt:
+		r.resolveExpr(stmt.Condition)
+		r.resolveAll(stmt.ThenBranch)
+
+		if stmt.ElseBranch != nil {
+			r.resolveAll(stmt.ElseBranch)
+		}
+	case syntax.WhileStmt:
+		r.resolveExpr(stmt.Condition)
+		r.resolveAll(stmt.Block)
+	case syntax.ForNumStmt:
+		r.resolveLocal(stmt.Start, stmt.Var)
+		r.resolveExpr(stmt.Limit)
+		r.resolveExpr(stmt.Step)
+
+		r.resolveAll(stmt.Block)
+	case syntax.PrintStmt:
+		r.resolveExpr(stmt.Expr)
+	case syntax.ReturnStmt:
+		r.resolveExpr(stmt.Value)
+	case syntax.TypeStmt:
+		// TODO: Resolve type declarations statements?
+	}
+}
+
