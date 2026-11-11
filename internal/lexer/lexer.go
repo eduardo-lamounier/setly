@@ -222,7 +222,11 @@ func (l *lexer) scanToken() {
 	case '+':
 		l.emitToken(syntax.TokenPlus)
 	case '-':
-		l.emitToken(syntax.TokenMinus)
+		if l.match('>') {
+			l.emitToken(syntax.TokenArrowR)
+		} else {
+			l.emitToken(syntax.TokenMinus)
+		}
 	case '*':
 		l.emitToken(syntax.TokenStar)
 	case '/':
