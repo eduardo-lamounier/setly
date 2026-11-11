@@ -151,7 +151,7 @@ func (p *parser) varDeclaration() (stmt syntax.Stmt, err *parsingError) {
 	return
 }
 
-// functionDecl ::= "function" ID "(" paramsList ")" [ ":" typeExpr ] blockStmt .
+// functionDecl ::= "function" ID "(" paramsList ")" [ "->" typeExpr ] blockStmt .
 func (p *parser) functionDeclaration() (stmt syntax.Stmt, err *parsingError) {
 	line := p.peek().Line()
 
@@ -183,7 +183,7 @@ func (p *parser) functionDeclaration() (stmt syntax.Stmt, err *parsingError) {
 
 	var returnType syntax.Expr = nil
 
-	if p.match(syntax.TokenColon) {
+	if p.match(syntax.TokenArrowR) {
 		returnType, err = p.typeExpr()
 		if err != nil {
 			return

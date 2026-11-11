@@ -7,7 +7,7 @@ import "github.com/eduardo-lamounier/setly/internal/syntax"
 // 'parser.go' in this package.
 // *****************************************************************************
 
-// functionTypeExpr ::= "function" "(" paramsTypeList ")" [ ":" typeExpr ] .
+// functionTypeExpr ::= "function" "(" paramsTypeList ")" [ "->" typeExpr ] .
 //
 // paramsTypeList ::= [ typeExpr { "," typeExpr } [ "," ] ] .
 func (p *parser) functionTypeExpr() (expr syntax.Expr, err *parsingError) {
@@ -42,7 +42,7 @@ func (p *parser) functionTypeExpr() (expr syntax.Expr, err *parsingError) {
 	}
 
 	var returnType syntax.Expr = nil
-	if p.match(syntax.TokenColon) {
+	if p.match(syntax.TokenArrowR) {
 		returnType, err = p.typeExpr()
 		if err != nil {
 			return
@@ -158,7 +158,7 @@ func (p *parser) paramsList() (
 
 // primaryExpr ::= functionExpr | varExpr | literalExpr | groupingExpr .
 //
-// functionExpr ::= "function" "(" paramsList ")" [ ":" typeExpr ] blockStmt .
+// functionExpr ::= "function" "(" paramsList ")" [ "->" typeExpr ] blockStmt .
 // varExpr      ::= ID .
 // literalExpr  ::= "nil" | "false" | "true" | STRING | NUMBER .
 // groupingExpr ::= "(" expr ")" .
@@ -186,7 +186,7 @@ func (p *parser) primaryExpr() (expr syntax.Expr, err *parsingError) {
 
 		var returnType syntax.Expr = nil
 
-		if p.match(syntax.TokenColon) {
+		if p.match(syntax.TokenArrowR) {
 			returnType, err = p.typeExpr()
 			if err != nil {
 				return
