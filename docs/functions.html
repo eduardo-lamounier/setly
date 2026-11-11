@@ -49,7 +49,7 @@
       <div class="explanation">
         <h2>Anonymous functions</h2>
         <p>You can define functions that have no name, and pass them as parameter to another functions.</p>
-        <p>Here, <code>apply</code> receives an anonymous function that adds two numbers. The code then prints "3".</p>
+        <p>Here, <code>apply</code> receives an anonymous function - which has its parameters and return types infeered - that adds two numbers. The code then prints "3".</p>
       </div>   
       <pre><code><span class="keyword">function</span> apply(
   f: <span class="keyword">function</span>(a: <span class="type">number</span>, b: <span class="type">number</span>): <span class="type">number</span>,
@@ -60,7 +60,7 @@
 }
 
 <span class="keyword">print</span>(apply(
-  <span class="keyword">function</span>(a: <span class="type">number</span>, b: <span class="type">number</span>): <span class="type">number</span> {
+  <span class="keyword">function</span>(a, b) {
     <span class="keyword">return</span> a + b
   },
   <span class="literal">1</span>,
