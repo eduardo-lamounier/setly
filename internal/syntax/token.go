@@ -20,6 +20,7 @@ const (
 	TokenBracketR
 	TokenBraceL
 	TokenBraceR
+	TokenArrowR
 
 	TokenComma
 	TokenDot
@@ -136,6 +137,7 @@ var lexemeForTokenKind = map[TokenKind]string{
 	TokenLess:         "<",
 	TokenGreaterEqual: ">=",
 	TokenLessEqual:    "<=",
+	TokenArrowR:       "->",
 
 	// Literals do not have a specific lexeme
 
@@ -193,6 +195,7 @@ var tokenKindsToString = map[TokenKind]string{
 	TokenLess:         "LESS",
 	TokenGreaterEqual: "GREATER_EQUAL",
 	TokenLessEqual:    "LESS_EQUAL",
+	TokenArrowR:       "ARROW_RIGHT",
 
 	TokenID:     "ID",
 	TokenString: "STRING",
