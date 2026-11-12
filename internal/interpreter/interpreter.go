@@ -206,7 +206,12 @@ func (i *interpreter) evaluate(
 			return nil, err
 		}
 
-		i.Environment.Assign(expr.Name.Lexeme, value)
+		if distance, ok := i.Locals[expr]; ok {
+			i.Environment.AssignAt(expr.Name.Lexeme, value, distance)
+		} else {
+			runtime.GlobalEnvironment().Assign(expr.Name.Lexeme, value)
+		}
+
 		return value, nil
 	case syntax.FunctionExpr:
 		return runtime.Function{
