@@ -44,9 +44,20 @@ func (e *Environment) Access(name string) Value {
 		return v
 	}
 
-	if e.enclosing != nil {
-		return e.enclosing.Access(name)
+	panic(fmt.Sprintf("Undefined variable %s.", name))
+}
+
+func (e *Environment) AccessAt(name string, distance int) Value {
+	env := e
+	for range distance {
+		env = env.enclosing
+
+		if env == nil {
+			panic(`
+Tried accesing an undefined environment with AccessAt(). Invalid distance.
+			`)
+		}
 	}
 
-	panic(fmt.Sprintf("Undefined variable %s.", name))
+	return env.Access(name)
 }
