@@ -26,6 +26,19 @@ func NewEnvironment(enclosing *Environment) *Environment {
 	}
 }
 
+func (e *Environment) ancestor(distance int) *Environment {
+	env := e
+	for range distance {
+		env = env.enclosing
+
+		if env == nil {
+			panic("Tried accesing an undefined environment. Invalid distance.")
+		}
+	}
+
+	return env
+}
+
 func (e *Environment) Define(name string, value Value) {
 	e.values[name] = value
 }
@@ -48,16 +61,5 @@ func (e *Environment) Access(name string) Value {
 }
 
 func (e *Environment) AccessAt(name string, distance int) Value {
-	env := e
-	for range distance {
-		env = env.enclosing
-
-		if env == nil {
-			panic(`
-Tried accesing an undefined environment with AccessAt(). Invalid distance.
-			`)
-		}
-	}
-
-	return env.Access(name)
+	return e.ancestor(distance).Access(name)
 }
