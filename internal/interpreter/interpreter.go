@@ -97,6 +97,17 @@ func (i *interpreter) CallFunction(
 	}
 }
 
+func (i *interpreter) lookUpVar(
+	name syntax.Token,
+	expr syntax.Expr,
+) runtime.Value {
+	if distance, ok := i.Locals[expr]; ok {
+		return i.Environment.AccessAt(name.Lexeme, distance)
+	}
+
+	return runtime.GlobalEnvironment().Access(name.Lexeme)
+}
+
 func (i *interpreter) evaluate(
 	expr syntax.Expr,
 ) (runtime.Value, *runtime.Error) {
@@ -188,7 +199,7 @@ func (i *interpreter) evaluate(
 	case syntax.GroupingExpr:
 		return i.evaluate(expr.Inner)
 	case syntax.VarExpr:
-		return i.Environment.Access(expr.Name.Lexeme), nil
+		return i.lookUpVar(expr.Name, expr), nil
 	case syntax.AssignExpr:
 		value, err := i.evaluate(expr.Value)
 		if err != nil {
