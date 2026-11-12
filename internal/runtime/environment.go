@@ -44,12 +44,11 @@ func (e *Environment) Define(name string, value Value) {
 }
 
 func (e *Environment) Assign(name string, value Value) {
-	if _, ok := e.values[name]; !ok {
-		e.enclosing.Assign(name, value)
-		return
-	}
-
 	e.values[name] = value
+}
+
+func (e *Environment) AssignAt(name string, value Value, distance int) {
+	e.ancestor(distance).Assign(name, value)
 }
 
 func (e *Environment) Access(name string) Value {
