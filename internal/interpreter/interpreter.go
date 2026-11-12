@@ -74,7 +74,7 @@ func (i *interpreter) executeBlock(
 	return nil, normalCompletion{}
 }
 
-func (i *interpreter) CallFunction(
+func (i *interpreter) callFunction(
 	function runtime.Function, arguments []runtime.Value,
 ) (runtime.Value, *runtime.Error) {
 	environment := runtime.NewEnvironment(function.Closure)
@@ -230,7 +230,7 @@ func (i *interpreter) evaluate(
 		}
 
 		function := callee.(runtime.Function)
-		return i.CallFunction(function, arguments)
+		return i.callFunction(function, arguments)
 	default:
 		panic("Not implemented expr kind to evaluate.")
 	}
