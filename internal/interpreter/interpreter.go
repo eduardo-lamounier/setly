@@ -207,7 +207,7 @@ func (i *interpreter) evaluate(
 		}
 
 		i.Environment.Assign(expr.Name.Lexeme, value)
-		return i.Environment.Access(expr.Name.Lexeme), nil
+		return value, nil
 	case syntax.FunctionExpr:
 		return runtime.Function{
 			Declaration: expr,
