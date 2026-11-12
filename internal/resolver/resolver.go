@@ -21,7 +21,7 @@ func (r *resolver) endScope() {
 	r.Scopes.Pop()
 }
 
-func (r *resolver) declare(name syntax.Token) {
+func (r *resolver) define(name syntax.Token) {
 	if !r.Scopes.Empty() {
 		scope := r.Scopes.Top()
 		scope[name.Lexeme] = struct{}{}
@@ -56,7 +56,7 @@ func (r *resolver) resolveExpr(expr syntax.Expr) {
 		defer r.endScope()
 
 		for _, param := range expr.Parameters {
-			r.declare(param.Name)
+			r.define(param.Name)
 		}
 		r.resolveAll(expr.Body)
 	case syntax.CallExpr:
@@ -82,7 +82,7 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) {
 		r.resolveAll(stmt.Stmts)
 	case syntax.VarStmt:
 		if stmt.Initializer == nil {
-			r.declare(stmt.Name)
+			r.define(stmt.Name)
 			break
 		}
 
@@ -90,11 +90,11 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) {
 		// so it is declared before resolving its body:
 		switch expr := stmt.Initializer.(type) {
 		case syntax.FunctionExpr:
-			r.declare(stmt.Name)
+			r.define(stmt.Name)
 			r.resolveExpr(expr)
 		default:
 			r.resolveExpr(expr)
-			r.declare(stmt.Name)
+			r.define(stmt.Name)
 		}
 	case syntax.ExprStmt:
 		r.resolveExpr(stmt.Expr)
