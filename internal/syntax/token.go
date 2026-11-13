@@ -74,13 +74,11 @@ const (
 )
 
 type Token struct {
+	Located
+
 	Kind         TokenKind
 	Lexeme       string
 	LiteralValue any
-
-	pos  int
-	line int
-	col  int
 }
 
 // KeywordForLexeme is used by the lexer to scan keywords.
@@ -226,25 +224,19 @@ var tokenKindsToString = map[TokenKind]string{
 	TokenEOF: "EOF",
 }
 
-func NewToken(
-	kind TokenKind, lexeme string,
-	pos int, line int, col int,
-) Token {
-	return NewLiteralToken(kind, lexeme, nil, pos, line, col)
+func NewToken(kind TokenKind, lexeme string, loc Location) Token {
+	return NewLiteralToken(kind, lexeme, nil, loc)
 }
 
 func NewLiteralToken(
-	kind TokenKind, lexeme string, literal any,
-	pos int, line int, col int,
+	kind TokenKind, lexeme string, literal any, loc Location,
 ) Token {
 	return Token{
+		Located: NewLocated(loc),
+
 		Kind:         kind,
 		Lexeme:       lexeme,
 		LiteralValue: literal,
-
-		pos:  pos,
-		line: line,
-		col:  col,
 	}
 }
 
@@ -254,13 +246,6 @@ func (tk TokenKind) GetLexeme() string {
 	}
 
 	return lexemeForTokenKind[tk]
-}
-
-func (t Token) Pos() int  { return t.pos }
-func (t Token) Line() int { return t.line }
-func (t Token) Col() int  { return t.col }
-func (t Token) Location() (int, int, int) {
-	return t.pos, t.line, t.col
 }
 
 func (t Token) String() string {
