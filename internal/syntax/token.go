@@ -74,9 +74,9 @@ const (
 )
 
 type Token struct {
-	Kind    TokenKind
-	Lexeme  string
-	Literal any
+	Kind         TokenKind
+	Lexeme       string
+	LiteralValue any
 
 	pos  int
 	line int
@@ -238,9 +238,9 @@ func NewLiteralToken(
 	pos int, line int, col int,
 ) Token {
 	return Token{
-		Kind:    kind,
-		Lexeme:  lexeme,
-		Literal: literal,
+		Kind:         kind,
+		Lexeme:       lexeme,
+		LiteralValue: literal,
 
 		pos:  pos,
 		line: line,
@@ -267,7 +267,7 @@ func (t Token) String() string {
 	kind := tokenKindsToString[t.Kind]
 	switch t.Kind {
 	case TokenID, TokenString, TokenNumber:
-		kind += fmt.Sprintf("(%v)", t.Literal)
+		kind += fmt.Sprintf("(%v)", t.LiteralValue)
 	}
 
 	return fmt.Sprintf("[%d:%d - %d, %s, \"%s\"]",
