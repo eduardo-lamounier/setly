@@ -7,11 +7,11 @@ import "github.com/eduardo-lamounier/setly/internal/syntax"
 // 'parser.go' in this package.
 // *****************************************************************************
 
-// functionTypeExpr ::= "function" "(" paramsTypeList ")" [ ":" typeExpr ] .
+// functionTypeExpr ::= "function" "(" paramsTypeList ")" [ "->" typeExpr ] .
 //
 // paramsTypeList ::= [ typeExpr { "," typeExpr } [ "," ] ] .
 func (p *parser) functionTypeExpr() (expr syntax.Expr, err *parsingError) {
-	line := p.peek().Line()
+	loc := p.prev().Location()
 
 	if p.expect(syntax.TokenParenL) == nil {
 		err = &parsingError{}
@@ -42,14 +42,14 @@ func (p *parser) functionTypeExpr() (expr syntax.Expr, err *parsingError) {
 	}
 
 	var returnType syntax.Expr = nil
-	if p.match(syntax.TokenColon) {
+	if p.match(syntax.TokenArrowR) {
 		returnType, err = p.typeExpr()
 		if err != nil {
 			return
 		}
 	}
 
-	expr = syntax.NewFunctionTypeExpr(paramsType, returnType, line)
+	expr = syntax.NewFunctionTypeExpr(paramsType, returnType, loc)
 	return
 }
 
@@ -158,13 +158,13 @@ func (p *parser) paramsList() (
 
 // primaryExpr ::= functionExpr | varExpr | literalExpr | groupingExpr .
 //
-// functionExpr ::= "function" "(" paramsList ")" [ ":" typeExpr ] blockStmt .
+// functionExpr ::= "function" "(" paramsList ")" [ "->" typeExpr ] blockStmt .
 // varExpr      ::= ID .
 // literalExpr  ::= "nil" | "false" | "true" | STRING | NUMBER .
 // groupingExpr ::= "(" expr ")" .
 func (p *parser) primaryExpr() (expr syntax.Expr, err *parsingError) {
 	if p.match(syntax.TokenFunction) {
-		line := p.prev().Line()
+		loc := p.prev().Location()
 
 		if p.expect(syntax.TokenParenL) == nil {
 			err = &parsingError{}
@@ -186,7 +186,7 @@ func (p *parser) primaryExpr() (expr syntax.Expr, err *parsingError) {
 
 		var returnType syntax.Expr = nil
 
-		if p.match(syntax.TokenColon) {
+		if p.match(syntax.TokenArrowR) {
 			returnType, err = p.typeExpr()
 			if err != nil {
 				return
@@ -204,18 +204,20 @@ func (p *parser) primaryExpr() (expr syntax.Expr, err *parsingError) {
 			return
 		}
 
-		expr = syntax.NewFunctionExpr(nil, parameters, returnType, body, line)
+		expr = syntax.NewFunctionExpr(nil, parameters, returnType, body, loc)
 		return
 	}
 
 	if p.match(syntax.TokenNil, syntax.TokenFalse, syntax.TokenTrue,
 		syntax.TokenNumber, syntax.TokenString) {
 
-		expr = syntax.NewLiteralExprFromToken(p.prev())
+		expr = syntax.NewLiteralExpr(p.prev())
 		return
 	}
 
 	if p.match(syntax.TokenParenL) {
+		loc := p.prev().Location()
+
 		expr, err = p.expr()
 		if err != nil {
 			return
@@ -227,7 +229,7 @@ func (p *parser) primaryExpr() (expr syntax.Expr, err *parsingError) {
 			return
 		}
 
-		expr = syntax.NewGroupingExpr(expr)
+		expr = syntax.NewGroupingExpr(expr, loc)
 		return
 	}
 
@@ -291,7 +293,7 @@ func (p *parser) unaryExpr() (expr syntax.Expr, err *parsingError) {
 			return
 		}
 
-		expr = syntax.NewUnaryExpr(operator, right)
+		expr = syntax.NewUnaryExpr(operator, right, operator.Location())
 		return
 	}
 
@@ -314,7 +316,7 @@ func (p *parser) factorExpr() (expr syntax.Expr, err *parsingError) {
 			return
 		}
 
-		expr = syntax.NewBinaryExpr(operator, expr, right)
+		expr = syntax.NewBinaryExpr(operator, expr, right, expr.Location())
 	}
 
 	return
@@ -336,7 +338,7 @@ func (p *parser) termExpr() (expr syntax.Expr, err *parsingError) {
 			return
 		}
 
-		expr = syntax.NewBinaryExpr(operator, expr, right)
+		expr = syntax.NewBinaryExpr(operator, expr, right, expr.Location())
 	}
 
 	return
@@ -360,7 +362,7 @@ func (p *parser) comparisonExpr() (expr syntax.Expr, err *parsingError) {
 			return
 		}
 
-		expr = syntax.NewBinaryExpr(operator, expr, right)
+		expr = syntax.NewBinaryExpr(operator, expr, right, expr.Location())
 	}
 
 	return
@@ -382,7 +384,7 @@ func (p *parser) equalityExpr() (expr syntax.Expr, err *parsingError) {
 			return
 		}
 
-		expr = syntax.NewBinaryExpr(operator, expr, right)
+		expr = syntax.NewBinaryExpr(operator, expr, right, expr.Location())
 	}
 
 	return
@@ -397,7 +399,7 @@ func (p *parser) logicalNotExpr() (expr syntax.Expr, err *parsingError) {
 			return
 		}
 
-		expr = syntax.NewUnaryExpr(operator, expr)
+		expr = syntax.NewUnaryExpr(operator, expr, operator.Location())
 		return
 	}
 
@@ -421,7 +423,7 @@ func (p *parser) logicalAndExpr() (expr syntax.Expr, err *parsingError) {
 			return
 		}
 
-		expr = syntax.NewBinaryExpr(operator, expr, right)
+		expr = syntax.NewBinaryExpr(operator, expr, right, expr.Location())
 	}
 
 	return
@@ -443,7 +445,7 @@ func (p *parser) logicalOrExpr() (expr syntax.Expr, err *parsingError) {
 			return
 		}
 
-		expr = syntax.NewBinaryExpr(operator, expr, right)
+		expr = syntax.NewBinaryExpr(operator, expr, right, expr.Location())
 	}
 
 	return

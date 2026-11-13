@@ -122,7 +122,9 @@ The grammar uses a variation of EBNF notation.
 
 // varDecl ::= "let" ID ":" typeExpr [ ":=" expr ] .
 func (p *parser) varDeclaration() (stmt syntax.Stmt, err *parsingError) {
+	loc := p.prev().Location()
 	varName := p.peek()
+
 	if !p.expectWithMsg(syntax.TokenID, "Expected variable name.") {
 		err = &parsingError{}
 		return
@@ -147,13 +149,13 @@ func (p *parser) varDeclaration() (stmt syntax.Stmt, err *parsingError) {
 		}
 	}
 
-	stmt = syntax.NewVarStmt(varName, typeName, initializer)
+	stmt = syntax.NewVarStmt(varName, typeName, initializer, loc)
 	return
 }
 
-// functionDecl ::= "function" ID "(" paramsList ")" [ ":" typeExpr ] blockStmt .
+// functionDecl ::= "function" ID "(" paramsList ")" [ "->" typeExpr ] blockStmt .
 func (p *parser) functionDeclaration() (stmt syntax.Stmt, err *parsingError) {
-	line := p.peek().Line()
+	loc := p.prev().Location()
 
 	if !p.expectWithMsg(syntax.TokenID, "Expected function name.") {
 		err = &parsingError{}
@@ -183,7 +185,7 @@ func (p *parser) functionDeclaration() (stmt syntax.Stmt, err *parsingError) {
 
 	var returnType syntax.Expr = nil
 
-	if p.match(syntax.TokenColon) {
+	if p.match(syntax.TokenArrowR) {
 		returnType, err = p.typeExpr()
 		if err != nil {
 			return
@@ -208,15 +210,16 @@ func (p *parser) functionDeclaration() (stmt syntax.Stmt, err *parsingError) {
 
 	stmt = syntax.NewVarStmt(
 		name,
-		syntax.NewFunctionTypeExpr(parametersType, returnType, line),
-		syntax.NewFunctionExpr(&name, parameters, returnType, body, line),
+		syntax.NewFunctionTypeExpr(parametersType, returnType, loc),
+		syntax.NewFunctionExpr(&name, parameters, returnType, body, loc),
+		loc,
 	)
 	return
 }
 
 // typeDecl ::= "type" ID ":=" typeExpr .
 func (p *parser) typeDeclaration() (stmt syntax.Stmt, err *parsingError) {
-	line := p.peek().Line()
+	loc := p.prev().Location()
 
 	if !p.expectWithMsg(syntax.TokenID, "Expected the type's name.") {
 		err = &parsingError{}
@@ -236,7 +239,7 @@ func (p *parser) typeDeclaration() (stmt syntax.Stmt, err *parsingError) {
 		return
 	}
 
-	stmt = syntax.NewTypeStmt(name, typeExpr, line)
+	stmt = syntax.NewTypeStmt(name, typeExpr, loc)
 	return
 }
 

@@ -20,6 +20,7 @@ const (
 	TokenBracketR
 	TokenBraceL
 	TokenBraceR
+	TokenArrowR
 
 	TokenComma
 	TokenDot
@@ -73,13 +74,11 @@ const (
 )
 
 type Token struct {
-	Kind    TokenKind
-	Lexeme  string
-	Literal any
+	Located
 
-	pos  int
-	line int
-	col  int
+	Kind         TokenKind
+	Lexeme       string
+	LiteralValue any
 }
 
 // KeywordForLexeme is used by the lexer to scan keywords.
@@ -136,6 +135,7 @@ var lexemeForTokenKind = map[TokenKind]string{
 	TokenLess:         "<",
 	TokenGreaterEqual: ">=",
 	TokenLessEqual:    "<=",
+	TokenArrowR:       "->",
 
 	// Literals do not have a specific lexeme
 
@@ -193,6 +193,7 @@ var tokenKindsToString = map[TokenKind]string{
 	TokenLess:         "LESS",
 	TokenGreaterEqual: "GREATER_EQUAL",
 	TokenLessEqual:    "LESS_EQUAL",
+	TokenArrowR:       "ARROW_RIGHT",
 
 	TokenID:     "ID",
 	TokenString: "STRING",
@@ -223,25 +224,19 @@ var tokenKindsToString = map[TokenKind]string{
 	TokenEOF: "EOF",
 }
 
-func NewToken(
-	kind TokenKind, lexeme string,
-	pos int, line int, col int,
-) Token {
-	return NewLiteralToken(kind, lexeme, nil, pos, line, col)
+func NewToken(kind TokenKind, lexeme string, loc Location) Token {
+	return NewLiteralToken(kind, lexeme, nil, loc)
 }
 
 func NewLiteralToken(
-	kind TokenKind, lexeme string, literal any,
-	pos int, line int, col int,
+	kind TokenKind, lexeme string, literal any, loc Location,
 ) Token {
 	return Token{
-		Kind:    kind,
-		Lexeme:  lexeme,
-		Literal: literal,
+		Located: NewLocated(loc),
 
-		pos:  pos,
-		line: line,
-		col:  col,
+		Kind:         kind,
+		Lexeme:       lexeme,
+		LiteralValue: literal,
 	}
 }
 
@@ -253,18 +248,11 @@ func (tk TokenKind) GetLexeme() string {
 	return lexemeForTokenKind[tk]
 }
 
-func (t Token) Pos() int  { return t.pos }
-func (t Token) Line() int { return t.line }
-func (t Token) Col() int  { return t.col }
-func (t Token) Location() (int, int, int) {
-	return t.pos, t.line, t.col
-}
-
 func (t Token) String() string {
 	kind := tokenKindsToString[t.Kind]
 	switch t.Kind {
 	case TokenID, TokenString, TokenNumber:
-		kind += fmt.Sprintf("(%v)", t.Literal)
+		kind += fmt.Sprintf("(%v)", t.LiteralValue)
 	}
 
 	return fmt.Sprintf("[%d:%d - %d, %s, \"%s\"]",

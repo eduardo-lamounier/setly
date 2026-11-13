@@ -9,13 +9,15 @@ import "github.com/eduardo-lamounier/setly/internal/syntax"
 
 // printStmt ::= "print" "(" [ expr ] ")" .
 func (p *parser) printStmt() (stmt syntax.Stmt, err *parsingError) {
+	loc := p.prev().Location()
+
 	if p.expect(syntax.TokenParenL) == nil {
 		err = &parsingError{}
 		return
 	}
 
 	if p.match(syntax.TokenParenR) {
-		stmt = syntax.NewPrintStmt(nil)
+		stmt = syntax.NewPrintStmt(nil, loc)
 		return
 	}
 
@@ -30,7 +32,7 @@ func (p *parser) printStmt() (stmt syntax.Stmt, err *parsingError) {
 		return
 	}
 
-	stmt = syntax.NewPrintStmt(expr)
+	stmt = syntax.NewPrintStmt(expr, loc)
 	return
 }
 
@@ -83,6 +85,8 @@ func (p *parser) blockStmt() (stmts []syntax.Stmt, err *parsingError) {
 
 // ifStmt ::= "if" expr blockStmt { "elif" expr blockStmt } [ "else" blockStmt ] .
 func (p *parser) ifStmt() (stmt syntax.Stmt, err *parsingError) {
+	loc := p.prev().Location()
+
 	var cond syntax.Expr
 	cond, err = p.expr()
 	if err != nil {
@@ -109,7 +113,7 @@ func (p *parser) ifStmt() (stmt syntax.Stmt, err *parsingError) {
 			return
 		}
 
-		stmt = syntax.NewIfStmt(cond, thenBranch, []syntax.Stmt{elif})
+		stmt = syntax.NewIfStmt(cond, thenBranch, []syntax.Stmt{elif}, loc)
 		return
 	}
 
@@ -125,12 +129,14 @@ func (p *parser) ifStmt() (stmt syntax.Stmt, err *parsingError) {
 		}
 	}
 
-	stmt = syntax.NewIfStmt(cond, thenBranch, elseBranch)
+	stmt = syntax.NewIfStmt(cond, thenBranch, elseBranch, loc)
 	return
 }
 
 // whileStmt ::= "while" expr blockStmt .
 func (p *parser) whileStmt() (stmt syntax.Stmt, err *parsingError) {
+	loc := p.prev().Location()
+
 	var cond syntax.Expr
 	cond, err = p.expr()
 	if err != nil {
@@ -148,13 +154,13 @@ func (p *parser) whileStmt() (stmt syntax.Stmt, err *parsingError) {
 		return
 	}
 
-	stmt = syntax.NewWhileStmt(cond, block)
+	stmt = syntax.NewWhileStmt(cond, block, loc)
 	return
 }
 
 // forNumStmt ::= "for" ID ":=" expr "," expr [ "," expr ] blockStmt .
 func (p *parser) forStmt() (stmt syntax.Stmt, err *parsingError) {
-	line := p.peek().Line()
+	loc := p.prev().Location()
 
 	if !p.expectWithMsg(syntax.TokenID, "Expected variable name.") {
 		err = &parsingError{}
@@ -185,7 +191,7 @@ func (p *parser) forStmt() (stmt syntax.Stmt, err *parsingError) {
 		return
 	}
 
-	var step syntax.Expr = syntax.NewLiteralExprAt(float64(1), line)
+	var step syntax.Expr = syntax.MakeNumberLiteral(float64(1), loc)
 
 	if p.match(syntax.TokenComma) {
 		step, err = p.expr()
@@ -205,12 +211,14 @@ func (p *parser) forStmt() (stmt syntax.Stmt, err *parsingError) {
 		return
 	}
 
-	stmt = syntax.NewForNumStmt(varName, start, limit, step, block, line)
+	stmt = syntax.NewForNumStmt(varName, start, limit, step, block, loc)
 	return
 }
 
 // repeatStmt ::= "repeat" blockStmt [ "until" expr ] .
 func (p *parser) repeatStmt() (stmt syntax.Stmt, err *parsingError) {
+	loc := p.prev().Location()
+
 	if p.expect(syntax.TokenBraceL) == nil {
 		err = &parsingError{}
 		return
@@ -222,9 +230,7 @@ func (p *parser) repeatStmt() (stmt syntax.Stmt, err *parsingError) {
 		return
 	}
 
-	line := p.peek().Line()
-
-	var cond syntax.Expr = syntax.NewLiteralExprAt(false, line)
+	var cond syntax.Expr = syntax.MakeBooleanLiteral(false, loc)
 
 	if p.match(syntax.TokenUntil) {
 		cond, err = p.expr()
@@ -236,24 +242,26 @@ func (p *parser) repeatStmt() (stmt syntax.Stmt, err *parsingError) {
 	block = append(
 		block, syntax.NewIfStmt(
 			cond,
-			[]syntax.Stmt{syntax.NewBreakStmt(line)},
+			[]syntax.Stmt{syntax.NewBreakStmt(loc)},
 			nil,
+			loc,
 		),
 	)
 
 	stmt = syntax.NewWhileStmt(
-		syntax.NewLiteralExprAt(true, line),
+		syntax.MakeBooleanLiteral(true, loc),
 		block,
+		loc,
 	)
 	return
 }
 
 // returnStmt ::= "return" [ expr ] .
 func (p *parser) returnStmt() (stmt syntax.Stmt, err *parsingError) {
-	line := p.prev().Line()
+	loc := p.prev().Location()
 
 	if p.check(syntax.TokenSemicolon) {
-		stmt = syntax.NewReturnStmtAt(nil, line)
+		stmt = syntax.NewReturnStmtAt(nil, loc)
 		return
 	}
 
@@ -263,19 +271,19 @@ func (p *parser) returnStmt() (stmt syntax.Stmt, err *parsingError) {
 		return
 	}
 
-	stmt = syntax.NewReturnStmtAt(value, line)
+	stmt = syntax.NewReturnStmtAt(value, loc)
 	return
 }
 
 // breakStmt ::= "break" .
 func (p *parser) breakStmt() (stmt syntax.Stmt, err *parsingError) {
-	stmt = syntax.NewBreakStmt(p.prev().Line())
+	stmt = syntax.NewBreakStmt(p.prev().Location())
 	return
 }
 
 // continueStmt ::= "continue" .
 func (p *parser) continueStmt() (stmt syntax.Stmt, err *parsingError) {
-	stmt = syntax.NewContinueStmt(p.prev().Line())
+	stmt = syntax.NewContinueStmt(p.prev().Location())
 	return
 }
 
@@ -286,13 +294,15 @@ func (p *parser) stmt() (stmt syntax.Stmt, err *parsingError) {
 	case p.match(syntax.TokenPrint):
 		return p.printStmt()
 	case p.match(syntax.TokenBraceL):
+		loc := p.prev().Location()
+
 		var stmts []syntax.Stmt
 		stmts, err = p.blockStmt()
 		if err != nil {
 			return
 		}
 
-		stmt = syntax.NewBlockStmt(stmts)
+		stmt = syntax.NewBlockStmt(stmts, loc)
 	case p.match(syntax.TokenIf):
 		return p.ifStmt()
 	case p.match(syntax.TokenWhile):

@@ -5,41 +5,51 @@ import "fmt"
 type Expr interface {
 	expr()
 
-	Line() int
+	Locatable
 }
 
 type UnaryExpr struct {
+	Located
+
 	Operator Token
 	Operand  Expr
 }
 
 type BinaryExpr struct {
+	Located
+
 	Operator Token
 	Left     Expr
 	Right    Expr
 }
 
 type GroupingExpr struct {
+	Located
+
 	Inner Expr
 }
 
 type LiteralExpr struct {
-	line int
+	Located
 
-	Literal any
+	Literal Token
 }
 
 type VarExpr struct {
+	Located
+
 	Name Token
 }
 
 type AssignExpr struct {
+	Located
+
 	Name  Token
 	Value Expr
 }
 
 type FunctionExpr struct {
-	line int
+	Located
 
 	Name       *Token
 	Parameters []struct {
@@ -51,20 +61,26 @@ type FunctionExpr struct {
 }
 
 type CallExpr struct {
+	Located
+
 	Callee    Expr
 	Arguments []Expr
 }
 
 type VariantTypeExpr struct {
+	Located
+
 	Types []Expr
 }
 
 type NamedTypeExpr struct {
+	Located
+
 	Name Token
 }
 
 type FunctionTypeExpr struct {
-	line int
+	Located
 
 	teste func() int
 
@@ -84,109 +100,76 @@ func (e VariantTypeExpr) expr()  {}
 func (e NamedTypeExpr) expr()    {}
 func (e FunctionTypeExpr) expr() {}
 
-func (e UnaryExpr) Line() int {
-	return e.Operator.Line()
-}
-
-func (e BinaryExpr) Line() int {
-	return e.Left.Line()
-}
-
-func (e GroupingExpr) Line() int {
-	return e.Inner.Line()
-}
-
-func (e LiteralExpr) Line() int {
-	return e.line
-}
-
-func (e VarExpr) Line() int {
-	return e.Name.Line()
-}
-
-func (e AssignExpr) Line() int {
-	return e.Name.Line()
-}
-
-func (e FunctionExpr) Line() int {
-	return e.line
-}
-
-func (e CallExpr) Line() int {
-	return e.Callee.Line()
-}
-
-func (e VariantTypeExpr) Line() int {
-	return e.Types[0].Line()
-}
-
-func (e NamedTypeExpr) Line() int {
-	return e.Name.Line()
-}
-
-func (e FunctionTypeExpr) Line() int {
-	return e.line
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 
-func NewUnaryExpr(operator Token, operand Expr) UnaryExpr {
+func (e LiteralExpr) Value() any {
+	return e.Literal.LiteralValue
+}
+
+func NewUnaryExpr(operator Token, operand Expr, loc Location) UnaryExpr {
 	return UnaryExpr{
+		Located: NewLocated(loc),
+
 		Operator: operator,
 		Operand:  operand,
 	}
 }
 
-func NewBinaryExpr(operator Token, left Expr, right Expr) BinaryExpr {
+func NewBinaryExpr(
+	operator Token,
+	left Expr,
+	right Expr,
+	loc Location,
+) BinaryExpr {
 	return BinaryExpr{
+		Located: NewLocated(loc),
+
 		Operator: operator,
 		Left:     left,
 		Right:    right,
 	}
 }
 
-func NewGroupingExpr(inner Expr) GroupingExpr {
+func NewGroupingExpr(inner Expr, loc Location) GroupingExpr {
 	return GroupingExpr{
+		Located: NewLocated(loc),
+
 		Inner: inner,
 	}
 }
 
-func NewLiteralExprFromToken(literal Token) (expr LiteralExpr) {
-	expr.line = literal.line
+func NewLiteralExpr(literal Token) (expr LiteralExpr) {
+	expr.loc = LocationFromToken(literal)
+	newLiteral := literal
 
 	switch literal.Kind {
 	case TokenString, TokenNumber:
-		expr.Literal = literal.Literal
-		return
 	case TokenNil:
-		expr.Literal = nil
-		return
+		newLiteral.LiteralValue = nil
 	case TokenFalse:
-		expr.Literal = false
-		return
+		newLiteral.LiteralValue = false
 	case TokenTrue:
-		expr.Literal = true
-		return
+		newLiteral.LiteralValue = true
 	default:
 		panic(fmt.Sprint("Non-literal token ", literal, " passed to the constructor of LiteralExpr."))
 	}
-}
 
-func NewLiteralExprAt(literal any, line int) (expr LiteralExpr) {
-	return LiteralExpr{
-		Literal: literal,
-		line:    line,
-	}
+	expr.Literal = newLiteral
+	return
 }
 
 func NewVarExpr(name Token) VarExpr {
 	return VarExpr{
+		Located: NewLocated(LocationFromToken(name)),
+
 		Name: name,
 	}
 }
 
 func NewAssignExpr(name Token, value Expr) AssignExpr {
 	return AssignExpr{
+		Located: NewLocated(LocationFromToken(name)),
+
 		Name:  name,
 		Value: value,
 	}
@@ -200,10 +183,10 @@ func NewFunctionExpr(
 	},
 	returnType Expr,
 	body []Stmt,
-	line int,
+	loc Location,
 ) FunctionExpr {
 	return FunctionExpr{
-		line: line,
+		Located: NewLocated(loc),
 
 		Name:       name,
 		Parameters: parameters,
@@ -214,6 +197,8 @@ func NewFunctionExpr(
 
 func NewCallExpr(callee Expr, arguments []Expr) CallExpr {
 	return CallExpr{
+		Located: NewLocated(callee.Location()),
+
 		Callee:    callee,
 		Arguments: arguments,
 	}
@@ -221,12 +206,16 @@ func NewCallExpr(callee Expr, arguments []Expr) CallExpr {
 
 func NewVariantTypeExpr(types []Expr) VariantTypeExpr {
 	return VariantTypeExpr{
+		Located: NewLocated(types[0].Location()),
+
 		Types: types,
 	}
 }
 
 func NewNamedTypeExpr(name Token) NamedTypeExpr {
 	return NamedTypeExpr{
+		Located: NewLocated(LocationFromToken(name)),
+
 		Name: name,
 	}
 }
@@ -234,10 +223,10 @@ func NewNamedTypeExpr(name Token) NamedTypeExpr {
 func NewFunctionTypeExpr(
 	paramsType []Expr,
 	returnType Expr,
-	line int,
+	loc Location,
 ) FunctionTypeExpr {
 	return FunctionTypeExpr{
-		line: line,
+		Located: NewLocated(loc),
 
 		ParamsType: paramsType,
 		ReturnType: returnType,

@@ -3,42 +3,52 @@ package syntax
 type Stmt interface {
 	stmt()
 
-	Line() int
+	Locatable
 }
 
 type ExprStmt struct {
+	Located
+
 	Expr Expr
 }
 
 type PrintStmt struct {
+	Located
+
 	Expr Expr
 }
 
 type VarStmt struct {
+	Located
+
 	Name        Token
 	Type        Expr
 	Initializer Expr
 }
 
 type BlockStmt struct {
-	line int
+	Located
 
 	Stmts []Stmt
 }
 
 type IfStmt struct {
+	Located
+
 	Condition  Expr
 	ThenBranch []Stmt
 	ElseBranch []Stmt
 }
 
 type WhileStmt struct {
+	Located
+
 	Condition Expr
 	Block     []Stmt
 }
 
 type ForNumStmt struct {
-	line int
+	Located
 
 	Var   Token
 	Start Expr
@@ -48,21 +58,21 @@ type ForNumStmt struct {
 }
 
 type ReturnStmt struct {
-	line int
+	Located
 
 	Value Expr
 }
 
 type BreakStmt struct {
-	line int
+	Located
 }
 
 type ContinueStmt struct {
-	line int
+	Located
 }
 
 type TypeStmt struct {
-	line int
+	Located
 
 	Name  Token
 	Value Expr
@@ -80,117 +90,99 @@ func (s ContinueStmt) stmt() {}
 func (s ForNumStmt) stmt()   {}
 func (s TypeStmt) stmt()     {}
 
-func (s ExprStmt) Line() int {
-	return s.Expr.Line()
-}
-
-func (s PrintStmt) Line() int {
-	return s.Expr.Line()
-}
-
-func (s VarStmt) Line() int {
-	return s.Name.Line()
-}
-
-func (s BlockStmt) Line() int {
-	return s.line
-}
-
-func (s IfStmt) Line() int {
-	return s.Condition.Line()
-}
-
-func (s WhileStmt) Line() int {
-	return s.Condition.Line()
-}
-
-func (s ReturnStmt) Line() int {
-	return s.line
-}
-
-func (s BreakStmt) Line() int {
-	return s.line
-}
-
-func (s ContinueStmt) Line() int {
-	return s.line
-}
-
-func (s ForNumStmt) Line() int {
-	return s.line
-}
-
-func (s TypeStmt) Line() int {
-	return s.line
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 
 func NewExprStmt(expr Expr) ExprStmt {
 	return ExprStmt{
-		Expr: expr,
+		Located: NewLocated(expr.Location()),
+		Expr:    expr,
 	}
 }
 
-func NewPrintStmt(expr Expr) PrintStmt {
+func NewPrintStmt(expr Expr, loc Location) PrintStmt {
 	return PrintStmt{
-		Expr: expr,
+		Located: NewLocated(loc),
+		Expr:    expr,
 	}
 }
 
-func NewVarStmt(name Token, valueType Expr, initializer Expr) VarStmt {
+func NewVarStmt(
+	name Token,
+	valueType Expr,
+	initializer Expr,
+	loc Location,
+) VarStmt {
 	return VarStmt{
+		Located: NewLocated(loc),
+
 		Name:        name,
 		Type:        valueType,
 		Initializer: initializer,
 	}
 }
 
-func NewBlockStmt(stmts []Stmt) BlockStmt {
+func NewBlockStmt(stmts []Stmt, loc Location) BlockStmt {
 	return BlockStmt{
+		Located: NewLocated(loc),
+
 		Stmts: stmts,
 	}
 }
 
-func NewIfStmt(condition Expr, thenBranch []Stmt, elseBranch []Stmt) IfStmt {
+func NewIfStmt(
+	condition Expr,
+	thenBranch []Stmt,
+	elseBranch []Stmt,
+	loc Location,
+) IfStmt {
 	return IfStmt{
+		Located: NewLocated(loc),
+
 		Condition:  condition,
 		ThenBranch: thenBranch,
 		ElseBranch: elseBranch,
 	}
 }
 
-func NewWhileStmt(condition Expr, block []Stmt) WhileStmt {
+func NewWhileStmt(condition Expr, block []Stmt, loc Location) WhileStmt {
 	return WhileStmt{
+		Located: NewLocated(loc),
+
 		Condition: condition,
 		Block:     block,
 	}
 }
 
-func NewReturnStmtAt(value Expr, line int) ReturnStmt {
+func NewReturnStmtAt(value Expr, loc Location) ReturnStmt {
 	return ReturnStmt{
-		line:  line,
+		Located: NewLocated(loc),
+
 		Value: value,
 	}
 }
 
-func NewBreakStmt(line int) BreakStmt {
+func NewBreakStmt(loc Location) BreakStmt {
 	return BreakStmt{
-		line: line,
+		Located: NewLocated(loc),
 	}
 }
 
-func NewContinueStmt(line int) ContinueStmt {
+func NewContinueStmt(loc Location) ContinueStmt {
 	return ContinueStmt{
-		line: line,
+		Located: NewLocated(loc),
 	}
 }
 
 func NewForNumStmt(
-	varName Token, start Expr, limit Expr, step Expr, block []Stmt, line int,
+	varName Token,
+	start Expr,
+	limit Expr,
+	step Expr,
+	block []Stmt,
+	loc Location,
 ) ForNumStmt {
 	return ForNumStmt{
-		line: line,
+		Located: NewLocated(loc),
 
 		Var:   varName,
 		Start: start,
@@ -200,9 +192,9 @@ func NewForNumStmt(
 	}
 }
 
-func NewTypeStmt(name Token, value Expr, line int) TypeStmt {
+func NewTypeStmt(name Token, value Expr, loc Location) TypeStmt {
 	return TypeStmt{
-		line: line,
+		Located: NewLocated(loc),
 
 		Name:  name,
 		Value: value,

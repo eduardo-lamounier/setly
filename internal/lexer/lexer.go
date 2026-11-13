@@ -147,7 +147,7 @@ func (l *lexer) emitLiteralToken(
 
 	token := syntax.NewLiteralToken(
 		kind, l.Source[l.Start:l.Pos], literal,
-		l.Start, line, col,
+		syntax.NewLocation(l.Start, line, col),
 	)
 
 	l.Tokens = append(l.Tokens, token)
@@ -222,7 +222,11 @@ func (l *lexer) scanToken() {
 	case '+':
 		l.emitToken(syntax.TokenPlus)
 	case '-':
-		l.emitToken(syntax.TokenMinus)
+		if l.match('>') {
+			l.emitToken(syntax.TokenArrowR)
+		} else {
+			l.emitToken(syntax.TokenMinus)
+		}
 	case '*':
 		l.emitToken(syntax.TokenStar)
 	case '/':

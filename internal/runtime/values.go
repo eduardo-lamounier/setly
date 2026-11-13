@@ -60,6 +60,10 @@ func (f Function) String() string {
 		)
 	}
 
+	if f.Declaration.ReturnType != nil {
+		return fmt.Sprintf("function(%s)", strings.Join(params, ","))
+	}
+
 	return fmt.Sprintf(
 		"function(%s) %s",
 		strings.Join(params, ","), typeExprToString(f.Declaration.ReturnType),
