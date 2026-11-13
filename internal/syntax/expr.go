@@ -32,7 +32,7 @@ type GroupingExpr struct {
 type LiteralExpr struct {
 	Located
 
-	Literal any
+	Literal Token
 }
 
 type VarExpr struct {
@@ -102,6 +102,8 @@ func (e FunctionTypeExpr) expr() {}
 
 ////////////////////////////////////////////////////////////////////////////////
 
+func (e LiteralExpr) Value() any {
+	return e.Literal.LiteralValue
 }
 
 func NewUnaryExpr(operator Token, operand Expr, loc Location) UnaryExpr {
@@ -136,7 +138,7 @@ func NewGroupingExpr(inner Expr, loc Location) GroupingExpr {
 	}
 }
 
-func NewLiteralExprFromToken(literal Token) (expr LiteralExpr) {
+func NewLiteralExpr(literal Token) (expr LiteralExpr) {
 	expr.loc = LocationFromToken(literal)
 	newLiteral := literal
 
@@ -151,15 +153,9 @@ func NewLiteralExprFromToken(literal Token) (expr LiteralExpr) {
 	default:
 		panic(fmt.Sprint("Non-literal token ", literal, " passed to the constructor of LiteralExpr."))
 	}
-}
 
 	expr.Literal = newLiteral
 	return
-func NewLiteralExprAt(literal any, line int) (expr LiteralExpr) {
-	return LiteralExpr{
-		Literal: literal,
-		line:    line,
-	}
 }
 
 func NewVarExpr(name Token) VarExpr {

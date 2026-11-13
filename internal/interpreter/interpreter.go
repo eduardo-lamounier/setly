@@ -183,7 +183,7 @@ func (i *interpreter) evaluate(
 
 		panic("Some binary operator not implemented.")
 	case syntax.LiteralExpr:
-		return runtime.ValueFromLiteral(expr.Literal), nil
+		return runtime.ValueFromLiteral(expr.Value()), nil
 	case syntax.GroupingExpr:
 		return i.evaluate(expr.Inner)
 	case syntax.VarExpr:
