@@ -44,6 +44,10 @@ func (e *Environment) Define(name string, value Value) {
 }
 
 func (e *Environment) Assign(name string, value Value) {
+	if _, ok := e.values[name]; !ok {
+		panic(fmt.Sprintf("Undefined variable '%s' to assign a value to.", name))
+	}
+
 	e.values[name] = value
 }
 
