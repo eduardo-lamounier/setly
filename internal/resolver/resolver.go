@@ -103,7 +103,7 @@ func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 	case syntax.FunctionTypeExpr:
 	}
 
-	return nil
+	return
 }
 
 func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
@@ -187,7 +187,7 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 		// TODO: Resolve type declarations statements?
 	}
 
-	return nil
+	return
 }
 
 func (r *resolver) resolveAll(stmts []syntax.Stmt) {
