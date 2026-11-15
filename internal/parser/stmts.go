@@ -158,7 +158,7 @@ func (p *parser) whileStmt() (stmt syntax.Stmt, err *parsingError) {
 	return
 }
 
-// forNumStmt ::= "for" ID ":=" expr "," expr [ "," expr ] blockStmt .
+// forNumStmt ::= "for" ID "=" expr "," expr [ "," expr ] blockStmt .
 func (p *parser) forStmt() (stmt syntax.Stmt, err *parsingError) {
 	loc := p.prev().Location()
 
@@ -169,7 +169,7 @@ func (p *parser) forStmt() (stmt syntax.Stmt, err *parsingError) {
 
 	varName := p.prev()
 
-	if p.expect(syntax.TokenColonEqual) == nil {
+	if p.expect(syntax.TokenEqual) == nil {
 		err = &parsingError{}
 		return
 	}

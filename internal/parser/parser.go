@@ -117,7 +117,7 @@ The grammar uses a variation of EBNF notation.
 - `.` terminates a production.
 *******************************************************************************/
 
-// varDecl ::= "let" ID ":" typeExpr [ ":=" expr ] .
+// varDecl ::= "let" ID ":" typeExpr [ "=" expr ] .
 func (p *parser) varDeclaration() (stmt syntax.Stmt, err *parsingError) {
 	loc := p.prev().Location()
 	varName := p.peek()
@@ -139,7 +139,7 @@ func (p *parser) varDeclaration() (stmt syntax.Stmt, err *parsingError) {
 	}
 
 	var initializer syntax.Expr = nil
-	if p.match(syntax.TokenColonEqual) {
+	if p.match(syntax.TokenEqual) {
 		initializer, err = p.expr()
 		if err != nil {
 			return

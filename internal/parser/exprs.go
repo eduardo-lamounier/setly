@@ -368,14 +368,14 @@ func (p *parser) comparisonExpr() (expr syntax.Expr, err *parsingError) {
 	return
 }
 
-// equalityExpr ::= comparisonExpr { ( "~=" | "=" ) comparisonExpr } .
+// equalityExpr ::= comparisonExpr { ( "~=" | "==" ) comparisonExpr } .
 func (p *parser) equalityExpr() (expr syntax.Expr, err *parsingError) {
 	expr, err = p.comparisonExpr()
 	if err != nil {
 		return
 	}
 
-	for p.match(syntax.TokenTildeEqual, syntax.TokenEqual) {
+	for p.match(syntax.TokenTildeEqual, syntax.TokenEqualEqual) {
 		operator := p.prev()
 
 		var right syntax.Expr
@@ -451,14 +451,14 @@ func (p *parser) logicalOrExpr() (expr syntax.Expr, err *parsingError) {
 	return
 }
 
-// assignmentExpr ::= logicalOrExpr [ ":=" assignmentExpr ] .
+// assignmentExpr ::= logicalOrExpr [ "=" assignmentExpr ] .
 func (p *parser) assignmentExpr() (expr syntax.Expr, err *parsingError) {
 	expr, err = p.logicalOrExpr()
 	if err != nil {
 		return
 	}
 
-	if p.match(syntax.TokenColonEqual) {
+	if p.match(syntax.TokenEqual) {
 		op := p.prev()
 
 		var value syntax.Expr
