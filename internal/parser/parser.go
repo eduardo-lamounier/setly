@@ -214,7 +214,7 @@ func (p *parser) functionDeclaration() (stmt syntax.Stmt, err *parsingError) {
 	return
 }
 
-// typeDecl ::= "type" ID ":=" typeExpr .
+// typeDecl ::= "type" ID "=" typeExpr .
 func (p *parser) typeDeclaration() (stmt syntax.Stmt, err *parsingError) {
 	loc := p.prev().Location()
 
@@ -225,7 +225,7 @@ func (p *parser) typeDeclaration() (stmt syntax.Stmt, err *parsingError) {
 
 	name := p.prev()
 
-	if p.expect(syntax.TokenColonEqual) == nil {
+	if p.expect(syntax.TokenEqual) == nil {
 		err = &parsingError{}
 		return
 	}
