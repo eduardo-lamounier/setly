@@ -14,6 +14,7 @@ type resolver struct {
 	Locals map[syntax.Expr]int
 
 	InsideFunction bool
+	InsideLoop     bool
 
 	HadError    bool
 	Diagnostics []diagnostics.Diagnostic
@@ -138,9 +139,23 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 			r.resolveAll(stmt.ElseBranch)
 		}
 	case syntax.WhileStmt:
+		wereInsideLoop := r.InsideLoop
+		r.InsideLoop = true
+
+		defer func() {
+			r.InsideLoop = wereInsideLoop
+		}()
+
 		r.resolveExpr(stmt.Condition)
 		r.resolveAll(stmt.Block)
 	case syntax.ForNumStmt:
+		wereInsideLoop := r.InsideLoop
+		r.InsideLoop = true
+
+		defer func() {
+			r.InsideLoop = wereInsideLoop
+		}()
+
 		r.resolveLocal(stmt.Start, stmt.Var)
 		r.resolveExpr(stmt.Limit)
 		r.resolveExpr(stmt.Step)
@@ -156,6 +171,18 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 		}
 
 		r.resolveExpr(stmt.Value)
+	case syntax.BreakStmt:
+		if !r.InsideLoop {
+			r.reportAt("Can't return outside a loop.", stmt.Location())
+			err = &resolvingError{}
+			return
+		}
+	case syntax.ContinueStmt:
+		if !r.InsideLoop {
+			r.reportAt("Can't return outside a loop.", stmt.Location())
+			err = &resolvingError{}
+			return
+		}
 	case syntax.TypeStmt:
 		// TODO: Resolve type declarations statements?
 	}
