@@ -215,11 +215,7 @@ func (l *lexer) scanToken() {
 	case '|':
 		l.emitToken(syntax.TokenPipe)
 	case ':':
-		if l.match('=') {
-			l.emitToken(syntax.TokenColonEqual)
-		} else {
-			l.emitToken(syntax.TokenColon)
-		}
+		l.emitToken(syntax.TokenColon)
 	case ';':
 		l.emitToken(syntax.TokenSemicolon)
 	case '+':
@@ -239,7 +235,11 @@ func (l *lexer) scanToken() {
 			l.emitToken(syntax.TokenSlash)
 		}
 	case '=':
-		l.emitToken(syntax.TokenEqual)
+		if l.match('=') {
+			l.emitToken(syntax.TokenEqualEqual)
+		} else {
+			l.emitToken(syntax.TokenEqual)
+		}
 	case '~':
 		if l.match('=') {
 			l.emitToken(syntax.TokenTildeEqual)
