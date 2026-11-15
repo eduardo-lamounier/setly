@@ -3,14 +3,37 @@
 package resolver
 
 import (
+	"github.com/eduardo-lamounier/setly/internal/diagnostics"
 	"github.com/eduardo-lamounier/setly/internal/syntax"
 	"github.com/eduardo-lamounier/setly/internal/util/stack"
 )
 
 type resolver struct {
-	Source string
-	Scopes stack.Stack[map[string]struct{}]
-	Locals map[syntax.Expr]int
+	Source         string
+	Scopes         stack.Stack[map[string]struct{}]
+	Locals         map[syntax.Expr]int
+	InsideFunction bool
+
+	HadError    bool
+	Diagnostics []diagnostics.Diagnostic
+}
+
+type resolvingError struct{}
+
+func (r *resolver) reportAt(message string, loc syntax.Location) {
+	r.HadError = true
+	r.Diagnostics = append(
+		r.Diagnostics,
+		diagnostics.New(message, loc, r.Source),
+	)
+}
+
+func (r *resolver) reportAtToken(message string, tok syntax.Token) {
+	r.HadError = true
+	r.Diagnostics = append(
+		r.Diagnostics,
+		diagnostics.New(message, tok.Location(), r.Source),
+	)
 }
 
 func (r *resolver) beginScope() {
@@ -37,7 +60,7 @@ func (r *resolver) resolveLocal(expr syntax.Expr, name syntax.Token) {
 	}
 }
 
-func (r *resolver) resolveExpr(expr syntax.Expr) {
+func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 	switch expr := expr.(type) {
 	case syntax.VarExpr:
 		r.resolveLocal(expr, expr.Name)
@@ -71,9 +94,11 @@ func (r *resolver) resolveExpr(expr syntax.Expr) {
 	case syntax.NamedTypeExpr:
 	case syntax.FunctionTypeExpr:
 	}
+
+	return nil
 }
 
-func (r *resolver) resolveStmt(stmt syntax.Stmt) {
+func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 	switch stmt := stmt.(type) {
 	case syntax.BlockStmt:
 		r.beginScope()
@@ -121,6 +146,8 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) {
 	case syntax.TypeStmt:
 		// TODO: Resolve type declarations statements?
 	}
+
+	return nil
 }
 
 func (r *resolver) resolveAll(stmts []syntax.Stmt) {
@@ -129,13 +156,16 @@ func (r *resolver) resolveAll(stmts []syntax.Stmt) {
 	}
 }
 
-func Resolve(source string, stmts []syntax.Stmt) (locals map[syntax.Expr]int) {
+func Resolve(source string, stmts []syntax.Stmt) (
+	locals map[syntax.Expr]int,
+	hadError bool,
+	ds []diagnostics.Diagnostic,
+) {
 	r := resolver{
 		Scopes: stack.New[map[string]struct{}](),
 		Locals: make(map[syntax.Expr]int),
 	}
 
 	r.resolveAll(stmts)
-	locals = r.Locals
-	return
+	return r.Locals, r.HadError, r.Diagnostics
 }

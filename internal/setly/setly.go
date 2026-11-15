@@ -26,7 +26,12 @@ func Run(source string, opts interpreter.Options) error {
 		return fmt.Errorf("errors were found in the source code")
 	}
 
-	locals := resolver.Resolve(source, stmts)
+	locals, hadError, ds := resolver.Resolve(source, stmts)
+
+	if hadError {
+		reportAll(ds)
+		return fmt.Errorf("error were found in the source code")
+	}
 
 	if err := interpreter.Interpret(stmts, locals, opts); err != nil {
 		return err
