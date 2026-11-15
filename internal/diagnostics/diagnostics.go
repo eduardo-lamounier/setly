@@ -5,19 +5,29 @@ import (
 	"fmt"
 	"math"
 	"os"
+
+	"github.com/eduardo-lamounier/setly/internal/syntax"
 )
 
 type Diagnostic struct {
-	Line    int
-	Col     int
-	Pos     int
+	syntax.Located
+
 	Message string
 	Source  string
 }
 
+func New(message string, loc syntax.Location, source string) Diagnostic {
+	return Diagnostic{
+		Located: syntax.NewLocated(loc),
+
+		Message: message,
+		Source:  source,
+	}
+}
+
 func (d Diagnostic) Report() {
 	lineBegin := 0
-	for i := d.Pos; i > 0; i-- {
+	for i := d.Pos(); i > 0; i-- {
 		if d.Source[i-1] == '\n' {
 			lineBegin = i
 			break
@@ -25,7 +35,7 @@ func (d Diagnostic) Report() {
 	}
 
 	lineEnding := len(d.Source)
-	for i := d.Pos; i < len(d.Source)-1; i++ {
+	for i := d.Pos(); i < len(d.Source)-1; i++ {
 		if d.Source[i] == '\n' {
 			lineEnding = i
 			break
@@ -34,9 +44,9 @@ func (d Diagnostic) Report() {
 
 	line := d.Source[lineBegin:lineEnding]
 
-	fmt.Fprintf(os.Stderr, "%d:%d: %s\n", d.Line, d.Col, d.Message)
-	fmt.Fprintf(os.Stderr, "%d | %s\n", d.Line, line)
+	fmt.Fprintf(os.Stderr, "%d:%d: %s\n", d.Line(), d.Col(), d.Message)
+	fmt.Fprintf(os.Stderr, "%d | %s\n", d.Line(), line)
 
-	offset := int(math.Log10(float64(d.Line))+1) + 3
-	fmt.Fprintf(os.Stderr, "%*s\n", offset+d.Pos-lineBegin+len("^ here!"), "^ here!")
+	offset := int(math.Log10(float64(d.Line()))+1) + 3
+	fmt.Fprintf(os.Stderr, "%*s\n", offset+d.Pos()-lineBegin+len("^ here!"), "^ here!")
 }
