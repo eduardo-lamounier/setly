@@ -44,12 +44,24 @@ func (p parser) prev() syntax.Token {
 	return p.Tokens[p.Pos-1]
 }
 
+func (p parser) next() syntax.Token {
+	if p.Pos+1 >= len(p.Tokens) {
+		return p.Tokens[len(p.Tokens)-1]
+	}
+
+	return p.Tokens[p.Pos+1]
+}
+
 func (p parser) check(expected syntax.TokenKind) bool {
 	if p.atEnd() {
 		return false
 	}
 
 	return p.peek().Kind == expected
+}
+
+func (p parser) checkNext(expected syntax.TokenKind) bool {
+	return p.next().Kind == expected
 }
 
 func (p *parser) report(message string) {
