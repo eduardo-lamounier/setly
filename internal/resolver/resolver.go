@@ -9,9 +9,10 @@ import (
 )
 
 type resolver struct {
-	Source         string
-	Scopes         stack.Stack[map[string]struct{}]
-	Locals         map[syntax.Expr]int
+	Source string
+	Scopes stack.Stack[map[string]struct{}]
+	Locals map[syntax.Expr]int
+
 	InsideFunction bool
 
 	HadError    bool
@@ -76,7 +77,13 @@ func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 		r.resolveExpr(expr.Inner)
 	case syntax.FunctionExpr:
 		r.beginScope()
-		defer r.endScope()
+		wereInsideFunction := r.InsideFunction
+		r.InsideFunction = true
+
+		defer func() {
+			r.endScope()
+			r.InsideFunction = wereInsideFunction
+		}()
 
 		for _, param := range expr.Parameters {
 			r.define(param.Name)
@@ -142,6 +149,12 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 	case syntax.PrintStmt:
 		r.resolveExpr(stmt.Expr)
 	case syntax.ReturnStmt:
+		if !r.InsideFunction {
+			r.reportAt("Can't return outside a function.", stmt.Location())
+			err = &resolvingError{}
+			return
+		}
+
 		r.resolveExpr(stmt.Value)
 	case syntax.TypeStmt:
 		// TODO: Resolve type declarations statements?
