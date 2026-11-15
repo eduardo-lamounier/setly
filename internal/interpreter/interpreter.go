@@ -188,14 +188,6 @@ func (i *interpreter) evaluate(
 		return i.evaluate(expr.Inner)
 	case syntax.VarExpr:
 		return i.Environment.Access(expr.Name.Lexeme), nil
-	case syntax.AssignExpr:
-		value, err := i.evaluate(expr.Value)
-		if err != nil {
-			return nil, err
-		}
-
-		i.Environment.Assign(expr.Name.Lexeme, value)
-		return i.Environment.Access(expr.Name.Lexeme), nil
 	case syntax.FunctionExpr:
 		return runtime.Function{
 			Declaration: expr,
@@ -266,6 +258,13 @@ func (i *interpreter) execute(
 		}
 
 		i.Environment.Define(stmt.Name.Lexeme, value)
+	case syntax.AssignStmt:
+		value, err := i.evaluate(stmt.Value)
+		if err != nil {
+			return err, nil
+		}
+
+		i.Environment.Assign(stmt.Name.Lexeme, value)
 	case syntax.BlockStmt:
 		return i.executeBlock(stmt.Stmts, runtime.NewEnvironment(i.Environment))
 	case syntax.IfStmt:
