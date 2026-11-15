@@ -56,7 +56,7 @@ func (e *Environment) Access(name string) Value {
 		return v
 	}
 
-	panic(fmt.Sprintf("Undefined variable %s.", name))
+	panic(fmt.Sprintf("Undefined variable '%s'.", name))
 }
 
 func (e *Environment) AccessAt(name string, distance int) Value {
