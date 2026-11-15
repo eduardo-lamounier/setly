@@ -41,13 +41,6 @@ type VarExpr struct {
 	Name Token
 }
 
-type AssignExpr struct {
-	Located
-
-	Name  Token
-	Value Expr
-}
-
 type FunctionExpr struct {
 	Located
 
@@ -93,7 +86,6 @@ func (e BinaryExpr) expr()       {}
 func (e GroupingExpr) expr()     {}
 func (e LiteralExpr) expr()      {}
 func (e VarExpr) expr()          {}
-func (e AssignExpr) expr()       {}
 func (e FunctionExpr) expr()     {}
 func (e CallExpr) expr()         {}
 func (e VariantTypeExpr) expr()  {}
@@ -163,15 +155,6 @@ func NewVarExpr(name Token) VarExpr {
 		Located: NewLocated(LocationFromToken(name)),
 
 		Name: name,
-	}
-}
-
-func NewAssignExpr(name Token, value Expr) AssignExpr {
-	return AssignExpr{
-		Located: NewLocated(LocationFromToken(name)),
-
-		Name:  name,
-		Value: value,
 	}
 }
 
