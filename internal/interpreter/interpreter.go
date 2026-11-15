@@ -175,7 +175,7 @@ func (i *interpreter) evaluate(
 			return runtime.Boolean(l.(runtime.Number) >= r.(runtime.Number)), nil
 		case syntax.TokenLessEqual:
 			return runtime.Boolean(l.(runtime.Number) <= r.(runtime.Number)), nil
-		case syntax.TokenEqual:
+		case syntax.TokenEqualEqual:
 			return runtime.Boolean(l == r), nil
 		case syntax.TokenTildeEqual:
 			return runtime.Boolean(l != r), nil
