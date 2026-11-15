@@ -25,6 +25,10 @@ type lexer struct {
 	Tokens      []syntax.Token
 }
 
+func (l lexer) location() syntax.Location {
+	return syntax.NewLocation(l.Pos, l.Line, l.Col)
+}
+
 func (l lexer) atEnd() bool {
 	return l.Pos >= len(l.Source)
 }
@@ -112,18 +116,17 @@ func (l *lexer) lexemeBegins() {
 }
 
 func (l *lexer) report(message string) {
-	l.reportAt(l.Line, l.Col, l.Pos, message)
+	l.HadError = true
+	l.Diagnostics = append(
+		l.Diagnostics, diagnostics.New(message, l.location(), l.Source),
+	)
 }
 
-func (l *lexer) reportAt(line int, col int, pos int, message string) {
+func (l *lexer) reportAt(message string, pos int, line int, col int) {
 	l.HadError = true
-	l.Diagnostics = append(l.Diagnostics, diagnostics.Diagnostic{
-		Source:  l.Source,
-		Line:    line,
-		Col:     col,
-		Pos:     pos,
-		Message: message,
-	})
+	l.Diagnostics = append(l.Diagnostics, diagnostics.New(
+		message, syntax.NewLocation(pos, line, col), l.Source,
+	))
 }
 
 func (l *lexer) emitToken(kind syntax.TokenKind) {
@@ -187,7 +190,7 @@ func (l *lexer) scanToken() {
 		}
 
 		if l.atEnd() {
-			l.reportAt(line, col, l.Start, "Comment block wasn't closed.")
+			l.reportAt("Comment block wasn't closed.", l.Start, line, col)
 			break
 		}
 
@@ -241,7 +244,7 @@ func (l *lexer) scanToken() {
 		if l.match('=') {
 			l.emitToken(syntax.TokenTildeEqual)
 		} else {
-			l.reportAt(l.Line, l.Col-1, l.Pos-1, "Unexpected chracter \"~\"")
+			l.reportAt("Unexpected character \"~\"", l.Pos-1, l.Line, l.Col-1)
 		}
 	case '<':
 		if l.match('=') {
@@ -266,7 +269,7 @@ func (l *lexer) scanToken() {
 		}
 
 		if l.peek() == '\n' || l.atEnd() {
-			l.reportAt(line, col, l.Start, "Unterminated string.")
+			l.reportAt("Unterminated string.", l.Start, line, col)
 			// Skips the following lines as too many
 			// unreadable errors may occur:
 			l.finish()
@@ -314,8 +317,9 @@ func (l *lexer) scanToken() {
 			break
 		}
 
-		l.reportAt(l.Line, l.Col-1, l.Pos-1,
-			fmt.Sprintf("Unexpected character \"%c\"", chr))
+		l.reportAt(
+			fmt.Sprintf("Unexpected character \"%c\"", chr), l.Pos-1, l.Line, l.Col-1,
+		)
 	}
 }
 
