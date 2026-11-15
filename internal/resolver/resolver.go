@@ -56,7 +56,7 @@ func (r *resolver) define(name syntax.Token) {
 func (r *resolver) resolveLocal(expr syntax.Expr, name syntax.Token) {
 	for i, scope := range r.Scopes.TopToBottom() {
 		if _, ok := scope[name.Lexeme]; ok {
-			r.Locals[expr] = r.Scopes.Count() - i
+			r.Locals[expr] = r.Scopes.Count() - i - 1
 			return
 		}
 	}
