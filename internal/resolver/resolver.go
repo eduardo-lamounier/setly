@@ -90,11 +90,14 @@ func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 	case syntax.FunctionExpr:
 		r.beginScope()
 		wereInsideFunction := r.InsideFunction
+		wereInsideLoop := r.InsideLoop
 		r.InsideFunction = true
+		r.InsideLoop = false
 
 		defer func() {
 			r.endScope()
 			r.InsideFunction = wereInsideFunction
+			r.InsideLoop = wereInsideLoop
 		}()
 
 		for _, param := range expr.Parameters {
