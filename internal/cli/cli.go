@@ -5,7 +5,6 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"os"
 	"slices"
 	"strings"
 )
@@ -23,9 +22,7 @@ type Options struct {
 	SourceFilePath *string
 }
 
-func GetOptions() (Options, error) {
-	args := os.Args[1:]
-
+func GetOptions(args []string) (Options, error) {
 	if len(args) == 0 {
 		return Options{}, nil // Should run interactively
 	}

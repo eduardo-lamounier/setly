@@ -19,7 +19,7 @@ const (
 )
 
 func main() {
-	opts, err := cli.GetOptions()
+	opts, err := cli.GetOptions(os.Args[1:])
 	if err != nil {
 		printError(err)
 		os.Exit(1)
