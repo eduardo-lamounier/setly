@@ -22,7 +22,7 @@ type VarStmt struct {
 	Located
 
 	Name        Token
-	Type        Expr
+	Type        TypeExpr
 	Initializer Expr
 }
 
@@ -82,7 +82,7 @@ type TypeStmt struct {
 	Located
 
 	Name  Token
-	Value Expr
+	Value TypeExpr
 }
 
 func (s ExprStmt) stmt()     {}
@@ -116,7 +116,7 @@ func NewPrintStmt(expr Expr, loc Location) PrintStmt {
 
 func NewVarStmt(
 	name Token,
-	valueType Expr,
+	valueType TypeExpr,
 	initializer Expr,
 	loc Location,
 ) VarStmt {
@@ -209,7 +209,7 @@ func NewForNumStmt(
 	}
 }
 
-func NewTypeStmt(name Token, value Expr, loc Location) TypeStmt {
+func NewTypeStmt(name Token, value TypeExpr, loc Location) TypeStmt {
 	return TypeStmt{
 		Located: NewLocated(loc),
 

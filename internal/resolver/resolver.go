@@ -124,14 +124,14 @@ func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 		for _, argument := range expr.Arguments {
 			r.resolveExpr(argument)
 		}
-
-	// TODO: Resolve type expressions?
-	case syntax.VariantTypeExpr:
-	case syntax.NamedTypeExpr:
-	case syntax.FunctionTypeExpr:
 	}
 
 	return
+}
+
+// TODO: Implement
+func (r *resolver) resolveTypeExpr() (err *resolvingError) {
+	panic("Resolving of type expressions not implemented.")
 }
 
 func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {

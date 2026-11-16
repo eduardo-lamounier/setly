@@ -119,7 +119,7 @@ func (f Function) Arity() int {
 	return len(f.Declaration.Parameters)
 }
 
-func typeExprToString(typeExpr syntax.Expr) string {
+func typeExprToString(typeExpr syntax.TypeExpr) string {
 	switch typeExpr := typeExpr.(type) {
 	case syntax.VariantTypeExpr:
 		var types []string

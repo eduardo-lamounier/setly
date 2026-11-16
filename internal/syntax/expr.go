@@ -60,37 +60,13 @@ type CallExpr struct {
 	Arguments []Expr
 }
 
-type VariantTypeExpr struct {
-	Located
-
-	Types []Expr
-}
-
-type NamedTypeExpr struct {
-	Located
-
-	Name Token
-}
-
-type FunctionTypeExpr struct {
-	Located
-
-	teste func() int
-
-	ParamsType []Expr
-	ReturnType Expr
-}
-
-func (e UnaryExpr) expr()        {}
-func (e BinaryExpr) expr()       {}
-func (e GroupingExpr) expr()     {}
-func (e LiteralExpr) expr()      {}
-func (e VarExpr) expr()          {}
-func (e FunctionExpr) expr()     {}
-func (e CallExpr) expr()         {}
-func (e VariantTypeExpr) expr()  {}
-func (e NamedTypeExpr) expr()    {}
-func (e FunctionTypeExpr) expr() {}
+func (e UnaryExpr) expr()    {}
+func (e BinaryExpr) expr()   {}
+func (e GroupingExpr) expr() {}
+func (e LiteralExpr) expr()  {}
+func (e VarExpr) expr()      {}
+func (e FunctionExpr) expr() {}
+func (e CallExpr) expr()     {}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -161,10 +137,7 @@ func NewVarExpr(name Token) VarExpr {
 func NewFunctionExpr(
 	name *Token,
 	parameters []struct {
-		Name Token
-		Type Expr
-	},
-	returnType Expr,
+	returnType TypeExpr,
 	body []Stmt,
 	loc Location,
 ) FunctionExpr {
@@ -184,34 +157,5 @@ func NewCallExpr(callee Expr, arguments []Expr) CallExpr {
 
 		Callee:    callee,
 		Arguments: arguments,
-	}
-}
-
-func NewVariantTypeExpr(types []Expr) VariantTypeExpr {
-	return VariantTypeExpr{
-		Located: NewLocated(types[0].Location()),
-
-		Types: types,
-	}
-}
-
-func NewNamedTypeExpr(name Token) NamedTypeExpr {
-	return NamedTypeExpr{
-		Located: NewLocated(LocationFromToken(name)),
-
-		Name: name,
-	}
-}
-
-func NewFunctionTypeExpr(
-	paramsType []Expr,
-	returnType Expr,
-	loc Location,
-) FunctionTypeExpr {
-	return FunctionTypeExpr{
-		Located: NewLocated(loc),
-
-		ParamsType: paramsType,
-		ReturnType: returnType,
 	}
 }

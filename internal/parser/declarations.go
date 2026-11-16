@@ -22,7 +22,7 @@ func (p *parser) varDeclaration() (stmt syntax.Stmt, err *parsingError) {
 		return
 	}
 
-	var typeName syntax.Expr
+	var typeName syntax.TypeExpr
 	typeName, err = p.typeExpr()
 	if err != nil {
 		return
@@ -70,7 +70,7 @@ func (p *parser) functionDeclaration() (stmt syntax.Stmt, err *parsingError) {
 		return
 	}
 
-	var returnType syntax.Expr = nil
+	var returnType syntax.TypeExpr = nil
 
 	if p.match(syntax.TokenArrowR) {
 		returnType, err = p.typeExpr()
@@ -90,7 +90,7 @@ func (p *parser) functionDeclaration() (stmt syntax.Stmt, err *parsingError) {
 		return
 	}
 
-	parametersType := []syntax.Expr{}
+	parametersType := []syntax.TypeExpr{}
 	for _, param := range parameters {
 		parametersType = append(parametersType, param.Type)
 	}
@@ -120,7 +120,7 @@ func (p *parser) typeDeclaration() (stmt syntax.Stmt, err *parsingError) {
 		return
 	}
 
-	var typeExpr syntax.Expr
+	var typeExpr syntax.TypeExpr
 	typeExpr, err = p.typeExpr()
 	if err != nil {
 		return

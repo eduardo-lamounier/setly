@@ -10,7 +10,7 @@ import "github.com/eduardo-lamounier/setly/internal/syntax"
 // functionTypeExpr ::= "function" "(" paramsTypeList ")" [ "->" typeExpr ] .
 //
 // paramsTypeList ::= [ typeExpr { "," typeExpr } [ "," ] ] .
-func (p *parser) functionTypeExpr() (expr syntax.Expr, err *parsingError) {
+func (p *parser) functionTypeExpr() (typeExpr syntax.TypeExpr, err *parsingError) {
 	loc := p.prev().Location()
 
 	if p.expect(syntax.TokenParenL) == nil {
@@ -18,10 +18,10 @@ func (p *parser) functionTypeExpr() (expr syntax.Expr, err *parsingError) {
 		return
 	}
 
-	paramsType := []syntax.Expr{}
+	paramsType := []syntax.TypeExpr{}
 	if !p.check(syntax.TokenParenR) {
 		for {
-			var paramType syntax.Expr
+			var paramType syntax.TypeExpr
 			paramType, err = p.typeExpr()
 			if err != nil {
 				return
@@ -41,7 +41,7 @@ func (p *parser) functionTypeExpr() (expr syntax.Expr, err *parsingError) {
 		return
 	}
 
-	var returnType syntax.Expr = nil
+	var returnType syntax.TypeExpr = nil
 	if p.match(syntax.TokenArrowR) {
 		returnType, err = p.typeExpr()
 		if err != nil {
@@ -49,12 +49,12 @@ func (p *parser) functionTypeExpr() (expr syntax.Expr, err *parsingError) {
 		}
 	}
 
-	expr = syntax.NewFunctionTypeExpr(paramsType, returnType, loc)
+	typeExpr = syntax.NewFunctionTypeExpr(paramsType, returnType, loc)
 	return
 }
 
 // literalTypeExpr ::= functionTypeExpr
-func (p *parser) literalTypeExpr() (expr syntax.Expr, err *parsingError) {
+func (p *parser) literalTypeExpr() (typeExpr syntax.TypeExpr, err *parsingError) {
 	switch {
 	case p.match(syntax.TokenFunction):
 		return p.functionTypeExpr()
@@ -68,10 +68,10 @@ func (p *parser) literalTypeExpr() (expr syntax.Expr, err *parsingError) {
 // primaryTypeExpr ::= literalTypeExpr | namedTypeExpr .
 //
 // namedTypeExpr ::= ID | NIL .
-func (p *parser) primaryTypeExpr() (expr syntax.Expr, err *parsingError) {
+func (p *parser) primaryTypeExpr() (typeExpr syntax.TypeExpr, err *parsingError) {
 	switch {
 	case p.match(syntax.TokenID, syntax.TokenNil):
-		expr = syntax.NewNamedTypeExpr(p.prev())
+		typeExpr = syntax.NewNamedTypeExpr(p.prev())
 	default:
 		return p.literalTypeExpr()
 	}
@@ -80,17 +80,17 @@ func (p *parser) primaryTypeExpr() (expr syntax.Expr, err *parsingError) {
 }
 
 // unionTypeExpr ::= primaryTypeExpr { "|" primaryTypeExpr } .
-func (p *parser) unionTypeExpr() (expr syntax.Expr, err *parsingError) {
-	expr, err = p.primaryTypeExpr()
+func (p *parser) unionTypeExpr() (typeExpr syntax.TypeExpr, err *parsingError) {
+	typeExpr, err = p.primaryTypeExpr()
 	if err != nil {
 		return
 	}
 
 	if p.check(syntax.TokenPipe) {
-		types := []syntax.Expr{expr}
+		types := []syntax.TypeExpr{typeExpr}
 
 		for p.match(syntax.TokenPipe) {
-			var type_ syntax.Expr
+			var type_ syntax.TypeExpr
 			type_, err = p.primaryTypeExpr()
 			if err != nil {
 				return
@@ -99,14 +99,14 @@ func (p *parser) unionTypeExpr() (expr syntax.Expr, err *parsingError) {
 			types = append(types, type_)
 		}
 
-		expr = syntax.NewVariantTypeExpr(types)
+		typeExpr = syntax.NewVariantTypeExpr(types)
 	}
 
 	return
 }
 
 // typeExpr ::= unionTypeExpr .
-func (p *parser) typeExpr() (syntax.Expr, *parsingError) {
+func (p *parser) typeExpr() (syntax.TypeExpr, *parsingError) {
 	return p.unionTypeExpr()
 }
 
@@ -184,7 +184,7 @@ func (p *parser) primaryExpr() (expr syntax.Expr, err *parsingError) {
 			err = &parsingError{}
 		}
 
-		var returnType syntax.Expr = nil
+		var returnType syntax.TypeExpr = nil
 
 		if p.match(syntax.TokenArrowR) {
 			returnType, err = p.typeExpr()
