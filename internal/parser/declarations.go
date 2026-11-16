@@ -40,7 +40,7 @@ func (p *parser) varDeclaration() (stmt syntax.Stmt, err *parsingError) {
 	return
 }
 
-// functionDecl ::= "function" ID "(" paramsList ")" [ "->" typeExpr ] blockStmt .
+// functionDecl ::= "func" ID "(" paramsList ")" [ "->" typeExpr ] blockStmt .
 func (p *parser) functionDeclaration() (stmt syntax.Stmt, err *parsingError) {
 	loc := p.prev().Location()
 
@@ -94,8 +94,8 @@ func (p *parser) functionDeclaration() (stmt syntax.Stmt, err *parsingError) {
 
 	stmt = syntax.NewVarStmt(
 		name,
-		syntax.NewFunctionTypeExpr(parametersType, returnType, loc),
-		syntax.NewFunctionExpr(&name, parameters, returnType, body, loc),
+		syntax.NewFuncTypeExpr(parametersType, returnType, loc),
+		syntax.NewFuncExpr(&name, parameters, returnType, body, loc),
 		loc,
 	)
 	return
@@ -141,7 +141,7 @@ func (p *parser) declaration() (stmt syntax.Stmt, err *parsingError) {
 		}
 
 		return
-	case p.match(syntax.TokenFunction):
+	case p.match(syntax.TokenFunc):
 		stmt, err = p.functionDeclaration()
 		if err != nil {
 			p.synchronize()

@@ -41,7 +41,7 @@ type VarExpr struct {
 	Name Token
 }
 
-type FunctionExpr struct {
+type FuncExpr struct {
 	Located
 
 	Name       *Token
@@ -62,7 +62,7 @@ func (e BinaryExpr) expr()   {}
 func (e GroupingExpr) expr() {}
 func (e LiteralExpr) expr()  {}
 func (e VarExpr) expr()      {}
-func (e FunctionExpr) expr() {}
+func (e FuncExpr) expr()     {}
 func (e CallExpr) expr()     {}
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -131,14 +131,14 @@ func NewVarExpr(name Token) VarExpr {
 	}
 }
 
-func NewFunctionExpr(
+func NewFuncExpr(
 	name *Token,
 	parameters []Parameter,
 	returnType TypeExpr,
 	body []Stmt,
 	loc Location,
-) FunctionExpr {
-	return FunctionExpr{
+) FuncExpr {
+	return FuncExpr{
 		Located: NewLocated(loc),
 
 		Name:       name,

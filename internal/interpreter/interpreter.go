@@ -75,7 +75,7 @@ func (i *interpreter) executeBlock(
 }
 
 func (i *interpreter) callFunction(
-	function runtime.Function, arguments []runtime.Value,
+	function runtime.Func, arguments []runtime.Value,
 ) (runtime.Value, *runtime.Error) {
 	environment := runtime.NewEnvironment(function.Closure)
 
@@ -196,8 +196,8 @@ func (i *interpreter) evaluate(
 		return i.evaluate(expr.Inner)
 	case syntax.VarExpr:
 		return i.lookUpVar(expr.Name, expr), nil
-	case syntax.FunctionExpr:
-		return runtime.Function{
+	case syntax.FuncExpr:
+		return runtime.Func{
 			Declaration: expr,
 			Closure:     i.Environment,
 		}, nil
@@ -217,7 +217,7 @@ func (i *interpreter) evaluate(
 			arguments = append(arguments, v)
 		}
 
-		function := callee.(runtime.Function)
+		function := callee.(runtime.Func)
 		return i.callFunction(function, arguments)
 	default:
 		panic("Not implemented expr kind to evaluate.")

@@ -123,7 +123,7 @@ func (p *parser) synchronize() {
 		}
 
 		switch p.peek().Kind {
-		case syntax.TokenFunction,
+		case syntax.TokenFunc,
 			syntax.TokenLet,
 			syntax.TokenFor,
 			syntax.TokenWhile,

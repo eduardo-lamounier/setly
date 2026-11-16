@@ -15,8 +15,8 @@ type resolver struct {
 	Scopes stack.Stack[map[string]struct{}]
 	Locals map[any]int
 
-	InsideFunction bool
-	InsideLoop     bool
+	InsideFunc bool
+	InsideLoop bool
 
 	HadError    bool
 	Diagnostics []diagnostics.Diagnostic
@@ -87,16 +87,16 @@ func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 		r.resolveExpr(expr.Right)
 	case syntax.GroupingExpr:
 		r.resolveExpr(expr.Inner)
-	case syntax.FunctionExpr:
+	case syntax.FuncExpr:
 		r.beginScope()
-		wereInsideFunction := r.InsideFunction
+		wereInsideFunction := r.InsideFunc
 		wereInsideLoop := r.InsideLoop
-		r.InsideFunction = true
+		r.InsideFunc = true
 		r.InsideLoop = false
 
 		defer func() {
 			r.endScope()
-			r.InsideFunction = wereInsideFunction
+			r.InsideFunc = wereInsideFunction
 			r.InsideLoop = wereInsideLoop
 		}()
 
@@ -150,7 +150,7 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 		// A function should be able to reference itself to achieve recursion,
 		// so it is declared before resolving its body:
 		switch expr := stmt.Initializer.(type) {
-		case syntax.FunctionExpr:
+		case syntax.FuncExpr:
 			r.define(stmt.Name)
 			r.resolveExpr(expr)
 		default:
@@ -195,7 +195,7 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 	case syntax.PrintStmt:
 		r.resolveExpr(stmt.Expr)
 	case syntax.ReturnStmt:
-		if !r.InsideFunction {
+		if !r.InsideFunc {
 			r.reportAt("Can't return outside a function.", stmt.Location())
 			err = &resolvingError{}
 			return

@@ -18,16 +18,16 @@ type NamedTypeExpr struct {
 	Name Token
 }
 
-type FunctionTypeExpr struct {
+type FuncTypeExpr struct {
 	Located
 
 	ParamsType []TypeExpr
 	ReturnType TypeExpr
 }
 
-func (e VariantTypeExpr) typeExpr()  {}
-func (e NamedTypeExpr) typeExpr()    {}
-func (e FunctionTypeExpr) typeExpr() {}
+func (e VariantTypeExpr) typeExpr() {}
+func (e NamedTypeExpr) typeExpr()   {}
+func (e FuncTypeExpr) typeExpr()    {}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -47,12 +47,12 @@ func NewNamedTypeExpr(name Token) NamedTypeExpr {
 	}
 }
 
-func NewFunctionTypeExpr(
+func NewFuncTypeExpr(
 	paramsType []TypeExpr,
 	returnType TypeExpr,
 	loc Location,
-) FunctionTypeExpr {
-	return FunctionTypeExpr{
+) FuncTypeExpr {
+	return FuncTypeExpr{
 		Located: NewLocated(loc),
 
 		ParamsType: paramsType,

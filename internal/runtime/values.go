@@ -23,16 +23,16 @@ type Bool bool
 
 type Nil struct{}
 
-type Function struct {
-	Declaration syntax.FunctionExpr
+type Func struct {
+	Declaration syntax.FuncExpr
 	Closure     *Environment
 }
 
-func (n Number) value()   {}
-func (s String) value()   {}
-func (b Bool) value()     {}
-func (n Nil) value()      {}
-func (f Function) value() {}
+func (n Number) value() {}
+func (s String) value() {}
+func (b Bool) value()   {}
+func (n Nil) value()    {}
+func (f Func) value()   {}
 
 func (n Number) String() string {
 	return n.Stringify()
@@ -50,7 +50,7 @@ func (n Nil) String() string {
 	return n.Stringify()
 }
 
-func (f Function) String() string {
+func (f Func) String() string {
 	params := make([]string, f.Arity())
 
 	for i, parameter := range f.Declaration.Parameters {
@@ -61,11 +61,11 @@ func (f Function) String() string {
 	}
 
 	if f.Declaration.ReturnType != nil {
-		return fmt.Sprintf("function(%s)", strings.Join(params, ","))
+		return fmt.Sprintf("func(%s)", strings.Join(params, ","))
 	}
 
 	return fmt.Sprintf(
-		"function(%s) %s",
+		"func(%s) %s",
 		strings.Join(params, ","), typeExprToString(f.Declaration.ReturnType),
 	)
 }
@@ -90,7 +90,7 @@ func (n Nil) Stringify() string {
 	return "nil"
 }
 
-func (f Function) Stringify() string {
+func (f Func) Stringify() string {
 	if f.Declaration.Name != nil {
 		return "<function " + f.Declaration.Name.Lexeme + ">"
 	}
@@ -115,7 +115,7 @@ func ValueFromLiteral(literal any) Value {
 
 // =============================================================================
 
-func (f Function) Arity() int {
+func (f Func) Arity() int {
 	return len(f.Declaration.Parameters)
 }
 
@@ -129,13 +129,13 @@ func typeExprToString(typeExpr syntax.TypeExpr) string {
 		return strings.Join(types, " | ")
 	case syntax.NamedTypeExpr:
 		return typeExpr.Name.Lexeme
-	case syntax.FunctionTypeExpr:
+	case syntax.FuncTypeExpr:
 		var params []string
 		for _, param := range typeExpr.ParamsType {
 			params = append(params, typeExprToString(param))
 		}
 
-		return fmt.Sprintf("function(%s) %s", strings.Join(params, ", "), typeExprToString(typeExpr.ReturnType))
+		return fmt.Sprintf("func(%s) %s", strings.Join(params, ", "), typeExprToString(typeExpr.ReturnType))
 	default:
 		panic("Not implemented type expression to print.")
 	}

@@ -7,7 +7,7 @@ import "github.com/eduardo-lamounier/setly/internal/syntax"
 // 'parser.go' in this package.
 // *****************************************************************************
 
-// functionTypeExpr ::= "function" "(" paramsTypeList ")" [ "->" typeExpr ] .
+// functionTypeExpr ::= "func" "(" paramsTypeList ")" [ "->" typeExpr ] .
 //
 // paramsTypeList ::= [ typeExpr { "," typeExpr } [ "," ] ] .
 func (p *parser) functionTypeExpr() (typeExpr syntax.TypeExpr, err *parsingError) {
@@ -49,14 +49,14 @@ func (p *parser) functionTypeExpr() (typeExpr syntax.TypeExpr, err *parsingError
 		}
 	}
 
-	typeExpr = syntax.NewFunctionTypeExpr(paramsType, returnType, loc)
+	typeExpr = syntax.NewFuncTypeExpr(paramsType, returnType, loc)
 	return
 }
 
 // literalTypeExpr ::= functionTypeExpr
 func (p *parser) literalTypeExpr() (typeExpr syntax.TypeExpr, err *parsingError) {
 	switch {
-	case p.match(syntax.TokenFunction):
+	case p.match(syntax.TokenFunc):
 		return p.functionTypeExpr()
 	default:
 		p.report("Expected a type.")
@@ -151,12 +151,12 @@ func (p *parser) paramsList() (
 
 // primaryExpr ::= functionExpr | varExpr | literalExpr | groupingExpr .
 //
-// functionExpr ::= "function" "(" paramsList ")" [ "->" typeExpr ] blockStmt .
+// functionExpr ::= "func" "(" paramsList ")" [ "->" typeExpr ] blockStmt .
 // varExpr      ::= ID .
 // literalExpr  ::= "nil" | "false" | "true" | STRING | NUMBER .
 // groupingExpr ::= "(" expr ")" .
 func (p *parser) primaryExpr() (expr syntax.Expr, err *parsingError) {
-	if p.match(syntax.TokenFunction) {
+	if p.match(syntax.TokenFunc) {
 		loc := p.prev().Location()
 
 		if p.expect(syntax.TokenParenL) == nil {
@@ -194,7 +194,7 @@ func (p *parser) primaryExpr() (expr syntax.Expr, err *parsingError) {
 			return
 		}
 
-		expr = syntax.NewFunctionExpr(nil, parameters, returnType, body, loc)
+		expr = syntax.NewFuncExpr(nil, parameters, returnType, body, loc)
 		return
 	}
 
