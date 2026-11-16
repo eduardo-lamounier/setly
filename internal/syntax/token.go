@@ -1,5 +1,3 @@
-// Package syntax Defines the information related to a token that is stored.
-// Also defines the different kinds of tokens.
 package syntax
 
 import "fmt"
