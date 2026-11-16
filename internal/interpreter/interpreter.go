@@ -43,7 +43,7 @@ func (i interpreter) isTruthy(val runtime.Value) bool {
 	switch val := val.(type) {
 	case runtime.Nil:
 		return false
-	case runtime.Boolean:
+	case runtime.Bool:
 		return bool(val)
 	default:
 		return true
@@ -116,7 +116,7 @@ func (i *interpreter) evaluate(
 
 		switch expr.Operator.Kind {
 		case syntax.TokenNot:
-			return runtime.Boolean(!i.isTruthy(op)), nil
+			return runtime.Bool(!i.isTruthy(op)), nil
 		case syntax.TokenMinus:
 			return -op.(runtime.Number), nil
 		case syntax.TokenPlus:
@@ -176,17 +176,17 @@ func (i *interpreter) evaluate(
 
 			return l.(runtime.Number) / r.(runtime.Number), nil
 		case syntax.TokenGreater:
-			return runtime.Boolean(l.(runtime.Number) > r.(runtime.Number)), nil
+			return runtime.Bool(l.(runtime.Number) > r.(runtime.Number)), nil
 		case syntax.TokenLess:
-			return runtime.Boolean(l.(runtime.Number) < r.(runtime.Number)), nil
+			return runtime.Bool(l.(runtime.Number) < r.(runtime.Number)), nil
 		case syntax.TokenGreaterEqual:
-			return runtime.Boolean(l.(runtime.Number) >= r.(runtime.Number)), nil
+			return runtime.Bool(l.(runtime.Number) >= r.(runtime.Number)), nil
 		case syntax.TokenLessEqual:
-			return runtime.Boolean(l.(runtime.Number) <= r.(runtime.Number)), nil
+			return runtime.Bool(l.(runtime.Number) <= r.(runtime.Number)), nil
 		case syntax.TokenEqualEqual:
-			return runtime.Boolean(l == r), nil
+			return runtime.Bool(l == r), nil
 		case syntax.TokenTildeEqual:
-			return runtime.Boolean(l != r), nil
+			return runtime.Bool(l != r), nil
 		}
 
 		panic("Some binary operator not implemented.")

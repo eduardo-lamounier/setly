@@ -19,7 +19,7 @@ type Number float64
 
 type String string
 
-type Boolean bool
+type Bool bool
 
 type Nil struct{}
 
@@ -30,7 +30,7 @@ type Function struct {
 
 func (n Number) value()   {}
 func (s String) value()   {}
-func (b Boolean) value()  {}
+func (b Bool) value()     {}
 func (n Nil) value()      {}
 func (f Function) value() {}
 
@@ -42,7 +42,7 @@ func (s String) String() string {
 	return fmt.Sprintf("\"%s\"", s.Stringify())
 }
 
-func (b Boolean) String() string {
+func (b Bool) String() string {
 	return b.Stringify()
 }
 
@@ -78,7 +78,7 @@ func (s String) Stringify() string {
 	return string(s)
 }
 
-func (b Boolean) Stringify() string {
+func (b Bool) Stringify() string {
 	if bool(b) {
 		return "true"
 	} else {
@@ -105,7 +105,7 @@ func ValueFromLiteral(literal any) Value {
 	case string:
 		return String(value)
 	case bool:
-		return Boolean(value)
+		return Bool(value)
 	case nil:
 		return Nil{}
 	}
