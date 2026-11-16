@@ -11,6 +11,7 @@ import (
 
 type interpreter struct {
 	Environment *runtime.Environment
+	Locals      map[any]int
 	Stmts       []syntax.Stmt
 	Opts        Options
 }
@@ -73,7 +74,7 @@ func (i *interpreter) executeBlock(
 	return nil, normalCompletion{}
 }
 
-func (i *interpreter) CallFunction(
+func (i *interpreter) callFunction(
 	function runtime.Function, arguments []runtime.Value,
 ) (runtime.Value, *runtime.Error) {
 	environment := runtime.NewEnvironment(function.Closure)
@@ -94,6 +95,13 @@ func (i *interpreter) CallFunction(
 	default:
 		return runtime.Nil{}, nil
 	}
+}
+
+func (i *interpreter) lookUpVar(
+	name syntax.Token, astNode any,
+) runtime.Value {
+	distance, _ := i.Locals[astNode]
+	return i.Environment.AccessAt(name.Lexeme, distance)
 }
 
 func (i *interpreter) evaluate(
@@ -187,7 +195,7 @@ func (i *interpreter) evaluate(
 	case syntax.GroupingExpr:
 		return i.evaluate(expr.Inner)
 	case syntax.VarExpr:
-		return i.Environment.Access(expr.Name.Lexeme), nil
+		return i.lookUpVar(expr.Name, expr), nil
 	case syntax.FunctionExpr:
 		return runtime.Function{
 			Declaration: expr,
@@ -210,7 +218,7 @@ func (i *interpreter) evaluate(
 		}
 
 		function := callee.(runtime.Function)
-		return i.CallFunction(function, arguments)
+		return i.callFunction(function, arguments)
 	default:
 		panic("Not implemented expr kind to evaluate.")
 	}
@@ -264,7 +272,12 @@ func (i *interpreter) execute(
 			return err, nil
 		}
 
-		i.Environment.Assign(stmt.Name.Lexeme, value)
+		if distance, ok := i.Locals[stmt]; ok {
+			i.Environment.AssignAt(stmt.Name.Lexeme, value, distance)
+			break
+		}
+
+		runtime.GlobalEnvironment().Assign(stmt.Name.Lexeme, value)
 	case syntax.BlockStmt:
 		return i.executeBlock(stmt.Stmts, runtime.NewEnvironment(i.Environment))
 	case syntax.IfStmt:
@@ -397,9 +410,14 @@ func (i *interpreter) execute(
 	return nil, normalCompletion{}
 }
 
-func Interpret(stmts []syntax.Stmt, opts Options) *runtime.Error {
+func Interpret(
+	stmts []syntax.Stmt,
+	locals map[any]int,
+	opts Options,
+) *runtime.Error {
 	i := interpreter{
 		Environment: runtime.GlobalEnvironment(),
+		Locals:      locals,
 		Stmts:       stmts,
 		Opts:        opts,
 	}
