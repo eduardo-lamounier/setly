@@ -100,8 +100,22 @@ func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 			r.InsideLoop = wereInsideLoop
 		}()
 
+		seenNames := make(map[string]struct{})
 		for _, param := range expr.Parameters {
+			if _, seen := seenNames[param.Name.Lexeme]; seen {
+				r.reportAtToken(
+					fmt.Sprintf(
+						"'%s' redeclarated in this parameter list.",
+						param.Name.Lexeme,
+					),
+					param.Name,
+				)
+				err = &resolvingError{}
+				break
+			}
+
 			r.define(param.Name)
+			seenNames[param.Name.Lexeme] = struct{}{}
 		}
 		r.resolveAll(expr.Body)
 	case syntax.CallExpr:
