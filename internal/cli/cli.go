@@ -63,3 +63,13 @@ func GetOptions(args []string) (opts Options, err error) {
 
 	return
 }
+
+func (o Options) String() string {
+	filepath := "<nil>"
+
+	if o.SourceFilePath != nil {
+		filepath = `"` + *o.SourceFilePath + `"`
+	}
+
+	return fmt.Sprintf("{%v, %v, %v}", o.ShowHelp, o.ShowVersion, filepath)
+}
