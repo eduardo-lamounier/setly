@@ -187,13 +187,13 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 		r.resolveExpr(stmt.Value)
 	case syntax.BreakStmt:
 		if !r.InsideLoop {
-			r.reportAt("Can't return outside a loop.", stmt.Location())
+			r.reportAt("Can't break outside a loop.", stmt.Location())
 			err = &resolvingError{}
 			return
 		}
 	case syntax.ContinueStmt:
 		if !r.InsideLoop {
-			r.reportAt("Can't return outside a loop.", stmt.Location())
+			r.reportAt("Can't continue outside a loop.", stmt.Location())
 			err = &resolvingError{}
 			return
 		}
