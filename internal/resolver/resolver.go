@@ -3,6 +3,8 @@
 package resolver
 
 import (
+	"fmt"
+
 	"github.com/eduardo-lamounier/setly/internal/diagnostics"
 	"github.com/eduardo-lamounier/setly/internal/syntax"
 	"github.com/eduardo-lamounier/setly/internal/util/stack"
@@ -47,25 +49,37 @@ func (r *resolver) endScope() {
 }
 
 func (r *resolver) define(name syntax.Token) {
-	if !r.Scopes.Empty() {
-		scope := r.Scopes.Top()
-		scope[name.Lexeme] = struct{}{}
+	if r.Scopes.Empty() {
+		panic(
+			fmt.Sprintf(
+				"No scope to define '%s'. Where is the global scope?",
+				name.Lexeme,
+			),
+		)
 	}
+
+	scope := r.Scopes.Top()
+	scope[name.Lexeme] = struct{}{}
 }
 
-func (r *resolver) resolveLocal(astNode any, name syntax.Token) {
+func (r *resolver) resolveLocal(
+	astNode any, name syntax.Token,
+) *resolvingError {
 	for i, scope := range r.Scopes.TopToBottom() {
 		if _, ok := scope[name.Lexeme]; ok {
 			r.Locals[astNode] = r.Scopes.Count() - i - 1
-			return
+			return nil
 		}
 	}
+
+	r.reportAtToken(fmt.Sprintf("Undefined '%s'.", name.Lexeme), name)
+	return &resolvingError{}
 }
 
 func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 	switch expr := expr.(type) {
 	case syntax.VarExpr:
-		r.resolveLocal(expr, expr.Name)
+		err = r.resolveLocal(expr, expr.Name)
 	case syntax.UnaryExpr:
 		r.resolveExpr(expr.Operand)
 	case syntax.BinaryExpr:
@@ -156,7 +170,7 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 			r.InsideLoop = wereInsideLoop
 		}()
 
-		r.resolveLocal(stmt.Start, stmt.Var)
+		err = r.resolveLocal(stmt.Start, stmt.Var)
 		r.resolveExpr(stmt.Limit)
 		r.resolveExpr(stmt.Step)
 
@@ -201,8 +215,10 @@ func Resolve(source string, stmts []syntax.Stmt) (
 	hadError bool,
 	ds []diagnostics.Diagnostic,
 ) {
+	global := make(map[string]struct{})
 	r := resolver{
 		Source: source,
+		Scopes: stack.New(global),
 		Locals: make(map[any]int),
 	}
 

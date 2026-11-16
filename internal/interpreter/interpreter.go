@@ -98,14 +98,10 @@ func (i *interpreter) callFunction(
 }
 
 func (i *interpreter) lookUpVar(
-	name syntax.Token,
-	astNode any,
+	name syntax.Token, astNode any,
 ) runtime.Value {
-	if distance, ok := i.Locals[astNode]; ok {
-		return i.Environment.AccessAt(name.Lexeme, distance)
-	}
-
-	return runtime.GlobalEnvironment().Access(name.Lexeme)
+	distance, _ := i.Locals[astNode]
+	return i.Environment.AccessAt(name.Lexeme, distance)
 }
 
 func (i *interpreter) evaluate(
