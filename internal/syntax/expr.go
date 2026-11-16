@@ -45,11 +45,8 @@ type FunctionExpr struct {
 	Located
 
 	Name       *Token
-	Parameters []struct {
-		Name Token
-		Type Expr
-	}
-	ReturnType Expr
+	Parameters []Parameter
+	ReturnType TypeExpr
 	Body       []Stmt
 }
 
@@ -136,7 +133,7 @@ func NewVarExpr(name Token) VarExpr {
 
 func NewFunctionExpr(
 	name *Token,
-	parameters []struct {
+	parameters []Parameter,
 	returnType TypeExpr,
 	body []Stmt,
 	loc Location,

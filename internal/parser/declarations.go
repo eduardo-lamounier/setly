@@ -56,10 +56,7 @@ func (p *parser) functionDeclaration() (stmt syntax.Stmt, err *parsingError) {
 		return
 	}
 
-	var parameters []struct {
-		Name syntax.Token
-		Type syntax.Expr
-	}
+	var parameters []syntax.Parameter
 	parameters, err = p.paramsList()
 	if err != nil {
 		return

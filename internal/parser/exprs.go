@@ -114,19 +114,12 @@ func (p *parser) typeExpr() (syntax.TypeExpr, *parsingError) {
 //
 // parameter ::= ID ":" typeExpr .
 func (p *parser) paramsList() (
-	parameters []struct {
-		Name syntax.Token
-		Type syntax.Expr
-	},
+	parameters []syntax.Parameter,
 	err *parsingError,
 ) {
 	if !p.check(syntax.TokenParenR) {
 		for {
-			var parameter struct {
-				Name syntax.Token
-				Type syntax.Expr
-			}
-
+			var parameter syntax.Parameter
 			if !p.expectWithMsg(syntax.TokenID, "Expected parameter name.") {
 				err = &parsingError{}
 				return
@@ -171,10 +164,7 @@ func (p *parser) primaryExpr() (expr syntax.Expr, err *parsingError) {
 			return
 		}
 
-		var parameters []struct {
-			Name syntax.Token
-			Type syntax.Expr
-		}
+		var parameters []syntax.Parameter
 		parameters, err = p.paramsList()
 		if err != nil {
 			return
