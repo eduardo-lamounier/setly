@@ -19,10 +19,13 @@ const (
 )
 
 func main() {
+	exitCode := 0
+	defer os.Exit(exitCode)
+
 	opts, err := cli.GetOptions(os.Args[1:])
 	if err != nil {
 		printError(err)
-		os.Exit(1)
+		exitCode = 1
 	}
 
 	if opts.ShowHelp {
