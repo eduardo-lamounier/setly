@@ -26,6 +26,13 @@ type VarStmt struct {
 	Initializer Expr
 }
 
+type AssignStmt struct {
+	Located
+
+	Name  Token
+	Value Expr
+}
+
 type BlockStmt struct {
 	Located
 
@@ -81,6 +88,7 @@ type TypeStmt struct {
 func (s ExprStmt) stmt()     {}
 func (s PrintStmt) stmt()    {}
 func (s VarStmt) stmt()      {}
+func (s AssignStmt) stmt()   {}
 func (s BlockStmt) stmt()    {}
 func (s IfStmt) stmt()       {}
 func (s WhileStmt) stmt()    {}
@@ -118,6 +126,15 @@ func NewVarStmt(
 		Name:        name,
 		Type:        valueType,
 		Initializer: initializer,
+	}
+}
+
+func NewAssignStmt(name Token, value Expr) AssignStmt {
+	return AssignStmt{
+		Located: NewLocated(LocationFromToken(name)),
+
+		Name:  name,
+		Value: value,
 	}
 }
 

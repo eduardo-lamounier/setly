@@ -1,6 +1,10 @@
 package parser
 
-import "github.com/eduardo-lamounier/setly/internal/syntax"
+import (
+	"slices"
+
+	"github.com/eduardo-lamounier/setly/internal/syntax"
+)
 
 // NOTE: ***********************************************************************
 // The notation used to define the grammar rules is documented in
@@ -158,7 +162,7 @@ func (p *parser) whileStmt() (stmt syntax.Stmt, err *parsingError) {
 	return
 }
 
-// forNumStmt ::= "for" ID ":=" expr "," expr [ "," expr ] blockStmt .
+// forNumStmt ::= "for" ID "=" expr "," expr [ "," expr ] blockStmt .
 func (p *parser) forStmt() (stmt syntax.Stmt, err *parsingError) {
 	loc := p.prev().Location()
 
@@ -169,7 +173,7 @@ func (p *parser) forStmt() (stmt syntax.Stmt, err *parsingError) {
 
 	varName := p.prev()
 
-	if p.expect(syntax.TokenColonEqual) == nil {
+	if p.expect(syntax.TokenEqual) == nil {
 		err = &parsingError{}
 		return
 	}
@@ -287,6 +291,79 @@ func (p *parser) continueStmt() (stmt syntax.Stmt, err *parsingError) {
 	return
 }
 
+// assignmentExpr ::= logicalOrExpr [ "=" assignmentExpr ] .
+// func (p *parser) assignmentExpr() (expr syntax.Expr, err *parsingError) {
+// 	expr, err = p.logicalOrExpr()
+// 	if err != nil {
+// 		return
+// 	}
+//
+// 	if p.match(syntax.TokenEqual) {
+// 		op := p.prev()
+//
+// 		var value syntax.Expr
+// 		value, err = p.assignmentExpr()
+// 		if err != nil {
+// 			return
+// 		}
+//
+// 		switch e := expr.(type) {
+// 		case syntax.VarExpr:
+// 			expr = syntax.NewAssignExpr(e.Name, value)
+// 		default:
+// 			p.reportAt(op, "Invalid target to assign a value to.")
+// 			err = &parsingError{}
+// 			return
+// 		}
+// 	}
+//
+// 	return
+// }
+
+// assignmentStmt ::= ID "=" { ID "=" } expr
+func (p *parser) assignmentStmt() (stmt syntax.Stmt, err *parsingError) {
+	name := p.peek()
+	p.advance()
+
+	p.advance() // Consumes the '='
+
+	loc := name.Location()
+	var stmts []syntax.Stmt
+
+	currentName := name
+
+	for p.check(syntax.TokenID) && p.checkNext(syntax.TokenEqual) {
+		stmts = append(
+			stmts,
+			syntax.NewAssignStmt(currentName, syntax.NewVarExpr(p.peek())),
+		)
+		currentName = p.peek()
+
+		p.advance()
+		p.advance() // The '='
+	}
+
+	var value syntax.Expr
+	value, err = p.expr()
+	if err != nil {
+		return
+	}
+
+	stmts = append(
+		stmts,
+		syntax.NewAssignStmt(currentName, value),
+	)
+
+	// If there is:
+	//   a = b = 10
+	// 'b' should be assigned to 10 before 'a' is assigned to 'b',
+	// so we reverse 'stmts' to get the assignments from right to left:
+	slices.Reverse(stmts)
+
+	stmt = syntax.NewBlockStmt(stmts, loc)
+	return
+}
+
 // stmt ::= printStmt | blockStmt | ifStmt | whileStmt | forNumStmt | repeatStmt
 // | returnStmt | breakStmt | continueStmt | exprStmt .
 func (p *parser) stmt() (stmt syntax.Stmt, err *parsingError) {
@@ -317,6 +394,8 @@ func (p *parser) stmt() (stmt syntax.Stmt, err *parsingError) {
 		return p.breakStmt()
 	case p.match(syntax.TokenContinue):
 		return p.continueStmt()
+	case p.check(syntax.TokenID) && p.checkNext(syntax.TokenEqual):
+		return p.assignmentStmt()
 	default:
 		return p.exprStmt()
 	}

@@ -11,7 +11,7 @@ import (
 type resolver struct {
 	Source string
 	Scopes stack.Stack[map[string]struct{}]
-	Locals map[syntax.Expr]int
+	Locals map[any]int
 
 	InsideFunction bool
 	InsideLoop     bool
@@ -53,10 +53,10 @@ func (r *resolver) define(name syntax.Token) {
 	}
 }
 
-func (r *resolver) resolveLocal(expr syntax.Expr, name syntax.Token) {
+func (r *resolver) resolveLocal(astNode any, name syntax.Token) {
 	for i, scope := range r.Scopes.TopToBottom() {
 		if _, ok := scope[name.Lexeme]; ok {
-			r.Locals[expr] = r.Scopes.Count() - i - 1
+			r.Locals[astNode] = r.Scopes.Count() - i - 1
 			return
 		}
 	}
@@ -65,9 +65,6 @@ func (r *resolver) resolveLocal(expr syntax.Expr, name syntax.Token) {
 func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 	switch expr := expr.(type) {
 	case syntax.VarExpr:
-		r.resolveLocal(expr, expr.Name)
-	case syntax.AssignExpr:
-		r.resolveExpr(expr.Value)
 		r.resolveLocal(expr, expr.Name)
 	case syntax.UnaryExpr:
 		r.resolveExpr(expr.Operand)
@@ -129,6 +126,9 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 			r.resolveExpr(expr)
 			r.define(stmt.Name)
 		}
+	case syntax.AssignStmt:
+		r.resolveExpr(stmt.Value)
+		r.resolveLocal(stmt, stmt.Name)
 	case syntax.ExprStmt:
 		r.resolveExpr(stmt.Expr)
 	case syntax.IfStmt:
@@ -197,13 +197,13 @@ func (r *resolver) resolveAll(stmts []syntax.Stmt) {
 }
 
 func Resolve(source string, stmts []syntax.Stmt) (
-	locals map[syntax.Expr]int,
+	locals map[any]int,
 	hadError bool,
 	ds []diagnostics.Diagnostic,
 ) {
 	r := resolver{
 		Scopes: stack.New[map[string]struct{}](),
-		Locals: make(map[syntax.Expr]int),
+		Locals: make(map[any]int),
 	}
 
 	r.resolveAll(stmts)

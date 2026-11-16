@@ -368,14 +368,14 @@ func (p *parser) comparisonExpr() (expr syntax.Expr, err *parsingError) {
 	return
 }
 
-// equalityExpr ::= comparisonExpr { ( "~=" | "=" ) comparisonExpr } .
+// equalityExpr ::= comparisonExpr { ( "~=" | "==" ) comparisonExpr } .
 func (p *parser) equalityExpr() (expr syntax.Expr, err *parsingError) {
 	expr, err = p.comparisonExpr()
 	if err != nil {
 		return
 	}
 
-	for p.match(syntax.TokenTildeEqual, syntax.TokenEqual) {
+	for p.match(syntax.TokenTildeEqual, syntax.TokenEqualEqual) {
 		operator := p.prev()
 
 		var right syntax.Expr
@@ -451,36 +451,7 @@ func (p *parser) logicalOrExpr() (expr syntax.Expr, err *parsingError) {
 	return
 }
 
-// assignmentExpr ::= logicalOrExpr [ ":=" assignmentExpr ] .
-func (p *parser) assignmentExpr() (expr syntax.Expr, err *parsingError) {
-	expr, err = p.logicalOrExpr()
-	if err != nil {
-		return
-	}
-
-	if p.match(syntax.TokenColonEqual) {
-		op := p.prev()
-
-		var value syntax.Expr
-		value, err = p.assignmentExpr()
-		if err != nil {
-			return
-		}
-
-		switch e := expr.(type) {
-		case syntax.VarExpr:
-			expr = syntax.NewAssignExpr(e.Name, value)
-		default:
-			p.reportAt(op, "Invalid target to assign a value to.")
-			err = &parsingError{}
-			return
-		}
-	}
-
-	return
-}
-
-// expr ::= assignmentExpr .
+// expr ::= logicalOrExpr .
 func (p *parser) expr() (expr syntax.Expr, err *parsingError) {
-	return p.assignmentExpr()
+	return p.logicalOrExpr()
 }

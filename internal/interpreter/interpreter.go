@@ -11,7 +11,7 @@ import (
 
 type interpreter struct {
 	Environment *runtime.Environment
-	Locals      map[syntax.Expr]int
+	Locals      map[any]int
 	Stmts       []syntax.Stmt
 	Opts        Options
 }
@@ -99,9 +99,9 @@ func (i *interpreter) callFunction(
 
 func (i *interpreter) lookUpVar(
 	name syntax.Token,
-	expr syntax.Expr,
+	astNode any,
 ) runtime.Value {
-	if distance, ok := i.Locals[expr]; ok {
+	if distance, ok := i.Locals[astNode]; ok {
 		return i.Environment.AccessAt(name.Lexeme, distance)
 	}
 
@@ -187,7 +187,7 @@ func (i *interpreter) evaluate(
 			return runtime.Boolean(l.(runtime.Number) >= r.(runtime.Number)), nil
 		case syntax.TokenLessEqual:
 			return runtime.Boolean(l.(runtime.Number) <= r.(runtime.Number)), nil
-		case syntax.TokenEqual:
+		case syntax.TokenEqualEqual:
 			return runtime.Boolean(l == r), nil
 		case syntax.TokenTildeEqual:
 			return runtime.Boolean(l != r), nil
@@ -200,19 +200,6 @@ func (i *interpreter) evaluate(
 		return i.evaluate(expr.Inner)
 	case syntax.VarExpr:
 		return i.lookUpVar(expr.Name, expr), nil
-	case syntax.AssignExpr:
-		value, err := i.evaluate(expr.Value)
-		if err != nil {
-			return nil, err
-		}
-
-		if distance, ok := i.Locals[expr]; ok {
-			i.Environment.AssignAt(expr.Name.Lexeme, value, distance)
-		} else {
-			runtime.GlobalEnvironment().Assign(expr.Name.Lexeme, value)
-		}
-
-		return value, nil
 	case syntax.FunctionExpr:
 		return runtime.Function{
 			Declaration: expr,
@@ -283,6 +270,18 @@ func (i *interpreter) execute(
 		}
 
 		i.Environment.Define(stmt.Name.Lexeme, value)
+	case syntax.AssignStmt:
+		value, err := i.evaluate(stmt.Value)
+		if err != nil {
+			return err, nil
+		}
+
+		if distance, ok := i.Locals[stmt]; ok {
+			i.Environment.AssignAt(stmt.Name.Lexeme, value, distance)
+			break
+		}
+
+		runtime.GlobalEnvironment().Assign(stmt.Name.Lexeme, value)
 	case syntax.BlockStmt:
 		return i.executeBlock(stmt.Stmts, runtime.NewEnvironment(i.Environment))
 	case syntax.IfStmt:
@@ -417,7 +416,7 @@ func (i *interpreter) execute(
 
 func Interpret(
 	stmts []syntax.Stmt,
-	locals map[syntax.Expr]int,
+	locals map[any]int,
 	opts Options,
 ) *runtime.Error {
 	i := interpreter{
