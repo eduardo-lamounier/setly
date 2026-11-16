@@ -202,7 +202,7 @@ func Resolve(source string, stmts []syntax.Stmt) (
 	ds []diagnostics.Diagnostic,
 ) {
 	r := resolver{
-		Scopes: stack.New[map[string]struct{}](),
+		Source: source,
 		Locals: make(map[any]int),
 	}
 
