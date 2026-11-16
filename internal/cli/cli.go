@@ -5,7 +5,6 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"slices"
 	"strings"
 )
 
@@ -22,37 +21,35 @@ type Options struct {
 	SourceFilePath *string
 }
 
-func GetOptions(args []string) (Options, error) {
+func GetOptions(args []string) (opts Options, err error) {
 	if len(args) == 0 {
-		return Options{}, nil // Should run interactively
-	}
-
-	opts := Options{
-		ShowHelp:    slices.Contains(args, "-h") || slices.Contains(args, "--help"),
-		ShowVersion: slices.Contains(args, "-v") || slices.Contains(args, "--version"),
-	}
-
-	if opts.ShowHelp || opts.ShowVersion {
-		return opts, nil
+		return // Should run interactively
 	}
 
 	errs := []error{}
 
 	for _, arg := range args {
-		if len(arg) >= 2 && strings.HasPrefix(arg, "-") {
-			errs = append(errs, fmt.Errorf("unknown flag/option '%s'", arg))
-			continue
-		}
+		switch arg {
+		case "--help", "-h":
+			opts.ShowHelp = true
+		case "--version", "-v":
+			opts.ShowVersion = true
+		default:
+			if len(arg) >= 2 && strings.HasPrefix(arg, "-") {
+				errs = append(errs, fmt.Errorf("unknown flag/option '%s'", arg))
+				continue
+			}
 
-		if opts.SourceFilePath != nil {
-			errs = append(
-				errs,
-				fmt.Errorf("too many arguments passed to the program: expected only one main source file"),
-			)
-			continue
-		}
+			if opts.SourceFilePath != nil {
+				errs = append(
+					errs,
+					fmt.Errorf("too many arguments passed to the program: expected only one main source file"),
+				)
+				continue
+			}
 
-		opts.SourceFilePath = &arg
+			opts.SourceFilePath = &arg
+		}
 	}
 
 	if opts.SourceFilePath != nil && !strings.HasSuffix(*opts.SourceFilePath, ".setly") {
@@ -60,8 +57,9 @@ func GetOptions(args []string) (Options, error) {
 	}
 
 	if len(errs) > 0 {
-		return Options{}, errors.Join(errs...)
+		err = errors.Join(errs...)
+		return
 	}
 
-	return opts, nil
+	return
 }
