@@ -307,6 +307,9 @@ func (l *lexer) scanToken() {
 			for ; unicode.IsLetter(l.peek()) || l.peek() == '_' || unicode.IsNumber(l.peek()); l.advance() {
 			}
 
+			for l.match('\'') {
+			}
+
 			s := l.Source[l.Start:l.Pos]
 			if tk, isKeyword := syntax.KeywordForLexeme[s]; isKeyword {
 				l.emitToken(tk)
