@@ -12,7 +12,6 @@ import (
 type interpreter struct {
 	Environment *runtime.Environment
 	Locals      map[any]int
-	Stmts       []syntax.Stmt
 	Opts        Options
 }
 
@@ -418,7 +417,6 @@ func Interpret(
 	i := interpreter{
 		Environment: runtime.GlobalEnvironment(),
 		Locals:      locals,
-		Stmts:       stmts,
 		Opts:        opts,
 	}
 
