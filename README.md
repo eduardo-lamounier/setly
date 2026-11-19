@@ -1,5 +1,5 @@
 # Setly
-The interpreter for the Setly programming language.
+The interpreter, documentation and toolchain for the Setly programming language.
 
 ## Documentation
 
