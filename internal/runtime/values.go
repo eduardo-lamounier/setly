@@ -121,7 +121,7 @@ func (f Func) Arity() int {
 
 func typeExprToString(typeExpr syntax.TypeExpr) string {
 	switch typeExpr := typeExpr.(type) {
-	case syntax.VariantTypeExpr:
+	case syntax.UnionTypeExpr:
 		var types []string
 		for _, _type := range typeExpr.Types {
 			types = append(types, typeExprToString(_type))

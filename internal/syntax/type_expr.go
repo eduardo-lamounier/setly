@@ -6,7 +6,7 @@ type TypeExpr interface {
 	Locatable
 }
 
-type VariantTypeExpr struct {
+type UnionTypeExpr struct {
 	Located
 
 	Types []TypeExpr
@@ -25,14 +25,14 @@ type FuncTypeExpr struct {
 	ReturnType TypeExpr
 }
 
-func (e VariantTypeExpr) typeExpr() {}
-func (e NamedTypeExpr) typeExpr()   {}
-func (e FuncTypeExpr) typeExpr()    {}
+func (e UnionTypeExpr) typeExpr() {}
+func (e NamedTypeExpr) typeExpr() {}
+func (e FuncTypeExpr) typeExpr()  {}
 
 ////////////////////////////////////////////////////////////////////////////////
 
-func NewVariantTypeExpr(types []TypeExpr) VariantTypeExpr {
-	return VariantTypeExpr{
+func NewUnionTypeExpr(types []TypeExpr) UnionTypeExpr {
+	return UnionTypeExpr{
 		Located: NewLocated(types[0].Location()),
 
 		Types: types,

@@ -99,7 +99,7 @@ func (p *parser) unionTypeExpr() (typeExpr syntax.TypeExpr, err *parsingError) {
 			types = append(types, type_)
 		}
 
-		typeExpr = syntax.NewVariantTypeExpr(types)
+		typeExpr = syntax.NewUnionTypeExpr(types)
 	}
 
 	return
