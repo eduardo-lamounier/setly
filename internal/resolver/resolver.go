@@ -131,8 +131,9 @@ func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 	return
 }
 
+// TODO: Add return of a language's type in this method's signature.
 // TODO: Implement
-func (r *resolver) resolveTypeExpr() (err *resolvingError) {
+func (r *resolver) resolveType(typeExpr syntax.TypeExpr) (err *resolvingError) {
 	panic("Resolving of type expressions not implemented.")
 }
 
