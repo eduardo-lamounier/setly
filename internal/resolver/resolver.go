@@ -33,11 +33,7 @@ func (r *resolver) reportAt(message string, loc syntax.Location) {
 }
 
 func (r *resolver) reportAtToken(message string, tok syntax.Token) {
-	r.HadError = true
-	r.Diagnostics = append(
-		r.Diagnostics,
-		diagnostics.New(message, tok.Location(), r.Source),
-	)
+	r.reportAt(message, tok.Location())
 }
 
 func (r *resolver) beginScope() {
