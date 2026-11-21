@@ -7,17 +7,19 @@ import (
 
 	"github.com/eduardo-lamounier/setly/internal/diagnostics"
 	"github.com/eduardo-lamounier/setly/internal/syntax"
+	"github.com/eduardo-lamounier/setly/internal/types"
 	"github.com/eduardo-lamounier/setly/internal/util/stack"
 )
 
 type resolver struct {
 	Source string
 	Scopes stack.Stack[map[string]struct{}]
-	Locals map[any]int
 
 	InsideFunc bool
 	InsideLoop bool
 
+	Locals      map[any]int
+	Types       map[syntax.TypeExpr]int
 	HadError    bool
 	Diagnostics []diagnostics.Diagnostic
 }
@@ -131,10 +133,33 @@ func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 	return
 }
 
-// TODO: Add return of a language's type in this method's signature.
+func (r *resolver) resolveType(
+	typeExpr syntax.TypeExpr, name syntax.Token,
+) *resolvingError {
+	for i, scope := range r.Scopes.TopToBottom() {
+		if _, ok := scope[name.Lexeme]; ok {
+			r.Types[typeExpr] = r.Scopes.Count() - i - 1
+			return nil
+		}
+	}
+
+	r.reportAtToken(fmt.Sprintf("Undefined type '%s'.", name.Lexeme), name)
+	return &resolvingError{}
+}
+
 // TODO: Implement
-func (r *resolver) resolveType(typeExpr syntax.TypeExpr) (err *resolvingError) {
-	panic("Resolving of type expressions not implemented.")
+func (r *resolver) resolveTypeExpr(
+	typeExpr syntax.TypeExpr,
+) (typ types.Type, err *resolvingError) {
+	switch typeExpr := typeExpr.(type) {
+	case syntax.NamedTypeExpr:
+	case syntax.UnionTypeExpr:
+	case syntax.FuncTypeExpr:
+	default:
+		panic("Not implemented type expression kind to resolve.")
+	}
+
+	return
 }
 
 func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
