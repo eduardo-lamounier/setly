@@ -110,12 +110,16 @@ func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 	case syntax.VarExpr:
 		err = r.resolveLocal(expr, expr.Name)
 	case syntax.UnaryExpr:
-		r.resolveExpr(expr.Operand)
+		err = r.resolveExpr(expr.Operand)
 	case syntax.BinaryExpr:
-		r.resolveExpr(expr.Left)
-		r.resolveExpr(expr.Right)
+		err = r.resolveExpr(expr.Left)
+		e := r.resolveExpr(expr.Right)
+
+		if err == nil {
+			err = e
+		}
 	case syntax.GroupingExpr:
-		r.resolveExpr(expr.Inner)
+		err = r.resolveExpr(expr.Inner)
 	case syntax.FuncExpr:
 		r.beginScope()
 		wereInsideFunction := r.InsideFunc
@@ -146,12 +150,19 @@ func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 			r.defineVar(param.Name.Lexeme)
 			seenNames[param.Name.Lexeme] = struct{}{}
 		}
-		r.resolveAll(expr.Body)
+		e := r.resolveAll(expr.Body)
+
+		if err == nil {
+			err = e
+		}
 	case syntax.CallExpr:
-		r.resolveExpr(expr.Callee)
+		err = r.resolveExpr(expr.Callee)
 
 		for _, argument := range expr.Arguments {
-			r.resolveExpr(argument)
+			e := r.resolveExpr(argument)
+			if err == nil {
+				err = e
+			}
 		}
 	default:
 		panic("Not implemented expression kind to resolve.")
@@ -195,7 +206,7 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 		r.beginScope()
 		defer r.endScope()
 
-		r.resolveAll(stmt.Stmts)
+		err = r.resolveAll(stmt.Stmts)
 	case syntax.VarStmt:
 		if stmt.Initializer == nil {
 			r.defineVar(stmt.Name.Lexeme)
@@ -207,22 +218,34 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 		switch expr := stmt.Initializer.(type) {
 		case syntax.FuncExpr:
 			r.defineVar(stmt.Name.Lexeme)
-			r.resolveExpr(expr)
+			err = r.resolveExpr(expr)
 		default:
-			r.resolveExpr(expr)
+			err = r.resolveExpr(expr)
 			r.defineVar(stmt.Name.Lexeme)
 		}
 	case syntax.AssignStmt:
-		r.resolveExpr(stmt.Value)
-		r.resolveLocal(stmt, stmt.Name)
+		err = r.resolveExpr(stmt.Value)
+		e := r.resolveLocal(stmt, stmt.Name)
+
+		if err == nil {
+			err = e
+		}
 	case syntax.ExprStmt:
-		r.resolveExpr(stmt.Expr)
+		err = r.resolveExpr(stmt.Expr)
 	case syntax.IfStmt:
-		r.resolveExpr(stmt.Condition)
-		r.resolveAll(stmt.ThenBranch)
+		err = r.resolveExpr(stmt.Condition)
+		e := r.resolveAll(stmt.ThenBranch)
+
+		if err == nil {
+			err = e
+		}
 
 		if stmt.ElseBranch != nil {
-			r.resolveAll(stmt.ElseBranch)
+			e := r.resolveAll(stmt.ElseBranch)
+
+			if err == nil {
+				err = e
+			}
 		}
 	case syntax.WhileStmt:
 		wereInsideLoop := r.InsideLoop
@@ -232,8 +255,12 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 			r.InsideLoop = wereInsideLoop
 		}()
 
-		r.resolveExpr(stmt.Condition)
-		r.resolveAll(stmt.Block)
+		err = r.resolveExpr(stmt.Condition)
+		e := r.resolveAll(stmt.Block)
+
+		if err == nil {
+			err = e
+		}
 	case syntax.ForNumStmt:
 		wereInsideLoop := r.InsideLoop
 		r.InsideLoop = true
@@ -243,12 +270,23 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 		}()
 
 		err = r.resolveLocal(stmt.Start, stmt.Var)
-		r.resolveExpr(stmt.Limit)
-		r.resolveExpr(stmt.Step)
 
-		r.resolveAll(stmt.Block)
+		e := r.resolveExpr(stmt.Limit)
+		if err == nil {
+			err = e
+		}
+
+		e = r.resolveExpr(stmt.Step)
+		if err == nil {
+			err = e
+		}
+
+		e = r.resolveAll(stmt.Block)
+		if err == nil {
+			err = e
+		}
 	case syntax.PrintStmt:
-		r.resolveExpr(stmt.Expr)
+		err = r.resolveExpr(stmt.Expr)
 	case syntax.ReturnStmt:
 		if !r.InsideFunc {
 			r.reportAt("Can't return outside a function.", stmt.Location())
@@ -256,7 +294,7 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 			return
 		}
 
-		r.resolveExpr(stmt.Value)
+		err = r.resolveExpr(stmt.Value)
 	case syntax.BreakStmt:
 		if !r.InsideLoop {
 			r.reportAt("Can't break outside a loop.", stmt.Location())
@@ -278,10 +316,16 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 	return
 }
 
-func (r *resolver) resolveAll(stmts []syntax.Stmt) {
+func (r *resolver) resolveAll(stmts []syntax.Stmt) (err *resolvingError) {
 	for _, stmt := range stmts {
-		r.resolveStmt(stmt)
+		e := r.resolveStmt(stmt)
+
+		if e != nil {
+			err = e
+		}
 	}
+
+	return
 }
 
 func Resolve(source string, stmts []syntax.Stmt) (
@@ -296,6 +340,6 @@ func Resolve(source string, stmts []syntax.Stmt) (
 		Locals: make(map[any]int),
 	}
 
-	r.resolveAll(stmts)
+	_ = r.resolveAll(stmts)
 	return r.Locals, r.HadError, r.Diagnostics
 }
