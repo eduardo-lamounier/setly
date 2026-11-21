@@ -12,13 +12,13 @@ import (
 )
 
 type scope struct {
-	Vars  map[string]struct{}
+	Locals  map[string]struct{}
 	Types map[string]struct{}
 }
 
 func newScope() scope {
 	return scope{
-		Vars:  make(map[string]struct{}),
+		Locals:  make(map[string]struct{}),
 		Types: make(map[string]struct{}),
 	}
 }
@@ -73,7 +73,7 @@ func (r *resolver) defineVar(name string) {
 	}
 
 	scope := r.Scopes.Top()
-	scope.Vars[name] = struct{}{}
+	scope.Locals[name] = struct{}{}
 }
 
 func (r *resolver) defineType(name string) {
@@ -95,7 +95,7 @@ func (r *resolver) resolveLocal(
 	astNode any, name syntax.Token,
 ) *resolvingError {
 	for i, scope := range r.Scopes.TopToBottom() {
-		if _, ok := scope.Vars[name.Lexeme]; ok {
+		if _, ok := scope.Locals[name.Lexeme]; ok {
 			r.Locals[astNode] = r.Scopes.Count() - i - 1
 			return nil
 		}
