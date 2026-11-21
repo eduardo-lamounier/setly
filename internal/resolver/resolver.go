@@ -277,7 +277,8 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 			return
 		}
 	case syntax.TypeStmt:
-		// TODO: Resolve type declarations statements?
+		r.resolveTypeExpr(stmt.Value)
+		r.defineType(stmt.Name)
 	default:
 		panic("Not implemented statement kind to resolve.")
 	}
