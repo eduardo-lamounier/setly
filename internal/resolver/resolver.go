@@ -74,6 +74,7 @@ func (r *resolver) resolveLocal(
 
 func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 	switch expr := expr.(type) {
+	case syntax.LiteralExpr:
 	case syntax.VarExpr:
 		err = r.resolveLocal(expr, expr.Name)
 	case syntax.UnaryExpr:
