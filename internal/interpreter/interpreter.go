@@ -217,6 +217,14 @@ func (i *interpreter) evaluate(
 		}
 
 		function := callee.(runtime.Func)
+
+		if function.Arity() != len(arguments) {
+			panic(fmt.Sprintf(
+				"Wrong amount of arguments passed to function. Expected %d, got %d.",
+				function.Arity(), len(arguments),
+			))
+		}
+
 		return i.callFunction(function, arguments)
 	default:
 		panic("Not implemented expr kind to evaluate.")
