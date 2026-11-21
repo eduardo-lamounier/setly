@@ -111,22 +111,6 @@ func (t Union) Equals(other Type) bool {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-func NewNumber() Number {
-	return Number{}
-}
-
-func NewString() String {
-	return String{}
-}
-
-func NewBool() Bool {
-	return Bool{}
-}
-
-func NewNil() Nil {
-	return Nil{}
-}
-
 func NewFunc(params []Type, ret Type) Func {
 	return Func{
 		ParamsType: params,
