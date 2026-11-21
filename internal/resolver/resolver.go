@@ -62,32 +62,33 @@ func (r *resolver) endScope() {
 	r.Scopes.Pop()
 }
 
-func (r *resolver) defineVar(name syntax.Token) {
+func (r *resolver) defineVar(name string) {
 	if r.Scopes.Empty() {
 		panic(
 			fmt.Sprintf(
 				"No scope to define '%s'. Where is the global scope?",
-				name.Lexeme,
+				name,
 			),
 		)
 	}
 
 	scope := r.Scopes.Top()
-	scope.Vars[name.Lexeme] = struct{}{}
+	scope.Vars[name] = struct{}{}
 }
 
-func (r *resolver) defineType(name syntax.Token) {
+func (r *resolver) defineType(name string) {
 	if r.Scopes.Empty() {
 		panic(
 			fmt.Sprintf(
 				"No scope to define '%s'. Where is the global scope?",
-				name.Lexeme,
+				name,
 			),
 		)
 	}
 
 	scope := r.Scopes.Top()
-	scope.Types[name.Lexeme] = struct{}{}
+	scope.Types[name] = struct{}{}
+	scope.Types[name] = struct{}{}
 }
 
 func (r *resolver) resolveLocal(
@@ -142,7 +143,7 @@ func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 				break
 			}
 
-			r.defineVar(param.Name)
+			r.defineVar(param.Name.Lexeme)
 			seenNames[param.Name.Lexeme] = struct{}{}
 		}
 		r.resolveAll(expr.Body)
@@ -197,7 +198,7 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 		r.resolveAll(stmt.Stmts)
 	case syntax.VarStmt:
 		if stmt.Initializer == nil {
-			r.defineVar(stmt.Name)
+			r.defineVar(stmt.Name.Lexeme)
 			break
 		}
 
@@ -205,11 +206,11 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 		// so it is declared before resolving its body:
 		switch expr := stmt.Initializer.(type) {
 		case syntax.FuncExpr:
-			r.defineVar(stmt.Name)
+			r.defineVar(stmt.Name.Lexeme)
 			r.resolveExpr(expr)
 		default:
 			r.resolveExpr(expr)
-			r.defineVar(stmt.Name)
+			r.defineVar(stmt.Name.Lexeme)
 		}
 	case syntax.AssignStmt:
 		r.resolveExpr(stmt.Value)
