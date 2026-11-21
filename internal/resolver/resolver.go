@@ -11,9 +11,21 @@ import (
 	"github.com/eduardo-lamounier/setly/internal/util/stack"
 )
 
+type scope struct {
+	Vars  map[string]struct{}
+	Types map[string]struct{}
+}
+
+func newScope() scope {
+	return scope{
+		Vars:  make(map[string]struct{}),
+		Types: make(map[string]struct{}),
+	}
+}
+
 type resolver struct {
 	Source string
-	Scopes stack.Stack[map[string]struct{}]
+	Scopes stack.Stack[scope]
 
 	InsideFunc bool
 	InsideLoop bool
@@ -43,14 +55,14 @@ func (r *resolver) reportAtToken(message string, tok syntax.Token) {
 }
 
 func (r *resolver) beginScope() {
-	r.Scopes.Push(make(map[string]struct{}))
+	r.Scopes.Push(newScope())
 }
 
 func (r *resolver) endScope() {
 	r.Scopes.Pop()
 }
 
-func (r *resolver) define(name syntax.Token) {
+func (r *resolver) defineVar(name syntax.Token) {
 	if r.Scopes.Empty() {
 		panic(
 			fmt.Sprintf(
@@ -61,14 +73,28 @@ func (r *resolver) define(name syntax.Token) {
 	}
 
 	scope := r.Scopes.Top()
-	scope[name.Lexeme] = struct{}{}
+	scope.Vars[name.Lexeme] = struct{}{}
+}
+
+func (r *resolver) defineType(name syntax.Token) {
+	if r.Scopes.Empty() {
+		panic(
+			fmt.Sprintf(
+				"No scope to define '%s'. Where is the global scope?",
+				name.Lexeme,
+			),
+		)
+	}
+
+	scope := r.Scopes.Top()
+	scope.Types[name.Lexeme] = struct{}{}
 }
 
 func (r *resolver) resolveLocal(
 	astNode any, name syntax.Token,
 ) *resolvingError {
 	for i, scope := range r.Scopes.TopToBottom() {
-		if _, ok := scope[name.Lexeme]; ok {
+		if _, ok := scope.Vars[name.Lexeme]; ok {
 			r.Locals[astNode] = r.Scopes.Count() - i - 1
 			return nil
 		}
@@ -116,7 +142,7 @@ func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 				break
 			}
 
-			r.define(param.Name)
+			r.defineVar(param.Name)
 			seenNames[param.Name.Lexeme] = struct{}{}
 		}
 		r.resolveAll(expr.Body)
@@ -137,7 +163,7 @@ func (r *resolver) resolveType(
 	typeExpr syntax.TypeExpr, name syntax.Token,
 ) *resolvingError {
 	for i, scope := range r.Scopes.TopToBottom() {
-		if _, ok := scope[name.Lexeme]; ok {
+		if _, ok := scope.Types[name.Lexeme]; ok {
 			r.Types[typeExpr] = r.Scopes.Count() - i - 1
 			return nil
 		}
@@ -171,7 +197,7 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 		r.resolveAll(stmt.Stmts)
 	case syntax.VarStmt:
 		if stmt.Initializer == nil {
-			r.define(stmt.Name)
+			r.defineVar(stmt.Name)
 			break
 		}
 
@@ -179,11 +205,11 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 		// so it is declared before resolving its body:
 		switch expr := stmt.Initializer.(type) {
 		case syntax.FuncExpr:
-			r.define(stmt.Name)
+			r.defineVar(stmt.Name)
 			r.resolveExpr(expr)
 		default:
 			r.resolveExpr(expr)
-			r.define(stmt.Name)
+			r.defineVar(stmt.Name)
 		}
 	case syntax.AssignStmt:
 		r.resolveExpr(stmt.Value)
@@ -262,7 +288,7 @@ func Resolve(source string, stmts []syntax.Stmt) (
 	hadError bool,
 	ds []diagnostics.Diagnostic,
 ) {
-	global := make(map[string]struct{})
+	global := newScope()
 	r := resolver{
 		Source: source,
 		Scopes: stack.New(global),
