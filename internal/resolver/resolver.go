@@ -173,14 +173,22 @@ func (r *resolver) resolveType(
 	return &resolvingError{}
 }
 
-// TODO: Implement
 func (r *resolver) resolveTypeExpr(
 	typeExpr syntax.TypeExpr,
 ) (typ types.Type, err *resolvingError) {
 	switch typeExpr := typeExpr.(type) {
 	case syntax.NamedTypeExpr:
+		r.resolveType(typeExpr, typeExpr.Name)
 	case syntax.UnionTypeExpr:
+		for _, typ := range typeExpr.Types {
+			r.resolveTypeExpr(typ)
+		}
 	case syntax.FuncTypeExpr:
+		for _, param := range typeExpr.ParamsType {
+			r.resolveTypeExpr(param)
+		}
+
+		r.resolveTypeExpr(typeExpr.ReturnType)
 	default:
 		panic("Not implemented type expression kind to resolve.")
 	}
