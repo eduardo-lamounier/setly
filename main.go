@@ -20,7 +20,6 @@ const (
 
 func main() {
 	exitCode := 0
-	defer os.Exit(exitCode)
 
 	opts, err := cli.GetOptions(os.Args[1:])
 	if err != nil {
@@ -41,6 +40,8 @@ func main() {
 	} else {
 		os.Exit(RunFile(*opts.SourceFilePath))
 	}
+
+	os.Exit(exitCode)
 }
 
 func RunPrompt() int {
