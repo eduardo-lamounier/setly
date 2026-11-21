@@ -116,6 +116,7 @@ func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 		}
 		r.resolveAll(expr.Body)
 	case syntax.CallExpr:
+		// TODO: Handle wrong amount of passed arguments
 		r.resolveExpr(expr.Callee)
 
 		for _, argument := range expr.Arguments {
