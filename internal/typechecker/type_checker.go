@@ -15,7 +15,7 @@ type checker struct {
 
 type typeError struct{}
 
-func (c *checker) checkExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
+func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
 	switch expr := expr.(type) {
 	case syntax.LiteralExpr:
 	case syntax.UnaryExpr:
