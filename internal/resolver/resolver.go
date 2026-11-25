@@ -7,19 +7,18 @@ import (
 
 	"github.com/eduardo-lamounier/setly/internal/diagnostics"
 	"github.com/eduardo-lamounier/setly/internal/syntax"
-	"github.com/eduardo-lamounier/setly/internal/types"
 	"github.com/eduardo-lamounier/setly/internal/util/stack"
 )
 
 type scope struct {
-	Locals  map[string]struct{}
-	Types map[string]struct{}
+	Locals map[string]struct{}
+	Types  map[string]struct{}
 }
 
 func newScope() scope {
 	return scope{
-		Locals:  make(map[string]struct{}),
-		Types: make(map[string]struct{}),
+		Locals: make(map[string]struct{}),
+		Types:  make(map[string]struct{}),
 	}
 }
 
@@ -87,7 +86,6 @@ func (r *resolver) defineType(name string) {
 	}
 
 	scope := r.Scopes.Top()
-	scope.Types[name] = struct{}{}
 	scope.Types[name] = struct{}{}
 }
 
@@ -330,6 +328,7 @@ func (r *resolver) resolveAll(stmts []syntax.Stmt) (err *resolvingError) {
 
 func Resolve(source string, stmts []syntax.Stmt) (
 	locals map[any]int,
+	types map[syntax.TypeExpr]int,
 	hadError bool,
 	ds []diagnostics.Diagnostic,
 ) {
@@ -341,5 +340,5 @@ func Resolve(source string, stmts []syntax.Stmt) (
 	}
 
 	_ = r.resolveAll(stmts)
-	return r.Locals, r.HadError, r.Diagnostics
+	return r.Locals, r.Types, r.HadError, r.Diagnostics
 }

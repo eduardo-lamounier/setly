@@ -26,7 +26,7 @@ func Run(source string, opts interpreter.Options) error {
 		return fmt.Errorf("errors were found in the source code")
 	}
 
-	locals, hadError, ds := resolver.Resolve(source, stmts)
+	locals, types, hadError, ds := resolver.Resolve(source, stmts)
 
 	if hadError {
 		reportAll(ds)
