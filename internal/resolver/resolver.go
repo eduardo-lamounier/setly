@@ -358,6 +358,7 @@ func Resolve(source string, stmts []syntax.Stmt) (
 		Source: source,
 		Scopes: stack.New(global),
 		Locals: make(map[any]int),
+		Types:  make(map[syntax.TypeExpr]int),
 	}
 
 	r.defineType("number")
