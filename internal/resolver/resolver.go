@@ -11,14 +11,14 @@ import (
 )
 
 type scope struct {
-	Locals map[string]struct{}
-	Types  map[string]struct{}
+	Vars  map[string]struct{}
+	Types map[string]struct{}
 }
 
 func newScope() scope {
 	return scope{
-		Locals: make(map[string]struct{}),
-		Types:  make(map[string]struct{}),
+		Vars:  make(map[string]struct{}),
+		Types: make(map[string]struct{}),
 	}
 }
 
@@ -29,7 +29,7 @@ type resolver struct {
 	InsideFunc bool
 	InsideLoop bool
 
-	Locals      map[any]int
+	Vars        map[any]int
 	Types       map[syntax.TypeExpr]int
 	HadError    bool
 	Diagnostics []diagnostics.Diagnostic
@@ -72,7 +72,7 @@ func (r *resolver) defineVar(name string) {
 	}
 
 	scope := r.Scopes.Top()
-	scope.Locals[name] = struct{}{}
+	scope.Vars[name] = struct{}{}
 }
 
 func (r *resolver) defineType(name string) {
@@ -89,12 +89,12 @@ func (r *resolver) defineType(name string) {
 	scope.Types[name] = struct{}{}
 }
 
-func (r *resolver) resolveLocal(
+func (r *resolver) resolveVar(
 	astNode any, name syntax.Token,
 ) *resolvingError {
 	for i, scope := range r.Scopes.TopToBottom() {
-		if _, ok := scope.Locals[name.Lexeme]; ok {
-			r.Locals[astNode] = r.Scopes.Count() - i - 1
+		if _, ok := scope.Vars[name.Lexeme]; ok {
+			r.Vars[astNode] = r.Scopes.Count() - i - 1
 			return nil
 		}
 	}
@@ -106,7 +106,7 @@ func (r *resolver) resolveLocal(
 func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 	switch expr := expr.(type) {
 	case syntax.VarExpr:
-		err = r.resolveLocal(expr, expr.Name)
+		err = r.resolveVar(expr, expr.Name)
 	case syntax.UnaryExpr:
 		err = r.resolveExpr(expr.Operand)
 	case syntax.BinaryExpr:
@@ -243,7 +243,7 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 		}
 	case syntax.AssignStmt:
 		err = r.resolveExpr(stmt.Value)
-		e := r.resolveLocal(stmt, stmt.Name)
+		e := r.resolveVar(stmt, stmt.Name)
 
 		if err == nil {
 			err = e
@@ -287,7 +287,7 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 			r.InsideLoop = wereInsideLoop
 		}()
 
-		err = r.resolveLocal(stmt.Start, stmt.Var)
+		err = r.resolveVar(stmt.Start, stmt.Var)
 
 		e := r.resolveExpr(stmt.Limit)
 		if err == nil {
@@ -348,7 +348,7 @@ func (r *resolver) resolveAll(stmts []syntax.Stmt) (err *resolvingError) {
 }
 
 func Resolve(source string, stmts []syntax.Stmt) (
-	locals map[any]int,
+	vars map[any]int,
 	types map[syntax.TypeExpr]int,
 	hadError bool,
 	ds []diagnostics.Diagnostic,
@@ -357,7 +357,7 @@ func Resolve(source string, stmts []syntax.Stmt) (
 	r := resolver{
 		Source: source,
 		Scopes: stack.New(global),
-		Locals: make(map[any]int),
+		Vars:   make(map[any]int),
 		Types:  make(map[syntax.TypeExpr]int),
 	}
 
@@ -367,5 +367,5 @@ func Resolve(source string, stmts []syntax.Stmt) (
 	r.defineType("nil")
 
 	_ = r.resolveAll(stmts)
-	return r.Locals, r.Types, r.HadError, r.Diagnostics
+	return r.Vars, r.Types, r.HadError, r.Diagnostics
 }

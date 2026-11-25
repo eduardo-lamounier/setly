@@ -11,7 +11,7 @@ import (
 
 type interpreter struct {
 	Environment *runtime.Environment
-	Locals      map[any]int
+	Vars        map[any]int
 	Opts        Options
 }
 
@@ -99,7 +99,7 @@ func (i *interpreter) callFunction(
 func (i *interpreter) lookUpVar(
 	name syntax.Token, astNode any,
 ) runtime.Value {
-	distance, _ := i.Locals[astNode]
+	distance, _ := i.Vars[astNode]
 	return i.Environment.AccessAt(name.Lexeme, distance)
 }
 
@@ -271,7 +271,7 @@ func (i *interpreter) execute(
 			return err, nil
 		}
 
-		if distance, ok := i.Locals[stmt]; ok {
+		if distance, ok := i.Vars[stmt]; ok {
 			i.Environment.AssignAt(stmt.Name.Lexeme, value, distance)
 			break
 		}
@@ -411,12 +411,12 @@ func (i *interpreter) execute(
 
 func Interpret(
 	stmts []syntax.Stmt,
-	locals map[any]int,
+	vars map[any]int,
 	opts Options,
 ) *runtime.Error {
 	i := interpreter{
 		Environment: runtime.GlobalEnvironment(),
-		Locals:      locals,
+		Vars:        vars,
 		Opts:        opts,
 	}
 
