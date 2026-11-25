@@ -13,6 +13,14 @@ type checker struct {
 	Diagnostics []diagnostics.Diagnostic
 }
 
+func (c *checker) reportAt(message string, loc syntax.Location) {
+	c.Diagnostics = append(
+		c.Diagnostics,
+		diagnostics.New(message, loc, c.Source),
+	)
+	c.HadError = true
+}
+
 type typeError struct{}
 
 func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
