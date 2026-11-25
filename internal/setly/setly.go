@@ -9,6 +9,7 @@ import (
 	"github.com/eduardo-lamounier/setly/internal/lexer"
 	"github.com/eduardo-lamounier/setly/internal/parser"
 	"github.com/eduardo-lamounier/setly/internal/resolver"
+	"github.com/eduardo-lamounier/setly/internal/typechecker"
 )
 
 func Run(source string, opts interpreter.Options) error {
@@ -27,6 +28,13 @@ func Run(source string, opts interpreter.Options) error {
 	}
 
 	locals, types, hadError, ds := resolver.Resolve(source, stmts)
+
+	if hadError {
+		reportAll(ds)
+		return fmt.Errorf("errors were found in the source code")
+	}
+
+	hadError, ds = typechecker.Check(source, stmts, types)
 
 	if hadError {
 		reportAll(ds)
