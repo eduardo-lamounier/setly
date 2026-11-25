@@ -52,8 +52,15 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 	panic("Type check for expressions not yet implemented.")
 }
 
-func Check(stmts []syntax.Stmt) (bool, []diagnostics.Diagnostic) {
-	c := checker{}
+func Check(
+	source string,
+	stmts []syntax.Stmt,
+	types map[syntax.TypeExpr]int,
+) (bool, []diagnostics.Diagnostic) {
+	c := checker{
+		Source: source,
+		Types:  types,
+	}
 
 	for _, stmt := range stmts {
 		_ = c.checkStmt(stmt)
