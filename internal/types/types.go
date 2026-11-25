@@ -158,7 +158,7 @@ func NewFunc(params []Type, ret Type) Func {
 	}
 }
 
-func NewUnion(types []Type) Union {
+func NewUnion(types ...Type) Union {
 	return Union{
 		Types: types,
 	}
