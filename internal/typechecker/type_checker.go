@@ -9,6 +9,10 @@ import (
 )
 
 type checker struct {
+	Source  string
+	Context *context
+	Types   map[syntax.TypeExpr]int
+
 	HadError    bool
 	Diagnostics []diagnostics.Diagnostic
 }
@@ -66,8 +70,9 @@ func Check(
 	types map[syntax.TypeExpr]int,
 ) (bool, []diagnostics.Diagnostic) {
 	c := checker{
-		Source: source,
-		Types:  types,
+		Source:  source,
+		Context: globalContext(),
+		Types:   types,
 	}
 
 	for _, stmt := range stmts {
