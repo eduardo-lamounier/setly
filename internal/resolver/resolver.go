@@ -360,6 +360,11 @@ func Resolve(source string, stmts []syntax.Stmt) (
 		Locals: make(map[any]int),
 	}
 
+	r.defineType("number")
+	r.defineType("string")
+	r.defineType("bool")
+	r.defineType("nil")
+
 	_ = r.resolveAll(stmts)
 	return r.Locals, r.Types, r.HadError, r.Diagnostics
 }
