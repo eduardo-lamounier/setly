@@ -2,12 +2,18 @@
 // operations on those types.
 package types
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+	"strings"
+)
 
 type Type interface {
 	typ()
 
 	Equals(other Type) bool
+
+	fmt.Stringer
 }
 
 type Number struct{}
@@ -107,6 +113,40 @@ func (t Union) Equals(other Type) bool {
 	default:
 		return false
 	}
+}
+
+func (t Number) String() string {
+	return "number"
+}
+
+func (t String) String() string {
+	return "string"
+}
+
+func (t Bool) String() string {
+	return "bool"
+}
+
+func (t Nil) String() string {
+	return "nil"
+}
+
+func (t Func) String() string {
+	params := make([]string, len(t.ParamsType))
+	for i, t := range t.ParamsType {
+		params[i] = fmt.Sprint(t)
+	}
+
+	return fmt.Sprintf("func(%s) -> %s", strings.Join(params, ", "), t.ReturnType)
+}
+
+func (t Union) String() string {
+	types := make([]string, len(t.Types))
+	for i, t := range t.Types {
+		types[i] = fmt.Sprint(t)
+	}
+
+	return strings.Join(types, " | ")
 }
 
 ////////////////////////////////////////////////////////////////////////////////
