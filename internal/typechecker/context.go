@@ -8,7 +8,8 @@ import (
 
 type context struct {
 	enclosing *context
-	types     map[string]types.Type
+	types     map[string]types.Type // Defined types
+	vars      map[string]types.Type // Types associated with declared variables
 }
 
 // Should not be accesed directly. Use [globalContext].
@@ -18,10 +19,10 @@ func globalContext() *context {
 	if global == nil {
 		global = newContext(nil)
 
-		global.define("number", types.Number{})
-		global.define("string", types.String{})
-		global.define("bool", types.Bool{})
-		global.define("nil", types.Nil{})
+		global.defineType("number", types.Number{})
+		global.defineType("string", types.String{})
+		global.defineType("bool", types.Bool{})
+		global.defineType("nil", types.Nil{})
 	}
 
 	return global
@@ -47,11 +48,11 @@ func (c *context) ancestor(distance int) *context {
 	return ctx
 }
 
-func (c *context) define(name string, typ types.Type) {
+func (c *context) defineType(name string, typ types.Type) {
 	c.types[name] = typ
 }
 
-func (c context) access(name string) types.Type {
+func (c context) accessType(name string) types.Type {
 	if typ, ok := c.types[name]; ok {
 		return typ
 	}
@@ -59,6 +60,22 @@ func (c context) access(name string) types.Type {
 	panic(fmt.Sprintf("Undefined type '%s'.", name))
 }
 
-func (c context) accessAt(name string, distance int) types.Type {
-	return c.ancestor(distance).access(name)
+func (c context) accessTypeAt(name string, distance int) types.Type {
+	return c.ancestor(distance).accessType(name)
+}
+
+func (c *context) defineVar(name string, typ types.Type) {
+	c.vars[name] = typ
+}
+
+func (c context) accessVar(name string) types.Type {
+	if typ, ok := c.vars[name]; ok {
+		return typ
+	}
+
+	panic(fmt.Sprintf("Undefined '%s'.", name))
+}
+
+func (c context) accessVarAt(name string, distance int) types.Type {
+	return c.ancestor(distance).accessType(name)
 }
