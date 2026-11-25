@@ -163,3 +163,18 @@ func NewUnion(types ...Type) Union {
 		Types: types,
 	}
 }
+
+func FromLiteral(literal any) Type {
+	switch literal.(type) {
+	case float64:
+		return Number{}
+	case string:
+		return String{}
+	case bool:
+		return Bool{}
+	case nil:
+		return Nil{}
+	}
+
+	panic("Invalid literal type to get a supported type.")
+}
