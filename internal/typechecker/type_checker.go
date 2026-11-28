@@ -28,6 +28,33 @@ func (c *checker) reportAt(message string, loc syntax.Location) {
 
 type typeError struct{}
 
+// Converts a [syntax.TypeExpr] type representation to a [types.Type] type
+// representation.
+func (c checker) elaborateType(typeExpr syntax.TypeExpr) (typ types.Type) {
+	switch typeExpr := typeExpr.(type) {
+	case syntax.NamedTypeExpr:
+		typ = c.Context.accessTypeAt(typeExpr.Name.Lexeme, c.Types[typeExpr])
+	case syntax.UnionTypeExpr:
+		unionTypes := make([]types.Type, len(typeExpr.Types))
+		for i, unionTypeExpr := range typeExpr.Types {
+			unionTypes[i] = c.elaborateType(unionTypeExpr)
+		}
+
+		typ = types.NewUnion(unionTypes...)
+	case syntax.FuncTypeExpr:
+		params := make([]types.Type, len(typeExpr.ParamsType))
+		for i, paramTypeExpr := range typeExpr.ParamsType {
+			params[i] = c.elaborateType(paramTypeExpr)
+		}
+
+		ret := c.elaborateType(typeExpr.ReturnType)
+
+		typ = types.NewFunc(params, ret)
+	}
+
+	return
+}
+
 func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
 	switch expr := expr.(type) {
 	case syntax.LiteralExpr:
