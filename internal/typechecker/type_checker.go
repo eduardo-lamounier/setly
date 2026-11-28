@@ -231,8 +231,8 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 		if !typ.Equals(got) {
 			c.reportAt(
 				fmt.Sprintf(
-					"Cannot initialize variable of type %s with value of type %s.",
-					typ, got,
+					"Cannot initialize '%s' (of type %s) with value of type %s.",
+					stmt.Name.Lexeme, typ, got,
 				),
 				stmt.Initializer.Location(),
 			)
@@ -248,8 +248,8 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 		if !typ.Equals(got) {
 			c.reportAt(
 				fmt.Sprintf(
-					"Cannot assign value of type %s to variable of type %s.",
-					got, typ,
+					"Cannot assign value of type %s to '%s' (of type %s).",
+					got, stmt.Name.Lexeme, typ,
 				),
 				stmt.Value.Location(),
 			)
