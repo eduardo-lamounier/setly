@@ -201,10 +201,17 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 	case syntax.VarStmt:
 		typ := c.elaborateType(stmt.Type)
 
-		// Just like in the resolver, a function must be able to refer to itself:
+		define := func() {
+			c.Context.defineVar(stmt.Name.Lexeme, typ)
+		}
+
+		// Just like in the resolver, a function must be able to refer to itself,
+		// but a variable must not:
 		switch typ.(type) {
 		case types.Func:
-			c.Context.defineVar(stmt.Name.Lexeme, typ)
+			define()
+		default:
+			defer define()
 		}
 
 		var got types.Type
@@ -223,14 +230,6 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 			)
 			err = &typeError{}
 			return
-		}
-
-		// A normal variable can't be able to refer to itself, so it needs to be
-		// defined after type checking the initializer:
-		switch typ.(type) {
-		case types.Func:
-		default:
-			c.Context.defineVar(stmt.Name.Lexeme, typ)
 		}
 	case syntax.AssignStmt:
 		typ := c.Context.accessVarAt(stmt.Name.Lexeme, c.Vars[stmt])
