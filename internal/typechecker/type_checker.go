@@ -82,6 +82,27 @@ func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
 
 		typ = l
 
+		undefOpForType := func() {
+			c.reportAt(
+				fmt.Sprintf(
+					"Operator '%s' not defined for %s.", expr.Operator.Lexeme, l,
+				),
+				expr.Left.Location(),
+			)
+			err = &typeError{}
+		}
+
+		mismatch := func() {
+			c.reportAt(
+				fmt.Sprintf(
+					"Type mismatch (%s and %s) for operator '%s'.",
+					l, r, expr.Operator.Lexeme,
+				),
+				expr.Right.Location(),
+			)
+			err = &typeError{}
+		}
+
 		switch expr.Operator.Kind {
 		case syntax.TokenOr, syntax.TokenAnd:
 			if !l.Equals(r) {
@@ -93,25 +114,12 @@ func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
 			syntax.TokenSlash:
 
 			if !l.Equals(types.Number{}) && !l.Equals(types.String{}) {
-				c.reportAt(
-					fmt.Sprintf(
-						"Operator '%s' not defined for %s.", expr.Operator.Lexeme, l,
-					),
-					expr.Left.Location(),
-				)
-				err = &typeError{}
+				undefOpForType()
 				return
 			}
 
 			if !l.Equals(r) {
-				c.reportAt(
-					fmt.Sprintf(
-						"Type mismatch (%s and %s) for operator '%s'.",
-						l, r, expr.Operator.Lexeme,
-					),
-					expr.Right.Location(),
-				)
-				err = &typeError{}
+				mismatch()
 				return
 			}
 		case syntax.TokenEqualEqual,
