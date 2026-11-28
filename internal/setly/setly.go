@@ -34,7 +34,7 @@ func Run(source string, opts interpreter.Options) error {
 		return fmt.Errorf("errors were found in the source code")
 	}
 
-	hadError, ds = typechecker.Check(source, stmts, types)
+	hadError, ds = typechecker.Check(source, stmts, vars, types)
 
 	if hadError {
 		reportAll(ds)

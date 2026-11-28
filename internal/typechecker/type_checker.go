@@ -11,6 +11,7 @@ import (
 type checker struct {
 	Source  string
 	Context *context
+	Vars    map[any]int
 	Types   map[syntax.TypeExpr]int
 
 	HadError    bool
@@ -67,11 +68,13 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 func Check(
 	source string,
 	stmts []syntax.Stmt,
+	vars map[any]int,
 	types map[syntax.TypeExpr]int,
 ) (bool, []diagnostics.Diagnostic) {
 	c := checker{
 		Source:  source,
 		Context: globalContext(),
+		Vars:    vars,
 		Types:   types,
 	}
 
