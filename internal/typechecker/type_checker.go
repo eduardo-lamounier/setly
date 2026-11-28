@@ -109,7 +109,7 @@ func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
 						"Type mismatch (%s and %s) for operator '%s'.",
 						l, r, expr.Operator.Lexeme,
 					),
-					expr.Location(),
+					expr.Right.Location(),
 				)
 				err = &typeError{}
 				return
