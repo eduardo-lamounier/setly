@@ -220,9 +220,10 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 					"Cannot initialize variable of type %s with value of type %s.",
 					typ, got,
 				),
-				stmt.Location(),
+				stmt.Initializer.Location(),
 			)
-			return &typeError{}
+			err = &typeError{}
+			return
 		}
 
 		// A normal variable can't be able to refer to itself, so it needs to be
