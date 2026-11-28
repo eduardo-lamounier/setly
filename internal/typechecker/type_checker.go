@@ -50,7 +50,10 @@ func (c checker) elaborateType(typeExpr syntax.TypeExpr) (typ types.Type) {
 			params[i] = c.elaborateType(paramTypeExpr)
 		}
 
-		ret := c.elaborateType(typeExpr.ReturnType)
+		var ret types.Type
+		if typeExpr.ReturnType != nil {
+			ret = c.elaborateType(typeExpr.ReturnType)
+		}
 
 		typ = types.NewFunc(params, ret)
 	}
@@ -58,25 +61,27 @@ func (c checker) elaborateType(typeExpr syntax.TypeExpr) (typ types.Type) {
 	return
 }
 
-func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
+func (c *checker) inferExpr(
+	expr syntax.Expr, valueIsUsed bool,
+) (typ types.Type, err *typeError) {
 	switch expr := expr.(type) {
 	case syntax.LiteralExpr:
 		typ = types.FromLiteral(expr.Value())
 	case syntax.UnaryExpr:
-		typ, err = c.inferExpr(expr.Operand)
+		typ, err = c.inferExpr(expr.Operand, true)
 
 		if expr.Operator.Kind == syntax.TokenNot {
 			typ = types.Bool{}
 		}
 	case syntax.BinaryExpr:
 		var l types.Type
-		l, err = c.inferExpr(expr.Left)
+		l, err = c.inferExpr(expr.Left, true)
 		if err != nil {
 			return
 		}
 
 		var r types.Type
-		r, err = c.inferExpr(expr.Right)
+		r, err = c.inferExpr(expr.Right, true)
 		if err != nil {
 			return
 		}
@@ -157,12 +162,12 @@ func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
 			)
 		}
 	case syntax.GroupingExpr:
-		typ, err = c.inferExpr(expr.Inner)
+		typ, err = c.inferExpr(expr.Inner, valueIsUsed)
 	case syntax.VarExpr:
 		typ = c.Context.accessVarAt(expr.Name.Lexeme, c.Vars[expr])
 	case syntax.CallExpr:
 		var calleeType types.Type
-		calleeType, err = c.inferExpr(expr.Callee)
+		calleeType, err = c.inferExpr(expr.Callee, true)
 		if err != nil {
 			return
 		}
@@ -171,7 +176,7 @@ func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
 		case types.Func:
 			for i, argument := range expr.Arguments {
 				var argType types.Type
-				argType, err = c.inferExpr(argument)
+				argType, err = c.inferExpr(argument, true)
 
 				if !assignable(calleeType.ParamsType[i], argType) {
 					c.reportAt(
@@ -183,6 +188,17 @@ func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
 					)
 					err = &typeError{}
 				}
+			}
+
+			if calleeType.ReturnType == nil && valueIsUsed {
+				c.reportAt(
+					fmt.Sprintf(
+						"The called function has no return, so the call cannot be used as"+
+							" a value.",
+					),
+					expr.Callee.Location(),
+				)
+				err = &typeError{}
 			}
 
 			typ = calleeType.ReturnType
@@ -260,9 +276,9 @@ func assignable(varType types.Type, valueType types.Type) bool {
 func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 	switch stmt := stmt.(type) {
 	case syntax.ExprStmt:
-		_, err = c.inferExpr(stmt.Expr)
+		_, err = c.inferExpr(stmt.Expr, false)
 	case syntax.PrintStmt:
-		_, err = c.inferExpr(stmt.Expr)
+		_, err = c.inferExpr(stmt.Expr, true)
 	case syntax.VarStmt:
 		typ := c.elaborateType(stmt.Type)
 
@@ -284,7 +300,7 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 		}
 
 		var got types.Type
-		got, err = c.inferExpr(stmt.Initializer)
+		got, err = c.inferExpr(stmt.Initializer, true)
 		if err != nil {
 			return
 		}
@@ -304,7 +320,7 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 		typ := c.Context.accessVarAt(stmt.Name.Lexeme, c.Vars[stmt])
 
 		var got types.Type
-		got, err = c.inferExpr(stmt.Value)
+		got, err = c.inferExpr(stmt.Value, true)
 
 		if !assignable(typ, got) {
 			c.reportAt(
@@ -320,7 +336,7 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 	case syntax.BlockStmt:
 		err = c.checkBlock(stmt.Stmts, newContext(c.Context))
 	case syntax.IfStmt:
-		_, err = c.inferExpr(stmt.Condition)
+		_, err = c.inferExpr(stmt.Condition, true)
 
 		e := c.checkBlock(stmt.ThenBranch, newContext(c.Context))
 		if err == nil {
@@ -332,7 +348,7 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 			err = e
 		}
 	case syntax.WhileStmt:
-		_, err = c.inferExpr(stmt.Condition)
+		_, err = c.inferExpr(stmt.Condition, true)
 
 		e := c.checkBlock(stmt.Block, newContext(c.Context))
 		if err == nil {
@@ -340,7 +356,7 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 		}
 	case syntax.ForNumStmt:
 		var startType types.Type
-		startType, err = c.inferExpr(stmt.Start)
+		startType, err = c.inferExpr(stmt.Start, true)
 
 		if !startType.Equals(types.Number{}) {
 			c.reportAt(
@@ -354,7 +370,7 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 			return
 		}
 
-		limitType, e := c.inferExpr(stmt.Limit)
+		limitType, e := c.inferExpr(stmt.Limit, true)
 		if err == nil {
 			err = e
 		}
@@ -372,7 +388,7 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 		}
 
 		var stepType types.Type
-		stepType, e = c.inferExpr(stmt.Step)
+		stepType, e = c.inferExpr(stmt.Step, true)
 		if err == nil {
 			err = e
 		}
@@ -396,7 +412,7 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 	case syntax.ReturnStmt:
 		// TODO: Check for the right return type. Since the resolver emitted
 		// no errors, we can be sure any return statement is inside a function.
-		_, err = c.inferExpr(stmt.Value)
+		_, err = c.inferExpr(stmt.Value, true)
 	case syntax.ContinueStmt, syntax.BreakStmt:
 	case syntax.TypeStmt:
 		c.Context.defineType(stmt.Name.Lexeme, c.elaborateType(stmt.Value))

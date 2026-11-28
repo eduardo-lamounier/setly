@@ -204,7 +204,10 @@ func (r *resolver) resolveTypeExpr(
 			}
 		}
 
-		e := r.resolveTypeExpr(typeExpr.ReturnType)
+		var e *resolvingError
+		if typeExpr.ReturnType != nil {
+			e = r.resolveTypeExpr(typeExpr.ReturnType)
+		}
 
 		if err == nil {
 			err = e

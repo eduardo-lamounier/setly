@@ -63,6 +63,25 @@ func (t Nil) Equals(other Type) bool {
 func (t Func) Equals(other Type) bool {
 	switch other := other.(type) {
 	case Func:
+		sameParameters := func() bool {
+			for i := range t.ParamsType {
+				if !t.ParamsType[i].Equals(other.ParamsType[i]) {
+					return false
+				}
+			}
+
+			return true
+		}
+
+		if t.ReturnType == nil || other.ReturnType == nil {
+			if t.ReturnType != other.ReturnType {
+				return false
+			}
+
+			// Both have no return type
+			return sameParameters()
+		}
+
 		if !t.ReturnType.Equals(other.ReturnType) {
 			return false
 		}
@@ -71,13 +90,7 @@ func (t Func) Equals(other Type) bool {
 			return false
 		}
 
-		for i := range t.ParamsType {
-			if !t.ParamsType[i].Equals(other.ParamsType[i]) {
-				return false
-			}
-		}
-
-		return true
+		return sameParameters()
 	default:
 		return false
 	}
