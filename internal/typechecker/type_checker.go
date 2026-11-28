@@ -4,6 +4,7 @@ package typechecker
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/eduardo-lamounier/setly/internal/diagnostics"
 	"github.com/eduardo-lamounier/setly/internal/syntax"
@@ -172,7 +173,7 @@ func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
 				var argType types.Type
 				argType, err = c.inferExpr(argument)
 
-				if !argType.Equals(calleeType.ParamsType[i]) {
+				if !assignable(calleeType.ParamsType[i], argType) {
 					c.reportAt(
 						fmt.Sprintf(
 							"Cannot pass argument of type %s where %s is expected.",
@@ -232,6 +233,30 @@ func (c *checker) checkBlock(
 	return
 }
 
+func assignable(varType types.Type, valueType types.Type) bool {
+	switch varType := varType.(type) {
+	case types.Union:
+		switch valueType := valueType.(type) {
+		case types.Union:
+			for _, typ := range valueType.Types {
+				if !slices.ContainsFunc(varType.Types, func(t types.Type) bool {
+					return t.Equals(typ)
+				}) {
+					return false
+				}
+			}
+
+			return true
+		default:
+			return slices.ContainsFunc(varType.Types, func(t types.Type) bool {
+				return t.Equals(valueType)
+			})
+		}
+	default:
+		return varType.Equals(valueType)
+	}
+}
+
 func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 	switch stmt := stmt.(type) {
 	case syntax.ExprStmt:
@@ -264,7 +289,7 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 			return
 		}
 
-		if !typ.Equals(got) {
+		if !assignable(typ, got) {
 			c.reportAt(
 				fmt.Sprintf(
 					"Cannot initialize '%s' (of type %s) with value of type %s.",
@@ -281,7 +306,7 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 		var got types.Type
 		got, err = c.inferExpr(stmt.Value)
 
-		if !typ.Equals(got) {
+		if !assignable(typ, got) {
 			c.reportAt(
 				fmt.Sprintf(
 					"Cannot assign value of type %s to '%s' (of type %s).",
