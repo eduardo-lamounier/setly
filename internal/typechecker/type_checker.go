@@ -176,6 +176,23 @@ func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
 	return
 }
 
+func (c *checker) checkBlock(
+	stmts []syntax.Stmt, ctx *context,
+) (err *typeError) {
+	prev := c.Context
+
+	c.Context = ctx
+	defer func() { c.Context = prev }()
+
+	for _, stmt := range stmts {
+		if e := c.checkStmt(stmt); err == nil {
+			err = e
+		}
+	}
+
+	return
+}
+
 func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 	switch stmt := stmt.(type) {
 	case syntax.ExprStmt:
