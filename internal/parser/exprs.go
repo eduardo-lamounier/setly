@@ -213,8 +213,7 @@ func (p *parser) primaryExpr() (expr syntax.Expr, err *parsingError) {
 			return
 		}
 
-		if !p.match(syntax.TokenParenR) {
-			p.report("Expected ')', got '%s'.")
+		if p.expect(syntax.TokenParenR) == nil {
 			err = &parsingError{}
 			return
 		}
