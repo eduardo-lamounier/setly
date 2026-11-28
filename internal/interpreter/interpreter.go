@@ -273,6 +273,7 @@ func (i *interpreter) execute(
 		}
 
 		i.Environment.Define(stmt.Name.Lexeme, value)
+	case syntax.TypeStmt:
 	case syntax.AssignStmt:
 		value, err := i.evaluate(stmt.Value)
 		if err != nil {
