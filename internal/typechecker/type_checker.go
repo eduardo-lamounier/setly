@@ -125,8 +125,7 @@ func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
 	case syntax.GroupingExpr:
 		typ, err = c.inferExpr(expr.Inner)
 	case syntax.VarExpr:
-		name := expr.Name.Lexeme
-		typ = c.Context.accessTypeAt(name, c.Vars[name])
+		typ = c.Context.accessVarAt(expr.Name.Lexeme, c.Vars[expr])
 	case syntax.CallExpr:
 		var calleeType types.Type
 		calleeType, err = c.inferExpr(expr.Callee)
@@ -234,8 +233,7 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 			c.Context.defineVar(stmt.Name.Lexeme, typ)
 		}
 	case syntax.AssignStmt:
-		name := stmt.Name.Lexeme
-		typ := c.Context.accessTypeAt(name, c.Vars[name])
+		typ := c.Context.accessVarAt(stmt.Name.Lexeme, c.Vars[stmt])
 
 		var got types.Type
 		got, err = c.inferExpr(stmt.Value)
