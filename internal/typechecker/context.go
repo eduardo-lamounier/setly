@@ -78,5 +78,5 @@ func (c context) accessVar(name string) types.Type {
 }
 
 func (c context) accessVarAt(name string, distance int) types.Type {
-	return c.ancestor(distance).accessType(name)
+	return c.ancestor(distance).accessVar(name)
 }
