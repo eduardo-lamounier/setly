@@ -32,6 +32,7 @@ func newContext(enclosing *context) *context {
 	return &context{
 		enclosing: enclosing,
 		types:     make(map[string]types.Type),
+		vars:      make(map[string]types.Type),
 	}
 }
 
