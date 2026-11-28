@@ -254,6 +254,10 @@ func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 			defer define()
 		}
 
+		if stmt.Initializer == nil {
+			break
+		}
+
 		var got types.Type
 		got, err = c.inferExpr(stmt.Initializer)
 		if err != nil {
