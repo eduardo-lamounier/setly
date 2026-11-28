@@ -239,6 +239,11 @@ func (r *resolver) resolveStmt(stmt syntax.Stmt) (err *resolvingError) {
 			err = r.resolveExpr(expr)
 			r.defineVar(stmt.Name.Lexeme)
 		}
+
+		e := r.resolveTypeExpr(stmt.Type)
+		if err == nil {
+			err = e
+		}
 	case syntax.AssignStmt:
 		err = r.resolveExpr(stmt.Value)
 		e := r.resolveVar(stmt, stmt.Name)
