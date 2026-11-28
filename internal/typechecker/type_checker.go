@@ -3,6 +3,8 @@
 package typechecker
 
 import (
+	"fmt"
+
 	"github.com/eduardo-lamounier/setly/internal/diagnostics"
 	"github.com/eduardo-lamounier/setly/internal/syntax"
 	"github.com/eduardo-lamounier/setly/internal/types"
@@ -58,17 +60,120 @@ func (c checker) elaborateType(typeExpr syntax.TypeExpr) (typ types.Type) {
 func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
 	switch expr := expr.(type) {
 	case syntax.LiteralExpr:
+		typ = types.FromLiteral(expr.Value())
 	case syntax.UnaryExpr:
+		typ, err = c.inferExpr(expr.Operand)
+
+		if expr.Operator.Kind == syntax.TokenNot {
+			typ = types.Bool{}
+		}
 	case syntax.BinaryExpr:
+		var l types.Type
+		l, err = c.inferExpr(expr.Left)
+		if err != nil {
+			return
+		}
+
+		var r types.Type
+		r, err = c.inferExpr(expr.Right)
+		if err != nil {
+			return
+		}
+
+		typ = l
+
+		switch expr.Operator.Kind {
+		case syntax.TokenOr, syntax.TokenAnd:
+			if !l.Equals(r) {
+				typ = types.NewUnion(l, r)
+			}
+		case syntax.TokenPlus,
+			syntax.TokenMinus,
+			syntax.TokenStar,
+			syntax.TokenSlash:
+
+			if !l.Equals(types.Number{}) && !l.Equals(types.String{}) {
+				c.reportAt(
+					fmt.Sprintf(
+						"Operator '%s' not defined for %s.", expr.Operator.Lexeme, l,
+					),
+					expr.Left.Location(),
+				)
+				err = &typeError{}
+				return
+			}
+
+			if !l.Equals(r) {
+				c.reportAt(
+					fmt.Sprintf(
+						"Type mismatch (%s and %s) for operator '%s'.",
+						l, r, expr.Operator.Lexeme,
+					),
+					expr.Location(),
+				)
+				err = &typeError{}
+				return
+			}
+		default:
+			panic(
+				fmt.Sprintf(
+					"Not implemented binary operator to type check: '%s'.",
+					expr.Operator.Lexeme,
+				),
+			)
+		}
 	case syntax.GroupingExpr:
+		typ, err = c.inferExpr(expr.Inner)
 	case syntax.VarExpr:
+		name := expr.Name.Lexeme
+		typ = c.Context.accessTypeAt(name, c.Vars[name])
 	case syntax.CallExpr:
+		var calleeType types.Type
+		calleeType, err = c.inferExpr(expr.Callee)
+		if err != nil {
+			return
+		}
+
+		switch calleeType := calleeType.(type) {
+		case types.Func:
+			for i, argument := range expr.Arguments {
+				var argType types.Type
+				argType, err = c.inferExpr(argument)
+
+				if !argType.Equals(calleeType.ParamsType[i]) {
+					c.reportAt(
+						fmt.Sprintf(
+							"Cannot pass argument of type %s where %s is expected.",
+							argType, calleeType.ParamsType[i],
+						),
+						expr.Location(),
+					)
+					err = &typeError{}
+				}
+			}
+
+			typ = calleeType.ReturnType
+		default:
+			c.reportAt(
+				fmt.Sprintf("Cannot call %s.", calleeType), expr.Callee.Location(),
+			)
+			err = &typeError{}
+		}
 	case syntax.FuncExpr:
+		returnType := c.elaborateType(expr.ReturnType)
+		paramsType := make([]types.Type, len(expr.Parameters))
+
+		for _, param := range expr.Parameters {
+			paramType := c.elaborateType(param.Type)
+			c.Context.defineVar(param.Name.Lexeme, paramType)
+		}
+
+		typ = types.NewFunc(paramsType, returnType)
 	default:
 		panic("Not implemented expression kind to type check.")
 	}
 
-	panic("Type check for expressions not yet implemented.")
+	return
 }
 
 func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
