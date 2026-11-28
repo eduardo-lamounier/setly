@@ -12,19 +12,21 @@ import (
 	"github.com/eduardo-lamounier/setly/internal/typechecker"
 )
 
+const errorMessage = "errors were found in the source code"
+
 func Run(source string, opts interpreter.Options) error {
 	tokens, hadError, ds := lexer.Scan(source)
 
 	if hadError {
 		reportAll(ds)
-		return fmt.Errorf("errors were found in the source code")
+		return fmt.Errorf(errorMessage)
 	}
 
 	stmts, hadError, ds := parser.Parse(source, tokens)
 
 	if hadError {
 		reportAll(ds)
-		return fmt.Errorf("errors were found in the source code")
+		return fmt.Errorf(errorMessage)
 	}
 
 	vars, types, hadError, ds := resolver.Resolve(source, stmts)
@@ -38,7 +40,7 @@ func Run(source string, opts interpreter.Options) error {
 
 	if hadError {
 		reportAll(ds)
-		return fmt.Errorf("error were found in the source code")
+		return fmt.Errorf(errorMessage)
 	}
 
 	if err := interpreter.Interpret(stmts, vars, opts); err != nil {

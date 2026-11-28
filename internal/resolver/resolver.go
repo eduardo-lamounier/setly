@@ -46,11 +46,7 @@ func (r *resolver) reportAt(message string, loc syntax.Location) {
 }
 
 func (r *resolver) reportAtToken(message string, tok syntax.Token) {
-	r.HadError = true
-	r.Diagnostics = append(
-		r.Diagnostics,
-		diagnostics.New(message, tok.Location(), r.Source),
-	)
+	r.reportAt(message, tok.Location())
 }
 
 func (r *resolver) beginScope() {
@@ -105,6 +101,7 @@ func (r *resolver) resolveVar(
 
 func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 	switch expr := expr.(type) {
+	case syntax.LiteralExpr:
 	case syntax.VarExpr:
 		err = r.resolveVar(expr, expr.Name)
 	case syntax.UnaryExpr:
@@ -154,6 +151,7 @@ func (r *resolver) resolveExpr(expr syntax.Expr) (err *resolvingError) {
 			err = e
 		}
 	case syntax.CallExpr:
+		// TODO: Handle wrong amount of passed arguments
 		err = r.resolveExpr(expr.Callee)
 
 		for _, argument := range expr.Arguments {

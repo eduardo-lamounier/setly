@@ -26,8 +26,8 @@ func NewEnvironment(enclosing *Environment) *Environment {
 	}
 }
 
-func (e *Environment) ancestor(distance int) *Environment {
-	env := e
+func (e Environment) ancestor(distance int) *Environment {
+	env := &e
 	for range distance {
 		env = env.enclosing
 
@@ -55,7 +55,7 @@ func (e *Environment) AssignAt(name string, value Value, distance int) {
 	e.ancestor(distance).Assign(name, value)
 }
 
-func (e *Environment) Access(name string) Value {
+func (e Environment) Access(name string) Value {
 	if v, ok := e.values[name]; ok {
 		return v
 	}
@@ -63,6 +63,6 @@ func (e *Environment) Access(name string) Value {
 	panic(fmt.Sprintf("Undefined variable '%s'.", name))
 }
 
-func (e *Environment) AccessAt(name string, distance int) Value {
+func (e Environment) AccessAt(name string, distance int) Value {
 	return e.ancestor(distance).Access(name)
 }
