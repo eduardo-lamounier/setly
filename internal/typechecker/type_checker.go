@@ -114,6 +114,14 @@ func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
 				err = &typeError{}
 				return
 			}
+		case syntax.TokenEqualEqual,
+			syntax.TokenTildeEqual,
+			syntax.TokenGreater,
+			syntax.TokenLess,
+			syntax.TokenGreaterEqual,
+			syntax.TokenLessEqual:
+
+			typ = types.Bool{}
 		default:
 			panic(
 				fmt.Sprintf(
