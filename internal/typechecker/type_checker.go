@@ -196,22 +196,148 @@ func (c *checker) checkBlock(
 func (c *checker) checkStmt(stmt syntax.Stmt) (err *typeError) {
 	switch stmt := stmt.(type) {
 	case syntax.ExprStmt:
+		_, err = c.inferExpr(stmt.Expr)
 	case syntax.PrintStmt:
+		_, err = c.inferExpr(stmt.Expr)
 	case syntax.VarStmt:
+		typ := c.elaborateType(stmt.Type)
+
+		// Just like in the resolver, a function must be able to refer to itself:
+		switch typ.(type) {
+		case types.Func:
+			c.Context.defineVar(stmt.Name.Lexeme, typ)
+		}
+
+		var got types.Type
+		got, err = c.inferExpr(stmt.Initializer)
+		if err != nil {
+			return
+		}
+
+		if !typ.Equals(got) {
+			c.reportAt(
+				fmt.Sprintf(
+					"Cannot initialize variable of type %s with value of type %s.",
+					typ, got,
+				),
+				stmt.Location(),
+			)
+			return &typeError{}
+		}
+
+		// A normal variable can't be able to refer to itself, so it needs to be
+		// defined after type checking the initializer:
+		switch typ.(type) {
+		case types.Func:
+		default:
+			c.Context.defineVar(stmt.Name.Lexeme, typ)
+		}
 	case syntax.AssignStmt:
+		name := stmt.Name.Lexeme
+		typ := c.Context.accessTypeAt(name, c.Vars[name])
+
+		var got types.Type
+		got, err = c.inferExpr(stmt.Value)
+
+		if !typ.Equals(got) {
+			c.reportAt(
+				fmt.Sprintf(
+					"Cannot assign value of type %s to variable of type %s.",
+					got, typ,
+				),
+				stmt.Value.Location(),
+			)
+			err = &typeError{}
+			return
+		}
 	case syntax.BlockStmt:
+		err = c.checkBlock(stmt.Stmts, newContext(c.Context))
 	case syntax.IfStmt:
+		_, err = c.inferExpr(stmt.Condition)
+
+		e := c.checkBlock(stmt.ThenBranch, newContext(c.Context))
+		if err == nil {
+			err = e
+		}
+
+		e = c.checkBlock(stmt.ElseBranch, newContext(c.Context))
+		if err == nil {
+			err = e
+		}
 	case syntax.WhileStmt:
+		_, err = c.inferExpr(stmt.Condition)
+
+		e := c.checkBlock(stmt.Block, newContext(c.Context))
+		if err == nil {
+			err = e
+		}
 	case syntax.ForNumStmt:
+		var startType types.Type
+		startType, err = c.inferExpr(stmt.Start)
+
+		if !startType.Equals(types.Number{}) {
+			c.reportAt(
+				fmt.Sprintf(
+					"Expected start value to be a %s, but got value of type %s instead.",
+					types.Number{}, startType,
+				),
+				stmt.Start.Location(),
+			)
+			err = &typeError{}
+			return
+		}
+
+		limitType, e := c.inferExpr(stmt.Limit)
+		if err == nil {
+			err = e
+		}
+
+		if !limitType.Equals(types.Number{}) {
+			c.reportAt(
+				fmt.Sprintf(
+					"Expected limit value to be a %s, but got value of type %s instead.",
+					types.Number{}, limitType,
+				),
+				stmt.Limit.Location(),
+			)
+			err = &typeError{}
+			return
+		}
+
+		var stepType types.Type
+		stepType, e = c.inferExpr(stmt.Step)
+		if err == nil {
+			err = e
+		}
+
+		if !stepType.Equals(types.Number{}) {
+			c.reportAt(
+				fmt.Sprintf(
+					"Expected step value to be a %s, but got value of type %s instead.",
+					types.Number{}, stepType,
+				),
+				stmt.Step.Location(),
+			)
+			err = &typeError{}
+			return
+		}
+
+		e = c.checkBlock(stmt.Block, newContext(c.Context))
+		if err == nil {
+			err = e
+		}
 	case syntax.ReturnStmt:
-	case syntax.BreakStmt:
-	case syntax.ContinueStmt:
+		// TODO: Check for the right return type. Since the resolver emitted
+		// no errors, we can be sure any return statement is inside a function.
+		_, err = c.inferExpr(stmt.Value)
+	case syntax.ContinueStmt, syntax.BreakStmt:
 	case syntax.TypeStmt:
+		c.Context.defineType(stmt.Name.Lexeme, c.elaborateType(stmt.Value))
 	default:
 		panic("Not implemented statement kind to type check.")
 	}
 
-	panic("Type check for expressions not yet implemented.")
+	return
 }
 
 func Check(
