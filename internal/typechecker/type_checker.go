@@ -123,8 +123,15 @@ func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
 				return
 			}
 		case syntax.TokenEqualEqual,
-			syntax.TokenTildeEqual,
-			syntax.TokenGreater,
+			syntax.TokenTildeEqual:
+
+			if !l.Equals(r) {
+				mismatch()
+				return
+			}
+
+			typ = types.Bool{}
+		case syntax.TokenGreater,
 			syntax.TokenLess,
 			syntax.TokenGreaterEqual,
 			syntax.TokenLessEqual:
