@@ -162,7 +162,10 @@ func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
 			typ = calleeType.ReturnType
 		default:
 			c.reportAt(
-				fmt.Sprintf("Cannot call %s.", calleeType), expr.Callee.Location(),
+				fmt.Sprintf(
+					"Cannot call expression that evaluates to a %s.", calleeType,
+				),
+				expr.Callee.Location(),
 			)
 			err = &typeError{}
 		}
