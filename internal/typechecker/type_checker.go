@@ -136,6 +136,16 @@ func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
 			syntax.TokenGreaterEqual,
 			syntax.TokenLessEqual:
 
+			if !l.Equals(types.Number{}) && !l.Equals(types.String{}) {
+				undefOpForType()
+				return
+			}
+
+			if !l.Equals(r) {
+				mismatch()
+				return
+			}
+
 			typ = types.Bool{}
 		default:
 			panic(
