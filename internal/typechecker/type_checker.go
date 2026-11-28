@@ -173,9 +173,9 @@ func (c *checker) inferExpr(expr syntax.Expr) (typ types.Type, err *typeError) {
 		returnType := c.elaborateType(expr.ReturnType)
 		paramsType := make([]types.Type, len(expr.Parameters))
 
-		for _, param := range expr.Parameters {
-			paramType := c.elaborateType(param.Type)
-			c.Context.defineVar(param.Name.Lexeme, paramType)
+		for i, param := range expr.Parameters {
+			paramsType[i] = c.elaborateType(param.Type)
+			c.Context.defineVar(param.Name.Lexeme, paramsType[i])
 		}
 
 		typ = types.NewFunc(paramsType, returnType)
